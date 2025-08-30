@@ -1,0 +1,14 @@
+{
+  "pdf": { 
+    "pageSize": "A4", 
+    "marginMm": 15 
+  },
+  "markdown": { 
+    "theme": "default", 
+    "toc": true, 
+    "latex": "katex" 
+  },
+  "mermaid": { 
+    "themePath": "../../resources/themes/mermaid/mermaid-theme.css" 
+  }
+}

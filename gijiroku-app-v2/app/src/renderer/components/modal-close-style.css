@@ -1,0 +1,41 @@
+/* 統一された閉じるボタンスタイル */
+.modal-close,
+.close-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover,
+.close-btn:hover {
+  background: var(--bg-hover);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px var(--shadow-light);
+}
+
+/* ダークモード対応 */
+:root[data-theme="dark"] .modal-close,
+:root[data-theme="dark"] .close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme="dark"] .modal-close:hover,
+:root[data-theme="dark"] .close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}

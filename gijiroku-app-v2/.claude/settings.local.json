@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm test)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(taskkill:*)",
+      "Bash(timeout:*)",
+      "Bash(npm run electron:package:*)",
+      "Bash(npm run:*)",
+      "Bash(\"議事録アプリ v2.exe\")",
+      "Bash(start \"\" \"C:\\Users\\tgch1\\Desktop\\ZBC-migration-kit\\gijiroku-app-v2\\release\\win-unpacked\\議事録アプリ v2.exe\")",
+      "Bash(powershell:*)",
+      "Bash(npx electron-builder:*)",
+      "Bash(fuser:*)",
+      "Bash(npx asar list:*)",
+      "Bash(node:*)",
+      "Read(C:\\Users\\tgch1\\AppData\\Roaming\\gijiroku-app-v2\\workspace\\exports/**)",
+      "Read(C:\\Users\\tgch1\\AppData\\Roaming\\gijiroku-app-v2\\workspace\\exports/**)",
+      "Bash(grep:*)",
+      "Bash(start \"\" \".\\release\\win-unpacked\\議事録アプリ v2.exe\")",
+      "Bash(dir:*)",
+      "Read(C:\\Users\\tgch1\\AppData\\Roaming\\gijiroku-app-v2\\workspace/**)",
+      "Read(C:\\Users\\tgch1\\AppData\\Roaming\\gijiroku-app-v2\\workspace\\templates/**)",
+      "Bash(start \"\" \"議事録アプリ v2.exe\")",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,10 @@
+/* Mobile-specific overrides for Header */
+.header-title-wrap { display: flex; flex-direction: column; }
+
+.menu-toggle { display: none; background: transparent; border: none; color: #fff; font-size: 1.25rem; }
+
+@media (max-width: 480px) {
+  .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
+  .header-nav { display: none; width: 100%; justify-content: center; gap: 0.75rem; }
+  .header-nav.open { display: flex; }
+}

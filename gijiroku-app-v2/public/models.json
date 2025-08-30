@@ -1,0 +1,15 @@
+{
+  "openai": {
+    "models": ["gpt-5"],
+    "default": "gpt-5"
+  },
+  "gemini": {
+    "models": [
+      "gemini-2.5-pro",
+      "gemini-2.0-flash"
+    ],
+    "default": "gemini-2.5-pro"
+  },
+  "lastUpdated": "2025-08-30",
+  "description": "AI models configuration for gijiroku-app-v2"
+}

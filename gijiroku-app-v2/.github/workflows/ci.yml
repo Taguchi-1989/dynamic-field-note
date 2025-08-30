@@ -1,0 +1,238 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  NODE_VERSION: '18'
+  ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
+  ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
+
+jobs:
+  # ================= 品質検証ジョブ =================
+  quality-checks:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Type checking
+      run: npm run typecheck
+      continue-on-error: false
+      
+    - name: Lint checking
+      run: npm run lint
+      continue-on-error: true
+      
+    - name: Security audit
+      run: npm audit --audit-level=moderate
+      continue-on-error: true
+      
+    - name: Check package vulnerabilities
+      run: npx audit-ci --moderate
+      continue-on-error: true
+
+  # ================= テストジョブ =================
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run unit tests
+      run: npm test
+      continue-on-error: true
+      
+    - name: Run API integration tests
+      env:
+        VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+        VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
+      run: |
+        if [ -n "$VITE_GEMINI_API_KEY" ] && [ -n "$VITE_OPENAI_API_KEY" ]; then
+          cd test && node test-direct-api.cjs
+        else
+          echo "API keys not available, skipping API tests"
+        fi
+      continue-on-error: true
+
+  # ================= ビルドジョブ (マルチプラットフォーム) =================
+  build:
+    name: Build Application
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    needs: [quality-checks, test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install system dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libnss3-dev libatk-bridge2.0-dev libdrm2-dev libxcomposite1-dev libxdamage1-dev libxrandr2-dev libgbm1-dev libxss1-dev libasound2-dev
+        
+    - name: Setup Electron cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.ELECTRON_CACHE }}
+        key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-electron-
+          
+    - name: Setup Electron Builder cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.ELECTRON_BUILDER_CACHE }}
+        key: ${{ runner.os }}-electron-builder-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-electron-builder-
+          
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build Electron main process
+      run: npm run build:electron
+      
+    - name: Build Vite renderer process
+      run: npm run build:vite
+      
+    - name: Package Electron app
+      run: npm run build
+      continue-on-error: true
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.os }}
+        path: |
+          dist-electron/
+          dist/
+        retention-days: 7
+
+  # ================= PDF生成テストジョブ =================
+  pdf-generation-test:
+    name: PDF Generation Tests
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb libnss3-dev libatk-bridge2.0-dev libdrm2-dev libxcomposite1-dev libxdamage1-dev libxrandr2-dev libgbm1-dev libxss1-dev libasound2-dev
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-ubuntu-latest
+        
+    - name: Run PDF generation tests
+      run: |
+        cd test
+        xvfb-run -a node test-simple-markdown-pdf.cjs
+      continue-on-error: true
+      
+    - name: Upload PDF test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: pdf-test-results
+        path: test/*.pdf
+        retention-days: 3
+
+  # ================= リリースジョブ (タグプッシュ時のみ) =================
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [build, pdf-generation-test]
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download all build artifacts
+      uses: actions/download-artifact@v4
+      
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          build-ubuntu-latest/**/*
+          build-windows-latest/**/*
+          build-macos-latest/**/*
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ================= 通知ジョブ =================
+  notify:
+    name: Notify Build Status
+    runs-on: ubuntu-latest
+    needs: [quality-checks, test, build, pdf-generation-test]
+    if: always()
+    
+    steps:
+    - name: Build Status Summary
+      run: |
+        echo "🔍 Quality Checks: ${{ needs.quality-checks.result }}"
+        echo "🧪 Tests: ${{ needs.test.result }}"
+        echo "🏗️ Build: ${{ needs.build.result }}"
+        echo "📄 PDF Tests: ${{ needs.pdf-generation-test.result }}"
+        
+        if [ "${{ needs.quality-checks.result }}" = "success" ] && [ "${{ needs.test.result }}" != "failure" ] && [ "${{ needs.build.result }}" = "success" ]; then
+          echo "✅ CI/CD Pipeline: SUCCESS"
+          echo "PIPELINE_STATUS=success" >> $GITHUB_ENV
+        else
+          echo "❌ CI/CD Pipeline: FAILED"
+          echo "PIPELINE_STATUS=failed" >> $GITHUB_ENV
+        fi

@@ -1,0 +1,222 @@
+.file-upload {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.dropzone {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+  position: relative;
+  overflow: hidden;
+}
+
+.dropzone:hover {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.dropzone.active {
+  border-color: #667eea;
+  background: #e0e7ff;
+  transform: scale(1.02);
+}
+
+.dropzone.processing {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.upload-icon {
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.dropzone.active .upload-icon,
+.dropzone:hover .upload-icon {
+  color: #667eea;
+}
+
+.dropzone h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #374151;
+  font-weight: 600;
+}
+
+.dropzone p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.file-requirements {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.file-requirements ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.file-requirements li {
+  font-size: 0.9rem;
+  color: #059669;
+  font-weight: 500;
+}
+
+/* アップロード進捗 */
+.upload-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-circle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-ring {
+  transition: stroke-dashoffset 0.3s ease;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.progress-text {
+  position: absolute;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #667eea;
+}
+
+/* エラーメッセージ */
+.error-message {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.error-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.error-message p {
+  margin: 0;
+  color: #dc2626;
+  font-weight: 500;
+  flex: 1;
+}
+
+.error-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.error-close:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+/* ヘルプセクション */
+.upload-help {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.upload-help h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #374151;
+  font-weight: 600;
+}
+
+.upload-help ol {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #6b7280;
+}
+
+.upload-help li {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .file-upload {
+    padding: 1rem;
+  }
+  
+  .dropzone {
+    padding: 2rem 1rem;
+  }
+  
+  .dropzone h3 {
+    font-size: 1.25rem;
+  }
+  
+  .file-requirements {
+    padding: 0.75rem;
+  }
+  
+  .file-requirements ul {
+    gap: 0.25rem;
+  }
+  
+  .file-requirements li {
+    font-size: 0.85rem;
+  }
+  
+  .upload-help {
+    padding: 1rem;
+  }
+  
+  .upload-help li {
+    font-size: 0.9rem;
+  }
+}

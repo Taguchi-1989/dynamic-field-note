@@ -1,0 +1,144 @@
+
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>スタンドアローンPDF生成テスト</title>
+      <style>
+        body {
+          font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: none;
+          margin: 0;
+          padding: 20mm;
+          background: white;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+          letter-spacing: normal !important;
+          word-spacing: normal !important;
+          font-weight: 600;
+          line-height: 1.3;
+          margin: 0.8em 0 0.4em 0;
+        }
+        
+        h1 { 
+          font-size: 1.8em; 
+          margin-top: 0;
+          margin-bottom: 0.6em;
+          border-bottom: 2px solid #333;
+          padding-bottom: 0.3em;
+        }
+        
+        h2 { 
+          font-size: 1.5em; 
+          margin-top: 1.2em;
+          margin-bottom: 0.5em;
+          color: #2c3e50;
+        }
+        
+        h3 { 
+          font-size: 1.3em;
+          color: #34495e;
+        }
+        
+        ul, ol {
+          padding-left: 24px;
+          margin: 12px 0;
+        }
+        
+        li {
+          margin: 6px 0;
+        }
+        
+        p {
+          margin: 12px 0;
+        }
+        
+        .metadata {
+          font-size: 0.9em;
+          color: #666;
+          border-top: 1px solid #ddd;
+          padding-top: 16px;
+          margin-top: 30px;
+        }
+        
+        .test-header {
+          border: 2px solid #3498db;
+          border-radius: 8px;
+          padding: 16px;
+          background: #f8f9fa;
+          margin-bottom: 20px;
+        }
+        
+        @page {
+          size: A4;
+          margin: 20mm;
+        }
+        
+        @media print {
+          body { margin: 0; }
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="test-header">
+        <h1>📄 スタンドアローンPDF生成テスト</h1>
+        <p><strong>生成方式:</strong> Node.js + marked（Electronなし）</p>
+        <p><strong>生成日時:</strong> 2025/8/30 14:47:53</p>
+        <p><strong>テストタイプ:</strong> スタンドアローン（CI/CD対応）</p>
+      </div>
+      
+      <div class="content">
+        <h1>スタンドアローンPDF生成テスト</h1>
+<h2>概要</h2>
+<p>このテストはElectronに依存しないPDF生成機能をテストします。</p>
+<h2>機能テスト</h2>
+<h3>見出しテスト</h3>
+<h1>大見出し (H1)</h1>
+<h2>中見出し (H2)</h2>
+<h3>小見出し (H3)</h3>
+<h3>リストテスト</h3>
+<ul>
+<li>箇条書きアイテム1</li>
+<li>箇条書きアイテム2<ul>
+<li>ネストしたアイテム</li>
+</ul>
+</li>
+<li>箇条書きアイテム3</li>
+</ul>
+<ol>
+<li>番号付きリスト1</li>
+<li>番号付きリスト2</li>
+<li>番号付きリスト3</li>
+</ol>
+<h3>テキスト装飾テスト</h3>
+<p><strong>太字テキスト</strong>、<em>斜体テキスト</em>、通常テキスト。</p>
+<h3>改行テスト</h3>
+<p>段落1です。<br>改行があります。</p>
+<p>段落2です。改行とスペースのテストを行います。</p>
+<h2>テスト結果</h2>
+<p>✅ マークダウン解析: 成功<br>✅ HTML変換: 成功<br>✅ スタイル適用: 成功<br>✅ 文字エンコーディング: UTF-8対応</p>
+<h2>技術情報</h2>
+<ul>
+<li><strong>変換エンジン</strong>: marked.js</li>
+<li><strong>テンプレート</strong>: HTML5 + CSS3</li>
+<li><strong>フォント</strong>: Noto Sans JP フォールバック</li>
+<li><strong>ページサイズ</strong>: A4</li>
+<li><strong>マージン</strong>: 20mm</li>
+</ul>
+<p>これでテストは完了です。</p>
+
+      </div>
+      
+      <div class="metadata">
+        <p><small>このドキュメントはCI/CD対応のスタンドアローンテストにより生成されました</small></p>
+        <p><small>Node.js バージョン: v22.17.1</small></p>
+        <p><small>プラットフォーム: win32</small></p>
+      </div>
+    </body>
+    </html>
+  

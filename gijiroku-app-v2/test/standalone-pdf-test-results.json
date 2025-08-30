@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-08-30T05:47:53.241Z",
+  "testType": "standalone-pdf-generation",
+  "platform": "win32",
+  "nodeVersion": "v22.17.1",
+  "processing": {
+    "markdownLength": 545,
+    "htmlLength": 851,
+    "conversionTime": 17,
+    "success": true
+  },
+  "output": {
+    "htmlPath": "C:\\Users\\tgch1\\Desktop\\ZBC-migration-kit\\gijiroku-app-v2\\test\\standalone-pdf-test.html",
+    "htmlSize": 3,
+    "generated": true
+  },
+  "compatibility": {
+    "electronRequired": false,
+    "cicdReady": true,
+    "crossPlatform": true
+  }
+}

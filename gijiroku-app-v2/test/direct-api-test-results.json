@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-08-30T05:43:37.607Z",
+  "gemini": {
+    "success": false,
+    "error": "APIキーが設定されていません"
+  },
+  "openai": {
+    "success": false,
+    "error": "APIキーが設定されていません"
+  }
+}

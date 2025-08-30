@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-08-30T05:35:10.554Z",
+  "llmProcessing": {
+    "provider": "gemini",
+    "duration": 2192,
+    "inputLength": 439,
+    "outputLength": 472
+  },
+  "pdfGeneration": {
+    "duration": 334,
+    "sizeKB": 352,
+    "path": "C:\\Users\\tgch1\\Desktop\\ZBC-migration-kit\\gijiroku-app-v2\\test\\llm-processed-meeting.pdf"
+  },
+  "totalDuration": 2526,
+  "success": true
+}

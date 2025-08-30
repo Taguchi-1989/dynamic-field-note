@@ -1,0 +1,113 @@
+
+🔄 Initializing remark processor...
+🔒 Pre-initializing security protocols...
+🛡️ Registering security protocols before app ready...
+✅ Security protocols registered successfully
+✅ remark-gfm loaded
+✅ remark-rehype loaded
+✅ rehype-raw loaded
+✅ rehype-stringify loaded
+✅ MarkdownCompilerService processor initialized
+[3992:0830/155311.644:ERROR:ui\base\resource\resource_bundle.cc:1075] Failed to load C:\Users\tgch1\Desktop\ZBC-migration-kit\gijiroku-app-v2\release\win-unpacked\chrome_100_percent.pak
+Some features may not be available.
+🚀 Electron application starting...
+🔒 Completing security policy initialization...
+🔒 Initializing security policies...
+🛡️ Content Security Policy configured
+🔗 Protocol handlers configured
+🔐 Session security configured
+🪟 Window security defaults configured
+✅ Security policies initialized successfully
+📁 Initializing workspace...
+🗄️ Initializing database...
+SQLiteデータベース初期化: C:\Users\tgch1\AppData\Roaming\gijiroku-app-v2\workspace\data\gijiroku.db
+SQLiteスキーママイグレーション開始
+SQLiteスキーママイグレーション完了
+SQLiteデータベース初期化完了
+🔐 Initializing secure storage...
+🔐 Initializing SecureStorageService...
+✅ SecureStorageService initialized successfully
+🏭 Initializing job service...
+🏭 Initializing PdfJobService...
+⚙️ Job processor started
+✅ PdfJobService initialized successfully
+🔄 Initializing sync service...
+🔄 Initializing SyncService...
+⏱️ Vector clock initialized: 0 devices
+✅ SyncService initialized successfully
+🔍 Initializing search service...
+🔍 Initializing SearchService...
+✅ FTS indexes initialized
+✅ SearchService initialized successfully
+⚙️ Backend services disabled (using direct APIs)...
+🔌 Setting up IPC handlers...
+📂 File handler IPC registered
+💾 Storage handler IPC registered
+✅ Database IPC handlers registered
+✅ Markdown IPC handlers registered (Phase 2 complete)
+✅ Secure Storage IPC handlers registered (Phase 3 complete)
+✅ Jobs IPC handlers registered (Phase 4 complete)
+✅ Sync IPC handlers registered (Phase 5 complete)
+✅ Search IPC handlers registered (Phase 5 complete)
+✅ AI Processing IPC handlers registered (完全オフライン対応完了)
+🪟 Creating main window...
+🪟 Creating main window...
+📱 Environment: { isDevelopment: false, isPackaged: true, nodeEnv: undefined }
+📁 App paths: {
+  appPath: 'C:\\Users\\tgch1\\Desktop\\ZBC-migration-kit\\gijiroku-app-v2\\release\\win-unpacked\\resources\\app.asar',
+  userData: 'C:\\Users\\tgch1\\AppData\\Roaming\\gijiroku-app-v2',
+  exe: 'C:\\Users\\tgch1\\Desktop\\ZBC-migration-kit\\gijiroku-app-v2\\release\\win-unpacked\\議事録アプリ v2.exe',
+  cwd: 'C:\\Users\\tgch1\\Desktop\\ZBC-migration-kit\\gijiroku-app-v2',
+  __dirname: 'C:\\Users\\tgch1\\Desktop\\ZBC-migration-kit\\gijiroku-app-v2\\release\\win-unpacked\\resources\\app.asar\\dist-electron'
+}
+Display size: { width: 3072, height: 1680 }
+🎨 Icon path: C:\Users\tgch1\Desktop\ZBC-migration-kit\gijiroku-app-v2\release\win-unpacked\resources\resources\icons\favicon.ico
+Window config: {
+  width: 1400,
+  height: 900,
+  minWidth: 1024,
+  minHeight: 768,
+  show: false,
+  backgroundColor: '#ffffff',
+  icon: 'C:\\Users\\tgch1\\Desktop\\ZBC-migration-kit\\gijiroku-app-v2\\release\\win-unpacked\\resources\\resources\\icons\\favicon.ico',
+  webPreferences: {
+    nodeIntegration: false,
+    contextIsolation: true,
+    enableRemoteModule: false,
+    sandbox: true,
+    webSecurity: true,
+    preload: 'C:\\Users\\tgch1\\Desktop\\ZBC-migration-kit\\gijiroku-app-v2\\release\\win-unpacked\\resources\\app.asar\\preload.js'
+  },
+  titleBarStyle: 'default'
+}
+📄 Loading production HTML from: C:\Users\tgch1\Desktop\ZBC-migration-kit\gijiroku-app-v2\release\win-unpacked\resources\dist\index.html
+❌ index.html not found: C:\Users\tgch1\Desktop\ZBC-migration-kit\gijiroku-app-v2\release\win-unpacked\resources\dist\index.html
+[3992:0830/155311.720:ERROR:net\disk_cache\cache_util_win.cc:20] Unable to move the cache: アクセスが拒否されました。 (0x5)
+[3992:0830/155311.720:ERROR:net\disk_cache\cache_util_win.cc:20] Unable to move the cache: アクセスが拒否されました。 (0x5)
+[3992:0830/155311.720:ERROR:net\disk_cache\cache_util_win.cc:20] Unable to move the cache: アクセスが拒否されました。 (0x5)
+[3992:0830/155311.720:ERROR:net\disk_cache\disk_cache.cc:216] Unable to create cache
+[3992:0830/155311.720:ERROR:gpu\ipc\host\gpu_disk_cache.cc:723] Gpu Cache Creation failed: -2
+[3992:0830/155311.720:ERROR:net\disk_cache\disk_cache.cc:216] Unable to create cache
+[3992:0830/155311.720:ERROR:gpu\ipc\host\gpu_disk_cache.cc:723] Gpu Cache Creation failed: -2
+[3992:0830/155311.720:ERROR:net\disk_cache\disk_cache.cc:216] Unable to create cache
+[3992:0830/155311.720:ERROR:gpu\ipc\host\gpu_disk_cache.cc:723] Gpu Cache Creation failed: -2
+(electron) 'console-message' arguments are deprecated and will be removed. Please use Event<WebContentsConsoleMessageEventParams> object instead.
+[Renderer 3] Unable to load preload script: C:\Users\tgch1\Desktop\ZBC-migration-kit\gijiroku-app-v2\release\win-unpacked\resources\app.asar\preload.js (node:electron/js2c/sandbox_bundle:2)
+[Renderer 3] Error: ENOENT, preload.js not found in C:\Users\tgch1\Desktop\ZBC-migration-kit\gijiroku-app-v2\release\win-unpacked\resources\app.asar (node:electron/js2c/sandbox_bundle:2)
+✅ Application ready in 217.17ms
+✅ Window ready-to-show event fired
+✅ Window shown and focused
+🪟 All windows closed, cleaning up...
+🛑 Shutting down SyncService...
+✅ SyncService shutdown completed
+🛑 Shutting down PdfJobService...
+✅ PdfJobService shutdown completed
+✅ MermaidRenderWorker destroyed
+✅ Services cleanup completed
+🛑 Application shutting down...
+🛑 Shutting down SyncService...
+✅ SyncService shutdown completed
+🛑 Shutting down PdfJobService...
+✅ PdfJobService shutdown completed
+✅ MermaidRenderWorker destroyed
+✅ Services cleanup completed

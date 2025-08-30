@@ -1,0 +1,251 @@
+.roadmap-modal {
+  max-width: 900px;
+  width: 95vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.roadmap-modal .modal-header {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.roadmap-modal .modal-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.roadmap-modal .modal-body {
+  padding: 2rem;
+}
+
+.roadmap-intro {
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.roadmap-intro p {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.roadmap-intro p:last-child {
+  margin-bottom: 0;
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.roadmap-section {
+  margin-bottom: 2.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-primary);
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.roadmap-section h3 {
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  color: var(--text-primary);
+  margin: 0;
+  padding: 1rem 1.5rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.feature-list {
+  padding: 1.5rem;
+}
+
+.feature-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+}
+
+/* 優先度高のアイテムのスタイル */
+.feature-item.priority-high {
+  border-left: 4px solid #ff6b6b;
+  background: linear-gradient(to right, rgba(255, 107, 107, 0.05), transparent);
+}
+
+.priority-badge {
+  display: inline-block;
+  background: #ff6b6b;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: normal;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.feature-item:last-child {
+  margin-bottom: 0;
+}
+
+.feature-item:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent-primary);
+  box-shadow: 0 4px 12px var(--shadow-color);
+  transform: translateY(-2px);
+}
+
+.feature-item h4 {
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.feature-item p {
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.roadmap-footer {
+  border-top: 2px solid var(--border-color);
+  padding-top: 2rem;
+  margin-top: 2rem;
+}
+
+.feedback-section {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.feedback-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.feedback-section p {
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.feedback-section p:last-of-type {
+  margin-bottom: 1.5rem;
+}
+
+.contact-button-container {
+  margin-top: 1.5rem;
+}
+
+.contact-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.contact-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .roadmap-modal {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .roadmap-modal .modal-header {
+    padding: 1rem;
+    border-radius: 0;
+  }
+
+  .roadmap-modal .modal-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .roadmap-modal .modal-body {
+    padding: 1rem;
+  }
+
+  .roadmap-intro,
+  .feedback-section {
+    padding: 1rem;
+  }
+
+  .feature-list {
+    padding: 1rem;
+  }
+
+  .feature-item {
+    padding: 1rem;
+  }
+}
+
+/* ダークモード対応 */
+[data-theme="dark"] .roadmap-modal .modal-header {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+}
+
+[data-theme="dark"] .roadmap-intro {
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .roadmap-section {
+  background: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .roadmap-section h3 {
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  color: var(--text-primary);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .feature-item {
+  background: var(--bg-primary);
+  border-color: var(--border-light);
+}
+
+[data-theme="dark"] .feature-item:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent-primary);
+}
+
+[data-theme="dark"] .feedback-section {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+}
