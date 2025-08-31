@@ -7,6 +7,8 @@ interface PdfDownloadButtonProps {
   disabled?: boolean;
   variant?: 'primary' | 'secondary';
   size?: 'small' | 'medium' | 'large';
+  images?: {[key: string]: string}; // 画像データ（base64）
+  outputFormat?: 'standard' | 'latex'; // 出力フォーマット
 }
 
 const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
@@ -14,7 +16,9 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
   title = '議事録',
   disabled = false,
   variant = 'primary',
-  size = 'medium'
+  size = 'medium',
+  images = {},
+  outputFormat = 'standard'
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -23,6 +27,13 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
   const handleDownloadPDF = async () => {
     if (!content.trim()) {
       setMessage('ダウンロードするコンテンツがありません');
+      setMessageType('error');
+      return;
+    }
+
+    // LaTeX形式の場合は開発中メッセージを表示
+    if (outputFormat === 'latex') {
+      setMessage('⚠️ LaTeX PDF機能は現在開発中です。標準PDFをご利用ください。');
       setMessageType('error');
       return;
     }
@@ -43,12 +54,22 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
       if (typeof window !== 'undefined' && (window as any).electronAPI) {
         const electronAPI = (window as any).electronAPI;
         
+        // 画像IDを実際のbase64データに置換
+        let processedContent = content;
+        Object.entries(images).forEach(([imageId, dataUri]) => {
+          const regex = new RegExp(`!\\[([^\\]]*?)\\]\\(${imageId}\\)`, 'g');
+          processedContent = processedContent.replace(regex, `![$1](${dataUri})`);
+        });
+
         const input = {
-          mdContent: content,
+          mdContent: processedContent,
           options: {
             title: finalTitle, // 確定したタイトルを設定
             toc: false, // 目次無効
-            theme: 'default'
+            theme: 'default',
+            format: outputFormat, // LaTeX か Standard かの指定
+            includeImages: Object.keys(images).length > 0, // 画像が含まれているかの指定
+            imageData: images // 画像データを渡す
           }
         };
 
@@ -58,8 +79,9 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
         if (result.success && result.data) {
           console.log('✅ PDF generated via Electron IPC:', result.data.pdfPath);
           
-          // シンプルな処理: exports内のPDFを指定名でDownloadsにコピー
-          const targetFilename = `${finalTitle}.pdf`;
+          // EBUSY エラー回避のため、タイムスタンプ付きのユニークなファイル名を生成
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+          const targetFilename = `${finalTitle}_${timestamp}.pdf`;
           
           try {
             console.log('📁 Copying PDF to Downloads folder with filename:', targetFilename);
@@ -68,7 +90,9 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
             const copyToDownloadsResult = await electronAPI.file.copyToDownloads(result.data.pdfPath, targetFilename);
             
             if (copyToDownloadsResult.success && copyToDownloadsResult.data) {
-              setMessage(`✅ PDFをDownloadsフォルダに保存しました: ${targetFilename}`);
+              const formatInfo = outputFormat === 'latex' ? '（LaTeX形式）' : '';
+              const imageInfo = Object.keys(images).length > 0 ? `（${Object.keys(images).length}枚の画像含む）` : '';
+              setMessage(`✅ PDF${formatInfo}${imageInfo}をDownloadsフォルダに保存しました: ${targetFilename}`);
               setMessageType('success');
               console.log('✅ PDF copied to Downloads folder:', copyToDownloadsResult.data.destPath);
             } else {
@@ -77,8 +101,11 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
             
           } catch (copyError) {
             console.error('❌ Failed to copy PDF to Downloads:', copyError);
-            setMessage(`❌ Downloadsへの保存に失敗しました。exportsフォルダを確認してください: ${result.data.pdfPath}`);
-            setMessageType('error');
+            // コピーに失敗しても、PDF自体は生成されているので成功メッセージに変更
+            const exportsPath = result.data.pdfPath;
+            const fileName = exportsPath.split('\\').pop() || exportsPath.split('/').pop();
+            setMessage(`✅ PDFを生成しました！Downloadsフォルダへのコピーは失敗しましたが、以下の場所からアクセスできます:\n📁 ${fileName}`);
+            setMessageType('success');
           }
           
         } else {
@@ -90,7 +117,15 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
 
     } catch (err) {
       console.error('PDF generation error:', err);
-      setMessage('❌ PDFの生成に失敗しました。');
+      let errorMessage = 'PDFの生成に失敗しました。';
+      
+      if (err instanceof Error) {
+        errorMessage += `\n詳細: ${err.message}`;
+      } else if (typeof err === 'object' && err !== null) {
+        errorMessage += `\n詳細: ${JSON.stringify(err)}`;
+      }
+      
+      setMessage(`❌ ${errorMessage}`);
       setMessageType('error');
     } finally {
       setIsGenerating(false);

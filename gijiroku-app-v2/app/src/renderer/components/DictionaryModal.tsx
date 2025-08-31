@@ -114,8 +114,8 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
     }
   };
 
-  // エクスポート
-  const exportDictionary = async () => {
+  // エクスポート（JSON形式）
+  const exportDictionaryJSON = async () => {
     try {
       const response = await axios.get(API_ENDPOINTS.dictionaryExport);
       const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
@@ -125,14 +125,41 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
       a.download = `dictionary_${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      alert('辞書をエクスポートしました');
+      alert('辞書をJSON形式でエクスポートしました');
     } catch (error) {
-      console.error('エクスポートエラー:', error);
-      alert('エクスポートに失敗しました');
+      console.error('JSON export failed:', error);
+      alert('JSONエクスポートに失敗しました');
     }
   };
 
-  // インポート
+  // エクスポート（テキスト形式）
+  const exportDictionaryText = async () => {
+    try {
+      const response = await axios.get(API_ENDPOINTS.dictionaryExport);
+      const entries = response.data;
+      
+      // テキスト形式に変換（TSVフォーマット）
+      let textContent = '誤字\t修正後\t説明\tカテゴリ\n'; // ヘッダー
+      
+      entries.forEach((entry: DictionaryEntry) => {
+        textContent += `${entry.original}\t${entry.corrected}\t${entry.description || ''}\t${entry.category || '一般'}\n`;
+      });
+      
+      const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dictionary_${new Date().toISOString().split('T')[0]}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      alert('辞書をテキスト形式でエクスポートしました');
+    } catch (error) {
+      console.error('Text export failed:', error);
+      alert('テキストエクスポートに失敗しました');
+    }
+  };
+
+  // インポート（JSON/テキスト対応）
   const importDictionary = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -140,20 +167,56 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        const jsonData = e.target?.result as string;
-        const entries = JSON.parse(jsonData);
+        const fileContent = e.target?.result as string;
+        let entries: DictionaryEntry[] = [];
+        
+        if (file.name.endsWith('.json')) {
+          // JSONファイルの処理
+          const jsonData = JSON.parse(fileContent);
+          entries = Array.isArray(jsonData) ? jsonData : [jsonData];
+        } else if (file.name.endsWith('.txt') || file.name.endsWith('.tsv')) {
+          // テキストファイルの処理（TSV形式）
+          const lines = fileContent.split('\n').filter(line => line.trim());
+          
+          // ヘッダーをスキップ（最初の行がヘッダーと思われる場合）
+          const startIndex = lines[0] && (lines[0].includes('誤字') || lines[0].includes('original')) ? 1 : 0;
+          
+          for (let i = startIndex; i < lines.length; i++) {
+            const line = lines[i];
+            const parts = line.split('\t');
+            
+            if (parts.length >= 2) {
+              entries.push({
+                original: parts[0].trim(),
+                corrected: parts[1].trim(),
+                description: parts[2] ? parts[2].trim() : '',
+                category: parts[3] ? parts[3].trim() : '一般'
+              });
+            }
+          }
+        } else {
+          throw new Error('サポートされていないファイル形式です。JSON、TXT、TSVファイルのみサポートしています。');
+        }
+        
+        if (entries.length === 0) {
+          throw new Error('インポートするエントリが見つかりませんでした。');
+        }
+        
         await axios.post(API_ENDPOINTS.dictionaryImport, {
-          entries: Array.isArray(entries) ? entries : [entries],
+          entries: entries,
           overwrite: true
         });
         await fetchEntries();
-        alert('辞書をインポートしました');
+        alert(`辞書をインポートしました（${entries.length}件）`);
       } catch (error) {
         console.error('インポートエラー:', error);
-        alert('インポートに失敗しました');
+        alert(`インポートに失敗しました: ${error instanceof Error ? error.message : error}`);
       }
     };
     reader.readAsText(file);
+    
+    // ファイル入力をリセット
+    event.target.value = '';
   };
 
   if (!isOpen) return null;
@@ -164,12 +227,17 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
         <div className="modal-header">
           <h2><i className="fas fa-book"></i> カスタム辞書管理</h2>
           <div className="header-actions">
-            <button onClick={exportDictionary} className="export-btn" title="エクスポート">
-              <i className="fas fa-download"></i>
-            </button>
-            <label className="import-btn" title="インポート">
+            <div className="export-group">
+              <button onClick={exportDictionaryJSON} className="export-btn" title="JSON形式でエクスポート">
+                <i className="fas fa-file-code"></i> JSON
+              </button>
+              <button onClick={exportDictionaryText} className="export-btn" title="テキスト形式でエクスポート">
+                <i className="fas fa-file-alt"></i> TXT
+              </button>
+            </div>
+            <label className="import-btn" title="インポート（JSON/TXT/TSV対応）">
               <i className="fas fa-upload"></i>
-              <input type="file" accept=".json" onChange={importDictionary} style={{ display: 'none' }} />
+              <input type="file" accept=".json,.txt,.tsv" onChange={importDictionary} style={{ display: 'none' }} />
             </label>
             <button className="modal-close" onClick={onClose}>
               <i className="fas fa-times"></i>

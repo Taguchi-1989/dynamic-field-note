@@ -24,7 +24,13 @@
       "Read(C:\\Users\\tgch1\\AppData\\Roaming\\gijiroku-app-v2\\workspace/**)",
       "Read(C:\\Users\\tgch1\\AppData\\Roaming\\gijiroku-app-v2\\workspace\\templates/**)",
       "Bash(start \"\" \"議事録アプリ v2.exe\")",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(tasklist)",
+      "Bash(find:*)",
+      "Bash(npm search:*)",
+      "Bash(npx playwright:*)",
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

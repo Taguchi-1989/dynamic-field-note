@@ -195,8 +195,36 @@ export function setupFileHandler(): void {
       // Downloadsフォルダのパスを取得
       const downloadsPath = path.join(os.homedir(), 'Downloads', filename);
       
-      // ファイルをコピー
-      await fs.copyFile(normalizedSrc, downloadsPath);
+      // ファイルロック対策: 少し待ってからコピー
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // 既存ファイルがある場合は削除
+      try {
+        await fs.access(downloadsPath);
+        await fs.unlink(downloadsPath);
+        console.log('🗑️ Existing file removed:', downloadsPath);
+      } catch (error) {
+        // ファイルが存在しない場合は無視
+      }
+      
+      // ファイルをコピー（リトライ機能付き）
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          await fs.copyFile(normalizedSrc, downloadsPath);
+          console.log('✅ File copied successfully:', downloadsPath);
+          break;
+        } catch (error) {
+          retryCount++;
+          if (retryCount >= maxRetries) {
+            throw error;
+          }
+          console.log(`⚠️ Copy retry ${retryCount}/${maxRetries}:`, error);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
 
       const stats = await fs.stat(downloadsPath);
       

@@ -8,8 +8,8 @@
  */
 
 export interface ChunkingConfig {
-  maxChunkSize: number;        // デフォルト: 300文字（テスト用）
-  overlapSize: number;         // デフォルト: 50文字（テスト用）
+  maxChunkSize: number;        // デフォルト: 5000文字（本番用）、300文字（モック用）
+  overlapSize: number;         // デフォルト: 100文字（本番用）
   splitOnSentence: boolean;    // 文単位分割
   preserveSpeakers: boolean;   // 話者情報保持
 }
@@ -45,10 +45,10 @@ export interface ProcessingProgress {
 export class ChunkingService {
   private static instance: ChunkingService;
   
-  // テスト用デフォルト設定
+  // デフォルト設定
   private defaultConfig: ChunkingConfig = {
-    maxChunkSize: 300,         // テスト用: 300文字
-    overlapSize: 50,           // テスト用: 50文字
+    maxChunkSize: 5000,        // 本番用: 5000文字（lost in the middle対策）
+    overlapSize: 100,          // 本番用: 100文字
     splitOnSentence: true,     // 文単位分割を優先
     preserveSpeakers: true     // 話者情報を保持
   };

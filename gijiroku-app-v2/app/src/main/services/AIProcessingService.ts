@@ -143,8 +143,8 @@ export class AIProcessingService {
     options: AIProcessingOptions
   ): Promise<AIProcessingResult> {
     const chunkingConfig = {
-      maxChunkSize: 300,  // テスト用設定
-      overlapSize: 50,
+      maxChunkSize: options.provider === 'mock' ? 300 : 5000,  // モック用300文字、本番用5000文字
+      overlapSize: options.provider === 'mock' ? 50 : 100,
       splitOnSentence: true,
       preserveSpeakers: true,
       ...options.chunkingConfig

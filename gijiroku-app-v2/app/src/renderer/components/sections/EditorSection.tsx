@@ -47,6 +47,9 @@ const EditorSection: React.FC<EditorSectionProps> = ({
   const [showImageGallery, setShowImageGallery] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // PDF出力フォーマット管理
+  const [outputFormat, setOutputFormat] = useState<'standard' | 'latex'>('standard');
+
   // 画像挿入機能
   const handleImageInsert = () => {
     if (fileInputRef.current) {
@@ -93,7 +96,7 @@ const EditorSection: React.FC<EditorSectionProps> = ({
         setEditorText(newText);
       }
 
-      showToast('画像を挿入しました', 'success');
+      showToast('✅ 画像を挿入しました（PDF出力時は自動で最適サイズに調整されます）', 'success');
     };
 
     reader.readAsDataURL(file);
@@ -463,22 +466,24 @@ const EditorSection: React.FC<EditorSectionProps> = ({
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
                 {/* 画像管理ボタン */}
                 <button
-                  onClick={handleImageInsert}
-                  title="画像を挿入"
+                  onClick={() => showToast('🚧 画像機能は開発中です', 'warning')}
+                  title="画像機能は開発中です"
                   style={{
                     padding: '6px 12px',
                     fontSize: '12px',
                     borderRadius: '4px',
                     border: 'none',
-                    cursor: 'pointer',
-                    backgroundColor: '#007bff',
+                    cursor: 'not-allowed',
+                    backgroundColor: '#6c757d',
                     color: 'white',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '6px',
+                    opacity: 0.6
                   }}
+                  disabled
                 >
-                  🖼️ 画像挿入
+                  🚧 画像機能（開発中）
                 </button>
                 {Object.keys(insertedImages).length > 0 && (
                   <button
@@ -689,12 +694,53 @@ const EditorSection: React.FC<EditorSectionProps> = ({
           <div className="preview-section">
             <div className="section-header">
               <h3><i className="fas fa-eye"></i> 印刷時の品質</h3>
-              <div style={{ marginLeft: 'auto' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {/* PDF出力フォーマット選択 */}
+                <select
+                  value={outputFormat}
+                  onChange={(e) => {
+                    const newFormat = e.target.value as 'standard' | 'latex';
+                    if (newFormat === 'latex') {
+                      // LaTeX選択時は警告を表示して標準に戻す
+                      alert('LaTeX PDF機能は現在開発中です。標準PDFをご利用ください。');
+                      setOutputFormat('standard');
+                    } else {
+                      setOutputFormat(newFormat);
+                    }
+                  }}
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    borderRadius: '4px',
+                    border: '1px solid #d1d5db',
+                    backgroundColor: '#ffffff',
+                    color: '#374151',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s ease',
+                    fontWeight: '500',
+                    minWidth: '120px'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
+                  }}
+                >
+                  <option value="standard" style={{ color: '#374151', backgroundColor: '#ffffff', fontWeight: '500' }}>📄 標準PDF</option>
+                  <option value="latex" style={{ color: '#999999', backgroundColor: '#f5f5f5', fontWeight: '500' }} disabled>🧮 LaTeX PDF (開発中)</option>
+                </select>
                 <PdfDownloadButton 
                   content={outputText}
                   title={saveTitle || '議事録'}
                   disabled={!outputText.trim()}
                   size="small"
+                  images={insertedImages}
+                  outputFormat={outputFormat}
                 />
                 {/* Debug: 保存タイトル確認用 */}
                 {process.env.NODE_ENV === 'development' && (

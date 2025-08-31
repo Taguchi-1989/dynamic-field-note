@@ -124,6 +124,16 @@ set -a && source .env && set +a && node test-gemini-chunking.js
 
 ## 更新履歴
 
+### v2.0.1 (2025-08-31) - パッケージングリソース問題完全解決版
+- ✅ **Electronリソース問題解決**: リリース版で発生していた `chrome_100_percent.pak` と `resources.pak` 不足問題を解決
+  - **問題**: パッケージ版で「Failed to load chrome_100_percent.pak」「Failed to load resources.pak」エラー
+  - **原因**: electron-builder設定でElectronの必要リソースファイルが除外されていた
+  - **解決**: `electron-builder.json`の`files`配列に`includeSubNodeModules: false`設定を追加
+  - **結果**: リリース版にすべての必要リソースファイルが含まれ、正常起動を確認
+- ✅ **設定ロック問題の特定**: 開発環境とリリース環境の差異を明確化
+- ✅ **ビルドプロセス改善**: v2.0.0→v2.0.1へのバージョンアップとクリーンビルド実行
+- ✅ **パッケージ完整性確認**: asarアーカイブ内容と必須ファイルの存在確認済み
+
 ### v2.0.1 (2025-08-30) - パッケージング問題解決版
 - ✅ **Electronパッケージング問題解決**: 「ローカルでは動くのに、パッケージで壊れる」問題を根本解決
   - HTMLファイルパス問題: asar内相対パス対応 (`__dirname + '../dist/index.html'`)
