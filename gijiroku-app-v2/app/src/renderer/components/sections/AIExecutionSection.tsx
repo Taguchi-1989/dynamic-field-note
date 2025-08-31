@@ -30,6 +30,7 @@ interface AIExecutionSectionProps {
   showToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
   totalCharacters?: number;
   chunkingProgress?: ChunkingProgress;
+  apiKeysAvailable?: boolean;
 }
 
 const AIExecutionSection: React.FC<AIExecutionSectionProps> = ({
@@ -49,6 +50,7 @@ const AIExecutionSection: React.FC<AIExecutionSectionProps> = ({
   showToast,
   totalCharacters,
   chunkingProgress,
+  apiKeysAvailable,
 }) => {
   const executeAI = async () => {
     const inputText = uploadedText || directTextInput;
@@ -257,20 +259,28 @@ const AIExecutionSection: React.FC<AIExecutionSectionProps> = ({
             </div>
             <button 
               onClick={executeAI} 
-              className="execute-btn"
-              disabled={isProcessing || !hasInput}
-              title={!hasInput ? "入力受付待ちです" : ""}
+              className="execute-btn enhanced"
+              disabled={isProcessing || !hasInput || (apiKeysAvailable === false)}
+              title={
+                !hasInput 
+                  ? "入力受付待ちです" 
+                  : apiKeysAvailable === false 
+                  ? "API設定が必要です（設定画面でAPIキーを入力してください）" 
+                  : `${models.find(m => m.value === selectedModel)?.label || selectedModel}で処理を実行`
+              }
             >
               {isProcessing ? (
-                <>
+                <div className="execute-btn-content">
                   <i className="fas fa-spinner fa-spin"></i>
-                  <span>処理中</span>
-                </>
+                  <span className="btn-main-text">処理中</span>
+                  <span className="btn-sub-text">{models.find(m => m.value === selectedModel)?.label}</span>
+                </div>
               ) : (
-                <>
+                <div className="execute-btn-content">
                   <i className="fas fa-rocket"></i>
-                  <span>AIを実行</span>
-                </>
+                  <span className="btn-main-text">AIに実行</span>
+                  <span className="btn-sub-text">{models.find(m => m.value === selectedModel)?.label}</span>
+                </div>
               )}
             </button>
           </div>

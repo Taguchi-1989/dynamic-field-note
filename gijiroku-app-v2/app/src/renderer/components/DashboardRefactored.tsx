@@ -186,6 +186,21 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
     }
   };
 
+  // 新規議事録作成機能
+  const handleNewDocument = () => {
+    if (window.confirm('新しい議事録を作成しますか？\n現在の入力内容はクリアされます。')) {
+      dashboardState.setUploadedText('');
+      dashboardState.setDirectTextInput('');
+      dashboardState.setOutputText('');
+      dashboardState.setActiveTab('edit');
+      dashboardState.setIsProcessing(false);
+      setTotalCharacters(0);
+      setChunkingProgress(undefined);
+      dashboardState.setSaveTitle(`${new Date().toISOString().slice(0, 10)}_議事録`);
+      dashboardState.showToast('新しい議事録を作成しました', 'success');
+    }
+  };
+
   return (
     <div className="dashboard">
       {/* Header */}
@@ -193,18 +208,27 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
         <div className="header-content container">
           <div className="header-title">
             <h1>📋 議事録修正支援アプリ</h1>
-            <button 
-              className="header-btn refresh-btn" 
-              onClick={handleRefresh}
-              title="入力内容をクリア"
-            >
-              🔄 リフレッシュ
-            </button>
-            {zoomLevel !== 100 && (
-              <div className="zoom-indicator" title="現在のズーム倍率 (Ctrl+0でリセット)">
-                🔍 {zoomLevel}%
-              </div>
-            )}
+            <div className="header-actions">
+              <button 
+                className="header-btn new-document-btn" 
+                onClick={handleNewDocument}
+                title="新しい議事録を作成"
+              >
+                📝 議事録新規作成
+              </button>
+              <button 
+                className="header-btn refresh-btn" 
+                onClick={handleRefresh}
+                title="入力内容をクリア"
+              >
+                🔄 リフレッシュ
+              </button>
+              {zoomLevel !== 100 && (
+                <div className="zoom-indicator" title="現在のズーム倍率 (Ctrl+0でリセット)">
+                  🔍 {zoomLevel}%
+                </div>
+              )}
+            </div>
           </div>
           <div className="header-workflow">
             <span className={`workflow-step ${getStepStatus(1)}`}>📤 入力</span>
@@ -314,6 +338,7 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
             showToast={dashboardState.showToast}
             totalCharacters={totalCharacters}
             chunkingProgress={chunkingProgress}
+            apiKeysAvailable={dashboardState.apiKeysAvailable}
           />
         </div>
 

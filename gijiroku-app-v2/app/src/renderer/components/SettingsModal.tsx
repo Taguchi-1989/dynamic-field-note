@@ -325,11 +325,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     console.log('💾 Saving API keys and models:', { apiKeys, selectedModels });
     
     // カスタムイベントを発行してメイン画面に変更を通知
-    const customEvent = new CustomEvent('modelSettingsChanged', { 
+    const modelSettingsEvent = new CustomEvent('modelSettingsChanged', { 
       detail: selectedModels 
     });
-    window.dispatchEvent(customEvent);
+    window.dispatchEvent(modelSettingsEvent);
     console.log('🔔 Dispatched modelSettingsChanged event:', selectedModels);
+    
+    // APIキー変更イベントも発行
+    const apiKeysEvent = new CustomEvent('apiKeysChanged');
+    window.dispatchEvent(apiKeysEvent);
+    console.log('🔑 Dispatched apiKeysChanged event');
     
     alert('APIキーとモデル設定を保存しました');
   };
@@ -548,7 +553,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
         <div className="modal-body">
           {activeTab === 'workspace' && (
-            <div className="workspace-settings">
+            <div className="settings-tab-container">
+              <div className="settings-section-header">
+                <h3><i className="fas fa-folder"></i> ワークスペース管理</h3>
+                <p>ファイルの保存場所とワークスペースを管理してください。</p>
+              </div>
               <WorkspaceManager isOpen={true} onClose={null} />
             </div>
           )}
@@ -659,11 +668,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           )}
 
           {activeTab === 'prompt' && (
-            <div className="prompt-settings">
-              <h3>プロンプトテンプレート管理</h3>
-              <p className="settings-description">
-                利用可能なテンプレートを確認し、カスタムテンプレートをデータベースに保存できます。
-              </p>
+            <div className="settings-tab-container">
+              <div className="settings-section-header">
+                <h3><i className="fas fa-file-alt"></i> プロンプトテンプレート管理</h3>
+                <p>利用可能なテンプレートを確認し、カスタムテンプレートをデータベースに保存できます。</p>
+              </div>
               
               <div className="prompt-controls">
                 <button onClick={exportAllPrompts} className="control-btn export">
@@ -764,11 +773,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           )}
 
           {activeTab === 'dictionary' && (
-            <div className="dictionary-settings">
-              <h3>カスタム辞書</h3>
-              <p className="settings-description">
-                音声認識の誤字や専門用語の修正ルールを登録できます。
-              </p>
+            <div className="settings-tab-container">
+              <div className="settings-section-header">
+                <h3><i className="fas fa-book"></i> カスタム辞書</h3>
+                <p>音声認識の誤字や専門用語の修正ルールを登録できます。</p>
+              </div>
               
               <div className="dictionary-controls">
                 <div className="setting-item">
@@ -821,11 +830,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           )}
 
           {activeTab === 'appearance' && (
-            <div className="appearance-settings">
-              <h3>外観設定</h3>
-              <p className="settings-description">
-                アプリケーションの外観やテーマを設定できます。
-              </p>
+            <div className="settings-tab-container">
+              <div className="settings-section-header">
+                <h3><i className="fas fa-palette"></i> 外観設定</h3>
+                <p>アプリケーションの外観やテーマを設定できます。</p>
+              </div>
               
               <div className="appearance-controls">
                 <div className="setting-item">
@@ -856,12 +865,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
 
           {activeTab === 'chunking' && (
-            <div className="chunking-settings">
-              <h3>分割設定</h3>
-              <p className="settings-description">
-                <i className="fas fa-info-circle"></i>
-                LLMの「lost in the middle」問題を防ぐため、長いテキストを分割して処理します。
-              </p>
+            <div className="settings-tab-container">
+              <div className="settings-section-header">
+                <h3><i className="fas fa-cut"></i> 分割設定</h3>
+                <p>LLMの「lost in the middle」問題を防ぐため、長いテキストを分割して処理します。</p>
+              </div>
               
               <div className="chunking-controls">
                 <div className="setting-item">
@@ -986,8 +994,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           )}
 
           {activeTab === 'support' && (
-            <div className="support-settings">
-              <div className="section-header">
+            <div className="settings-tab-container">
+              <div className="settings-section-header">
                 <h3><i className="fas fa-life-ring"></i> サポート・お問い合わせ</h3>
                 <p>アプリの使用方法やお困りの際は、以下からお問い合わせください。</p>
               </div>

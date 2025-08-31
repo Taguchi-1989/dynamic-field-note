@@ -1,9 +1,9 @@
 .settings-modal-content {
   background: var(--bg-primary);
   border-radius: 12px;
-  width: 90%;
-  max-width: 900px;
-  max-height: 85vh;
+  width: 95%;
+  max-width: 1200px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -55,7 +55,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: calc(85vh - 120px); /* ヘッダーとタブ分を除く */
+  max-height: calc(90vh - 120px); /* ヘッダーとタブ分を除く */
   padding: 0; /* パディングは子要素で管理 */
 }
 

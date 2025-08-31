@@ -153,6 +153,52 @@ export const useDashboard = () => {
     localStorage.setItem('useCustomDictionary', JSON.stringify(useCustomDictionary));
   }, [useCustomDictionary]);
 
+  // API keys availability check
+  const checkApiKeysAvailable = useCallback(() => {
+    const savedKeys = localStorage.getItem('apiKeys');
+    if (!savedKeys) return false;
+    
+    try {
+      const apiKeys = JSON.parse(savedKeys);
+      const hasGeminiKey = apiKeys.gemini && apiKeys.gemini.trim().length > 0;
+      const hasOpenaiKey = apiKeys.openai && apiKeys.openai.trim().length > 0;
+      
+      // At least one key should be available
+      return hasGeminiKey || hasOpenaiKey;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // API keys availability state
+  const [apiKeysAvailable, setApiKeysAvailable] = useState<boolean>(() => checkApiKeysAvailable());
+
+  // Monitor API keys changes
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'apiKeys') {
+        const newAvailability = checkApiKeysAvailable();
+        console.log('🔑 API keys availability changed:', newAvailability);
+        setApiKeysAvailable(newAvailability);
+      }
+    };
+
+    // Custom event for same-window changes
+    const handleApiKeysChanged = () => {
+      const newAvailability = checkApiKeysAvailable();
+      console.log('🔑 API keys availability changed via custom event:', newAvailability);
+      setApiKeysAvailable(newAvailability);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('apiKeysChanged', handleApiKeysChanged);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('apiKeysChanged', handleApiKeysChanged);
+    };
+  }, [checkApiKeysAvailable]);
+
   // Toast functions (memoized)
   const showToast = useCallback((message: string, type: ToastMessage['type']) => {
     setToast({ message, type, isVisible: true });
@@ -258,6 +304,7 @@ export const useDashboard = () => {
     setToast,
     lastSaved,
     hasUnsavedChanges,
+    apiKeysAvailable,
     
     // Functions
     showToast,
