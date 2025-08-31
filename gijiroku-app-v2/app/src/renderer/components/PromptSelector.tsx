@@ -32,6 +32,11 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
   // 初回表示の不安定さを避けるため、プレビューはローカル状態で管理
   const [previewContent, setPreviewContent] = useState('');
   const [_previewReady, setPreviewReady] = useState(false);
+  // 概要開閉用の状態
+  const [isOverviewExpanded, setIsOverviewExpanded] = useState(false);
+  // ポップアップ表示用の状態
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupContent, setPopupContent] = useState('');
 
   const fetchTemplates = useCallback(async () => {
     // Check cache first
@@ -237,6 +242,30 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
     setShowEditor(false);
   };
 
+  // ポップアップ表示関数
+  const showTemplatePopup = (content: string) => {
+    setPopupContent(content);
+    setShowPopup(true);
+  };
+
+  // プレビューのコピー機能
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('クリップボードにコピーしました！');
+    } catch (error) {
+      console.error('コピーに失敗:', error);
+      // フォールバック: テキストエリアを使用
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      alert('クリップボードにコピーしました！');
+    }
+  };
+
 
   // 初回のプレビューを安定して表示するために100ms遅延して適用
   const delayedInitRef = useRef(false);
@@ -262,7 +291,7 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
           <select value={currentTemplate} onChange={(e) => handleTemplateChange(e.target.value)}>
             {templates.map((template) => (
               <option key={template.id} value={template.id}>
-                {template.title} - {template.description || template.category}
+                {template.title}
               </option>
             ))}
             <option value="custom">カスタムプロンプト</option>
@@ -325,20 +354,36 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
           <div className="template-preview-compact" aria-live="polite">
             <div className="preview-header">
               <h4>📄 現在のテンプレート（概要）</h4>
+              <button
+                className="toggle-overview-btn"
+                onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
+                aria-expanded={isOverviewExpanded}
+                title={isOverviewExpanded ? '概要を折りたたむ' : '概要を展開する'}
+              >
+                <i className={`fas ${isOverviewExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+              </button>
             </div>
-            <div className="prompt-preview-compact" role="region" aria-label="テンプレート概要のプレビュー">
-              {showSkeleton ? (
-                <div className="skeleton-lines" aria-busy="true" aria-label="読み込み中">
-                  <div className="skeleton-line w90" />
-                  <div className="skeleton-line w80" />
-                  <div className="skeleton-line w60" />
-                  <div className="skeleton-line thin w80" />
-                  <div className="skeleton-line thin w40" />
-                </div>
-              ) : (
-                <pre>{preview || placeholder}</pre>
-              )}
-            </div>
+            {isOverviewExpanded && (
+              <div 
+                className="prompt-preview-compact" 
+                role="region" 
+                aria-label="テンプレート概要のプレビュー"
+                onClick={() => preview && showTemplatePopup(preview)}
+                title="クリックで詳細表示"
+              >
+                {showSkeleton ? (
+                  <div className="skeleton-lines" aria-busy="true" aria-label="読み込み中">
+                    <div className="skeleton-line w90" />
+                    <div className="skeleton-line w80" />
+                    <div className="skeleton-line w60" />
+                    <div className="skeleton-line thin w80" />
+                    <div className="skeleton-line thin w40" />
+                  </div>
+                ) : (
+                  <pre>{preview || placeholder}</pre>
+                )}
+              </div>
+            )}
           </div>
         );
       })()}
@@ -353,26 +398,96 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
           <div className="template-preview-compact" aria-live="polite">
             <div className="preview-header">
               <h4>📄 現在のテンプレート（概要）</h4>
-              {isEdited && (
-                <span className="edit-status">⚠️ 一時編集中（未保存）</span>
-              )}
+              <div className="header-controls">
+                {isEdited && (
+                  <span className="edit-status">⚠️ 一時編集中（未保存）</span>
+                )}
+                <button
+                  className="toggle-overview-btn"
+                  onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
+                  aria-expanded={isOverviewExpanded}
+                  title={isOverviewExpanded ? '概要を折りたたむ' : '概要を展開する'}
+                >
+                  <i className={`fas ${isOverviewExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+                </button>
+              </div>
             </div>
-            <div className="prompt-preview-compact" role="region" aria-label="テンプレート概要のプレビュー">
-              {showSkeleton ? (
-                <div className="skeleton-lines" aria-busy="true" aria-label="読み込み中">
-                  <div className="skeleton-line w90" />
-                  <div className="skeleton-line w80" />
-                  <div className="skeleton-line w60" />
-                  <div className="skeleton-line thin w80" />
-                  <div className="skeleton-line thin w40" />
-                </div>
-              ) : (
-                <pre>{displayContent}</pre>
-              )}
-            </div>
+            {isOverviewExpanded && (
+              <div 
+                className="prompt-preview-compact" 
+                role="region" 
+                aria-label="テンプレート概要のプレビュー"
+                onClick={() => displayContent && showTemplatePopup(displayContent)}
+                title="クリックで詳細表示"
+              >
+                {showSkeleton ? (
+                  <div className="skeleton-lines" aria-busy="true" aria-label="読み込み中">
+                    <div className="skeleton-line w90" />
+                    <div className="skeleton-line w80" />
+                    <div className="skeleton-line w60" />
+                    <div className="skeleton-line thin w80" />
+                    <div className="skeleton-line thin w40" />
+                  </div>
+                ) : (
+                  <pre>{displayContent}</pre>
+                )}
+              </div>
+            )}
           </div>
         );
       })()}
+
+      {/* ポップアップモーダル */}
+      {showPopup && (
+        <div className="template-popup-overlay" onClick={() => setShowPopup(false)}>
+          <div className="template-popup-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="popup-header">
+              <h3>
+                <i className="fas fa-eye"></i>
+                プロンプトテンプレート詳細
+              </h3>
+              <div className="popup-actions">
+                <button 
+                  className="popup-action-btn" 
+                  onClick={() => copyToClipboard(popupContent)}
+                  title="クリップボードにコピー"
+                >
+                  <i className="fas fa-copy"></i>
+                  コピー
+                </button>
+                <button 
+                  className="popup-action-btn primary" 
+                  onClick={() => {
+                    const selectedTemplate = templates.find(t => t.id === currentTemplate);
+                    if (selectedTemplate) {
+                      setEditingPrompt(popupContent);
+                      setTempEditedPrompt(popupContent);
+                      setShowEditor(true);
+                      setShowPopup(false);
+                    }
+                  }}
+                  title="編集モードで開く"
+                >
+                  <i className="fas fa-edit"></i>
+                  編集
+                </button>
+                <button 
+                  className="popup-close-btn" 
+                  onClick={() => setShowPopup(false)}
+                  title="閉じる"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            <div className="popup-content">
+              <div className="popup-template-content">
+                {popupContent}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

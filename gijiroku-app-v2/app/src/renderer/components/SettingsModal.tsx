@@ -17,6 +17,7 @@ interface SettingsModalProps {
   onToggleDarkMode: () => void;
   useCustomDictionary: boolean;
   onToggleCustomDictionary: () => void;
+  onOpenContact?: () => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ 
@@ -29,9 +30,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   isDarkMode,
   onToggleDarkMode,
   useCustomDictionary,
-  onToggleCustomDictionary
+  onToggleCustomDictionary,
+  onOpenContact
 }) => {
-  const [activeTab, setActiveTab] = useState<'workspace' | 'api' | 'prompt' | 'dictionary' | 'appearance' | 'chunking'>('workspace');
+  const [activeTab, setActiveTab] = useState<'workspace' | 'api' | 'prompt' | 'dictionary' | 'appearance' | 'chunking' | 'support'>('workspace');
   const [apiKeys, setApiKeys] = useState({
     gemini: '',
     openai: ''
@@ -54,8 +56,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
   // 分割設定用の状態
   const [chunkingSettings, setChunkingSettings] = useState({
-    maxChunkSize: 300,      // テスト用デフォルト: 300文字
-    overlapSize: 50,        // テスト用デフォルト: 50文字
+    maxChunkSize: 5000,     // 本番用デフォルト: 5000文字（lost in the middle対策）
+    overlapSize: 100,       // 本番用デフォルト: 100文字
     splitOnSentence: true,
     preserveSpeakers: true
   });
@@ -536,6 +538,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           >
             <i className="fas fa-cut"></i> 分割設定
           </button>
+          <button 
+            className={`tab-btn ${activeTab === 'support' ? 'active' : ''}`}
+            onClick={() => setActiveTab('support')}
+          >
+            <i className="fas fa-life-ring"></i> サポート
+          </button>
         </div>
 
         <div className="modal-body">
@@ -546,103 +554,104 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           )}
 
           {activeTab === 'api' && (
-            <div className="api-settings">
+            <div className="settings-tab-container">
+              <div className="settings-section-header">
+                <h3><i className="fas fa-key"></i> AI API設定</h3>
+                <p>AI処理に使用するAPIキーとモデルを設定してください。</p>
+              </div>
               
-              <h3>AI API設定</h3>
+              <div className="settings-form-group">
+                <label>Google Gemini API Key</label>
+                <div className="settings-input-group">
+                  <input
+                    type="password"
+                    value={apiKeys.gemini}
+                    onChange={(e) => setApiKeys({...apiKeys, gemini: e.target.value})}
+                    placeholder="AIza..."
+                  />
+                  <select
+                    value={selectedModels.gemini || 'gemini-2.0-flash'}
+                    onChange={(e) => setSelectedModels({...selectedModels, gemini: e.target.value})}
+                    className="model-selector"
+                    disabled={!availableModels?.gemini}
+                  >
+                    {availableModels?.gemini?.models && Object.entries(availableModels.gemini.models).map(([key, name]) => (
+                      <option key={key} value={key}>
+                        {name as string}
+                      </option>
+                    ))}
+                  </select>
+                  <button 
+                    type="button"
+                    className="settings-action-button"
+                    onClick={() => validateApiKey('gemini')}
+                    disabled={isValidatingAPI.gemini || !apiKeys.gemini}
+                  >
+                    {isValidatingAPI.gemini ? (
+                      <><i className="fas fa-spinner fa-spin"></i> 検証中...</>
+                    ) : (
+                      <><i className="fas fa-check-circle"></i> テスト</>
+                    )}
+                  </button>
+                </div>
+                {validationResults.gemini && (
+                  <div className={`settings-validation-result ${validationResults.gemini.isValid ? 'success' : 'error'}`}>
+                    <i className={`fas ${validationResults.gemini.isValid ? 'fa-check' : 'fa-times'}`}></i>
+                    {validationResults.gemini.message}
+                    {validationResults.gemini.modelName && (
+                      <span className="model-info"> ({validationResults.gemini.modelName})</span>
+                    )}
+                  </div>
+                )}
+              </div>
+                
+              <div className="settings-form-group">
+                <label>OpenAI API Key（オプション）</label>
+                <div className="settings-input-group">
+                  <input
+                    type="password"
+                    value={apiKeys.openai}
+                    onChange={(e) => setApiKeys({...apiKeys, openai: e.target.value})}
+                    placeholder="sk-..."
+                  />
+                  <select
+                    value={selectedModels.openai || 'gpt-5-mini'}
+                    onChange={(e) => setSelectedModels({...selectedModels, openai: e.target.value})}
+                    className="model-selector"
+                    disabled={!availableModels?.openai}
+                  >
+                    {availableModels?.openai?.models && Object.entries(availableModels.openai.models).map(([key, name]) => (
+                      <option key={key} value={key}>
+                        {name as string}
+                      </option>
+                    ))}
+                  </select>
+                  <button 
+                    type="button"
+                    className="settings-action-button"
+                    onClick={() => validateApiKey('openai')}
+                    disabled={isValidatingAPI.openai || !apiKeys.openai}
+                  >
+                    {isValidatingAPI.openai ? (
+                      <><i className="fas fa-spinner fa-spin"></i> 検証中...</>
+                    ) : (
+                      <><i className="fas fa-check-circle"></i> テスト</>
+                    )}
+                  </button>
+                </div>
+                {validationResults.openai && (
+                  <div className={`settings-validation-result ${validationResults.openai.isValid ? 'success' : 'error'}`}>
+                    <i className={`fas ${validationResults.openai.isValid ? 'fa-check' : 'fa-times'}`}></i>
+                    {validationResults.openai.message}
+                    {validationResults.openai.modelName && (
+                      <span className="model-info"> ({validationResults.openai.modelName})</span>
+                    )}
+                  </div>
+                )}
+              </div>
               
-              <div className="api-form">
-                <div className="form-group">
-                  <label>Google Gemini API Key</label>
-                  <div className="api-key-input-group">
-                    <input
-                      type="password"
-                      value={apiKeys.gemini}
-                      onChange={(e) => setApiKeys({...apiKeys, gemini: e.target.value})}
-                      placeholder="AIza..."
-                    />
-                    <select
-                      value={selectedModels.gemini || 'gemini-2.0-flash'}
-                      onChange={(e) => setSelectedModels({...selectedModels, gemini: e.target.value})}
-                      className="model-selector"
-                      disabled={!availableModels?.gemini}
-                    >
-                      {availableModels?.gemini?.models && Object.entries(availableModels.gemini.models).map(([key, name]) => (
-                        <option key={key} value={key}>
-                          {name as string}
-                        </option>
-                      ))}
-                    </select>
-                    <button 
-                      type="button"
-                      className="validate-btn"
-                      onClick={() => validateApiKey('gemini')}
-                      disabled={isValidatingAPI.gemini || !apiKeys.gemini}
-                    >
-                      {isValidatingAPI.gemini ? (
-                        <><i className="fas fa-spinner fa-spin"></i> 検証中...</>
-                      ) : (
-                        <><i className="fas fa-check-circle"></i> テスト</>
-                      )}
-                    </button>
-                  </div>
-                  {validationResults.gemini && (
-                    <div className={`validation-result ${validationResults.gemini.isValid ? 'success' : 'error'}`}>
-                      <i className={`fas ${validationResults.gemini.isValid ? 'fa-check' : 'fa-times'}`}></i>
-                      {validationResults.gemini.message}
-                      {validationResults.gemini.modelName && (
-                        <span className="model-info"> ({validationResults.gemini.modelName})</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="form-group">
-                  <label>OpenAI API Key（オプション）</label>
-                  <div className="api-key-input-group">
-                    <input
-                      type="password"
-                      value={apiKeys.openai}
-                      onChange={(e) => setApiKeys({...apiKeys, openai: e.target.value})}
-                      placeholder="sk-..."
-                    />
-                    <select
-                      value={selectedModels.openai || 'gpt-5-mini'}
-                      onChange={(e) => setSelectedModels({...selectedModels, openai: e.target.value})}
-                      className="model-selector"
-                      disabled={!availableModels?.openai}
-                    >
-                      {availableModels?.openai?.models && Object.entries(availableModels.openai.models).map(([key, name]) => (
-                        <option key={key} value={key}>
-                          {name as string}
-                        </option>
-                      ))}
-                    </select>
-                    <button 
-                      type="button"
-                      className="validate-btn"
-                      onClick={() => validateApiKey('openai')}
-                      disabled={isValidatingAPI.openai || !apiKeys.openai}
-                    >
-                      {isValidatingAPI.openai ? (
-                        <><i className="fas fa-spinner fa-spin"></i> 検証中...</>
-                      ) : (
-                        <><i className="fas fa-check-circle"></i> テスト</>
-                      )}
-                    </button>
-                  </div>
-                  {validationResults.openai && (
-                    <div className={`validation-result ${validationResults.openai.isValid ? 'success' : 'error'}`}>
-                      <i className={`fas ${validationResults.openai.isValid ? 'fa-check' : 'fa-times'}`}></i>
-                      {validationResults.openai.message}
-                      {validationResults.openai.modelName && (
-                        <span className="model-info"> ({validationResults.openai.modelName})</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                
-                
-                <button className="save-btn" onClick={saveApiKeys}>
+              <div className="settings-button-group">
+                <button className="settings-action-button primary" onClick={saveApiKeys}>
                   <i className="fas fa-save"></i> APIキーを保存
                 </button>
               </div>
@@ -866,7 +875,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       value={chunkingSettings.maxChunkSize}
                       onChange={(e) => setChunkingSettings(prev => ({
                         ...prev,
-                        maxChunkSize: parseInt(e.target.value) || 300
+                        maxChunkSize: parseInt(e.target.value) || 5000
                       }))}
                       min="100"
                       max="10000"
@@ -876,7 +885,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     <span className="input-suffix">文字</span>
                   </div>
                   <div className="setting-description">
-                    テキストを分割する基本サイズです。テスト用: 300文字推奨
+                    テキストを分割する基本サイズです。本番用: 5000文字推奨（lost in the middle対策）
                   </div>
                 </div>
 
@@ -891,7 +900,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                       value={chunkingSettings.overlapSize}
                       onChange={(e) => setChunkingSettings(prev => ({
                         ...prev,
-                        overlapSize: parseInt(e.target.value) || 50
+                        overlapSize: parseInt(e.target.value) || 100
                       }))}
                       min="0"
                       max="500"
@@ -972,6 +981,62 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 <button className="save-btn chunking" onClick={handleSaveChunkingSettings}>
                   <i className="fas fa-save"></i> 分割設定を保存
                 </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'support' && (
+            <div className="support-settings">
+              <div className="section-header">
+                <h3><i className="fas fa-life-ring"></i> サポート・お問い合わせ</h3>
+                <p>アプリの使用方法やお困りの際は、以下からお問い合わせください。</p>
+              </div>
+
+              <div className="support-actions">
+                <button 
+                  className="action-btn contact-action"
+                  onClick={() => {
+                    if (onOpenContact) {
+                      onOpenContact();
+                    }
+                  }}
+                >
+                  <i className="fas fa-envelope"></i>
+                  <div>
+                    <h4>お問い合わせ</h4>
+                    <p>バグ報告、機能要望、使用方法についてご質問ください</p>
+                  </div>
+                </button>
+                
+                <div className="support-info">
+                  <h4><i className="fas fa-info-circle"></i> サポート情報</h4>
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <strong>バージョン:</strong> v2.0.2
+                    </div>
+                    <div className="info-item">
+                      <strong>開発者:</strong> ZEAL-BOOT-CAMP
+                    </div>
+                    <div className="info-item">
+                      <strong>対応OS:</strong> Windows, macOS, Linux
+                    </div>
+                    <div className="info-item">
+                      <strong>対応ファイル:</strong> VTT, TXT, MD
+                    </div>
+                  </div>
+                </div>
+
+                <div className="quick-help">
+                  <h4><i className="fas fa-question-circle"></i> よくある質問</h4>
+                  <div className="faq-item">
+                    <strong>Q: VTTファイルがアップロードできません</strong>
+                    <p>A: ファイル形式を確認し、ファイルサイズが大きすぎないかご確認ください。</p>
+                  </div>
+                  <div className="faq-item">
+                    <strong>Q: AI処理が遅いです</strong>
+                    <p>A: 分割設定でチャンクサイズを小さくすることで処理速度が向上します。</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

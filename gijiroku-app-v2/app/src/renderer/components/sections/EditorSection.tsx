@@ -349,7 +349,74 @@ const EditorSection: React.FC<EditorSectionProps> = ({
           <div className="edit-section">
             <div className="section-header">
               <h3><i className="fas fa-edit"></i> 編集時の内容 <span style={{ fontSize: '0.8rem', color: '#666', fontWeight: 'normal' }}>({outputText.length}文字)</span></h3>
-              <div style={{ marginLeft: 'auto' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                  onClick={() => {
+                    if (!outputText.trim()) {
+                      showToast('チェックするテキストがありません', 'warning');
+                      return;
+                    }
+                    // 基本的な文章チェック実行
+                    const checkResults = [];
+                    const text = outputText;
+                    
+                    // 長すぎる文の検出
+                    const sentences = text.split(/[。！？\n]/);
+                    const longSentences = sentences.filter(s => s.trim().length > 100);
+                    if (longSentences.length > 0) {
+                      checkResults.push(`長すぎる文: ${longSentences.length}箇所`);
+                    }
+                    
+                    // 同じ語尾の連続検出
+                    const endPatterns = sentences.map(s => {
+                      const trimmed = s.trim();
+                      if (trimmed.endsWith('です') || trimmed.endsWith('ます')) return 'です/ます調';
+                      if (trimmed.endsWith('である') || trimmed.endsWith('だ')) return 'である調';
+                      return 'その他';
+                    }).filter(p => p !== 'その他');
+                    
+                    let consecutiveCount = 0;
+                    let maxConsecutive = 0;
+                    let prevPattern = '';
+                    endPatterns.forEach(pattern => {
+                      if (pattern === prevPattern) {
+                        consecutiveCount++;
+                        maxConsecutive = Math.max(maxConsecutive, consecutiveCount);
+                      } else {
+                        consecutiveCount = 1;
+                      }
+                      prevPattern = pattern;
+                    });
+                    
+                    if (maxConsecutive > 3) {
+                      checkResults.push(`同じ語尾の連続: ${maxConsecutive}回`);
+                    }
+                    
+                    // 結果表示
+                    if (checkResults.length === 0) {
+                      showToast('✅ 文章に問題は見つかりませんでした', 'success');
+                    } else {
+                      showToast(`📝 改善提案: ${checkResults.join(', ')}`, 'info');
+                    }
+                  }}
+                  disabled={!outputText.trim()}
+                  title={!outputText.trim() ? 'チェックするテキストがありません' : '文章の読みやすさをチェック'}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    cursor: !outputText.trim() ? 'not-allowed' : 'pointer',
+                    opacity: !outputText.trim() ? 0.6 : 1,
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  📝 文章チェック
+                </button>
                 <button
                   onClick={saveMarkdown}
                   disabled={!outputText.trim()}
