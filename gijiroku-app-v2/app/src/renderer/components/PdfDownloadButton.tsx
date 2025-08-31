@@ -17,16 +17,19 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
   size = 'medium'
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] = useState<'success' | 'error' | null>(null);
 
   const handleDownloadPDF = async () => {
     if (!content.trim()) {
-      setError('ダウンロードするコンテンツがありません');
+      setMessage('ダウンロードするコンテンツがありません');
+      setMessageType('error');
       return;
     }
 
     setIsGenerating(true);
-    setError(null);
+    setMessage(null);
+    setMessageType(null);
 
     try {
       console.log('📄 Starting PDF generation via Electron IPC...');
@@ -65,7 +68,8 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
             const copyToDownloadsResult = await electronAPI.file.copyToDownloads(result.data.pdfPath, targetFilename);
             
             if (copyToDownloadsResult.success && copyToDownloadsResult.data) {
-              setError(`PDFをDownloadsフォルダに保存しました: ${targetFilename}`);
+              setMessage(`✅ PDFをDownloadsフォルダに保存しました: ${targetFilename}`);
+              setMessageType('success');
               console.log('✅ PDF copied to Downloads folder:', copyToDownloadsResult.data.destPath);
             } else {
               throw new Error(copyToDownloadsResult.error?.message || 'Downloadsフォルダへのコピーに失敗');
@@ -73,7 +77,8 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
             
           } catch (copyError) {
             console.error('❌ Failed to copy PDF to Downloads:', copyError);
-            setError(`Downloadsへの保存に失敗しました。exportsフォルダを確認してください: ${result.data.pdfPath}`);
+            setMessage(`❌ Downloadsへの保存に失敗しました。exportsフォルダを確認してください: ${result.data.pdfPath}`);
+            setMessageType('error');
           }
           
         } else {
@@ -85,7 +90,8 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
 
     } catch (err) {
       console.error('PDF generation error:', err);
-      setError('PDFの生成に失敗しました。');
+      setMessage('❌ PDFの生成に失敗しました。');
+      setMessageType('error');
     } finally {
       setIsGenerating(false);
     }
@@ -150,14 +156,15 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
         )}
       </button>
 
-      {error && (
+      {message && (
         <div style={{
-          color: '#dc3545',
+          color: messageType === 'success' ? '#28a745' : '#dc3545',
           fontSize: '12px',
           marginTop: '4px',
-          maxWidth: '300px'
+          maxWidth: '300px',
+          fontWeight: '500'
         }}>
-          {error}
+          {message}
         </div>
       )}
 

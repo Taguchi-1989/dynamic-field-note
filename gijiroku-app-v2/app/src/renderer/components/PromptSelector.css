@@ -457,15 +457,15 @@
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
   border-radius: 0 0 6px 6px;
-  padding: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 0.75rem;
-  line-height: 1.4;
+  font-size: 0.8rem;
+  line-height: 1.5;
   color: #374151;
   white-space: pre-wrap;
   word-wrap: break-word;
-  max-height: 3rem; /* 約2行に縮小 */
-  min-height: 1.5rem;
+  max-height: 5rem; /* 約3-4行に拡大 */
+  min-height: 2rem;
   overflow-y: auto;
   overflow-x: hidden;
   cursor: pointer;

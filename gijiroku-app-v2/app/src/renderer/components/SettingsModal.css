@@ -21,19 +21,20 @@
 
 .settings-tabs .tab-btn {
   flex: 1;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1.25rem;
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   transition: all 0.2s ease;
+  min-height: 48px;
 }
 
 .settings-tabs .tab-btn:hover {
@@ -49,12 +50,40 @@
   font-weight: 600;
 }
 
+/* モーダルボディ（スクロール対応） */
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(85vh - 120px); /* ヘッダーとタブ分を除く */
+  padding: 0; /* パディングは子要素で管理 */
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
 /* 共通設定タブスタイル */
 .settings-tab-container {
-  padding: 1.5rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .settings-section-header {
