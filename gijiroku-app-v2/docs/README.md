@@ -2,6 +2,13 @@
 
 ## ドキュメント構成
 
+### 📁 技術ドキュメント (2025-09-01 追加)
+現在の問題・実装状況・環境情報
+- `CURRENT_ISSUES.md` - 現状の問題と解決済み項目
+- `ENVIRONMENT_DIFFERENCES.md` - 開発環境 vs リリース環境の詳細比較  
+- `ELECTRON_GUIDE.md` - Electron環境完全ガイド
+- `FEATURE_STATUS.md` - 機能実装状況（新要件含む）
+
 ### 📁 architecture/
 アーキテクチャ設計・実装状況に関するドキュメント
 - `DETAILED-ARCHITECTURE.md` - 詳細アーキテクチャ仕様
@@ -31,4 +38,19 @@
 3. 重要な変更は `development/DEVELOPMENT_LOG.md` に集約
 4. アーキテクチャの変更は該当ドキュメントを更新
 
-最終更新: 2025-08-30
+## 快速参照
+
+### 🚨 現在の状況確認
+- [現在の問題一覧](CURRENT_ISSUES.md) - 解決済み・継続調査が必要な問題
+- [機能実装状況](FEATURE_STATUS.md) - 画像・LaTeX・Mermaid・分割機能など
+
+### ⚡ 開発環境関連
+- [環境差異詳細](ENVIRONMENT_DIFFERENCES.md) - 開発 vs リリース環境の違い
+- [Electron完全ガイド](ELECTRON_GUIDE.md) - IPC通信・パッケージング・デバッグ
+
+### 🔍 トラブルシューティング
+1. **再起動後の文字入力問題** → [CURRENT_ISSUES.md#継続調査が必要な問題](CURRENT_ISSUES.md#継続調査が必要な問題)
+2. **テンプレート消失問題** → [CURRENT_ISSUES.md#テンプレート消失問題](CURRENT_ISSUES.md#テンプレート消失問題)  
+3. **パッケージング問題** → [ELECTRON_GUIDE.md#デバッグ・トラブルシューティング](ELECTRON_GUIDE.md#デバッグ・トラブルシューティング)
+
+最終更新: 2025-09-01
