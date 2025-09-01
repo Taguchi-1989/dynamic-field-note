@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import API_ENDPOINTS from '../config/api';
+import { isFeatureEnabled, shouldShowDevelopmentTag } from '../../shared/feature-flags';
 import './DictionaryModal.css';
 import './modal-close-style.css';
+import './DevelopmentStyles.css';
 
 interface DictionaryEntry {
   id?: string;
@@ -31,9 +33,18 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
   });
   const [isLoading, setIsLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // MVP除外: 辞書機能は開発中
+  const isFeatureDisabled = !isFeatureEnabled('dictionaryFunction');
+  const showDevTag = shouldShowDevelopmentTag('dictionaryFunction');
 
   // 辞書エントリの取得
   const fetchEntries = async () => {
+    if (isFeatureDisabled) {
+      console.warn('🚧 Dictionary function disabled in MVP mode');
+      return;
+    }
+    
     try {
       const response = await axios.get(API_ENDPOINTS.dictionary);
       setEntries(response.data.entries);
@@ -225,7 +236,10 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2><i className="fas fa-book"></i> カスタム辞書管理</h2>
+          <h2>
+            <i className="fas fa-book"></i> カスタム辞書管理
+            {showDevTag && <span className="dev-tag">[開発中]</span>}
+          </h2>
           <div className="header-actions">
             <div className="export-group">
               <button onClick={exportDictionaryJSON} className="export-btn" title="JSON形式でエクスポート">
@@ -246,8 +260,20 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
         </div>
 
         <div className="modal-body">
+          {/* 開発中メッセージ */}
+          {isFeatureDisabled && (
+            <div className="development-notice">
+              <div className="dev-message">
+                <i className="fas fa-tools"></i>
+                <h3>機能開発中</h3>
+                <p>カスタム辞書機能は現在開発中です。MVP版では無効化されています。</p>
+                <p>将来のバージョンで利用可能になる予定です。</p>
+              </div>
+            </div>
+          )}
+
           {/* 新規エントリ追加フォーム */}
-          <div className="add-entry-form">
+          <div className={`add-entry-form ${isFeatureDisabled ? 'disabled' : ''}`}>
             <h3>新規エントリ追加</h3>
             <div className="form-grid">
               <div className="form-group">
@@ -293,9 +319,9 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
             <button
               className="add-btn"
               onClick={handleAddEntry}
-              disabled={isLoading}
+              disabled={isLoading || isFeatureDisabled}
             >
-              <i className="fas fa-plus"></i> 追加
+              <i className="fas fa-plus"></i> {isFeatureDisabled ? '追加 [無効]' : '追加'}
             </button>
           </div>
 

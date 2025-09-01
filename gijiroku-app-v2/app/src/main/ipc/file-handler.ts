@@ -178,65 +178,8 @@ export function setupFileHandler(): void {
     }
   });
 
-  // プロンプトテンプレートの読み込み
-  ipcMain.handle('file:load-prompts', async () => {
-    console.log('🔄 [DEBUG] file:load-prompts IPC handler called - FIXED VERSION');
-    try {
-      const isPackaged = app.isPackaged;
-      console.log(`🔄 [DEBUG] App is packaged: ${isPackaged}`);
-      
-      let promptsDir: string;
-      if (isPackaged) {
-        // リリース版: app.asar内のresources/promptsを読み込み
-        const asarPath = path.join(process.resourcesPath, 'app.asar');
-        promptsDir = path.join(asarPath, 'resources', 'prompts');
-        console.log(`📁 [DEBUG] Packaged mode - trying asar path: ${promptsDir}`);
-        
-        // asarでアクセスできない場合の代替パス
-        try {
-          await fs.access(promptsDir);
-        } catch {
-          // Node.js の asar サポートを利用
-          promptsDir = path.join(__dirname, '..', '..', '..', 'resources', 'prompts');
-          console.log(`📁 [DEBUG] Fallback to relative path: ${promptsDir}`);
-        }
-      } else {
-        // 開発モード: プロジェクトルートのresources/prompts
-        promptsDir = path.join(app.getAppPath(), 'resources', 'prompts');
-        console.log(`📁 [DEBUG] Development mode: ${promptsDir}`);
-      }
-      
-      console.log(`📁 [DEBUG] Final prompts directory: ${promptsDir}`);
-      
-      // resources/prompts ディレクトリ内の全JSONファイルを読み込み
-      const files = await fs.readdir(promptsDir);
-      const jsonFiles = files.filter(file => file.endsWith('.json'));
-      
-      console.log(`📋 Found ${jsonFiles.length} prompt files:`, jsonFiles);
-      
-      const prompts = [];
-      for (const file of jsonFiles) {
-        const filePath = path.join(promptsDir, file);
-        const content = await fs.readFile(filePath, 'utf-8');
-        const templateData = JSON.parse(content);
-        
-        prompts.push({
-          id: templateData.id || file.replace('.json', ''),
-          title: templateData.name || templateData.title || file.replace('.json', ''),
-          content: templateData.prompt || templateData.content || '',
-          description: templateData.description || '',
-          category: templateData.category || 'general',
-          is_active: true
-        });
-      }
-      
-      console.log(`✅ Loaded ${prompts.length} prompt templates`);
-      return { success: true, data: { prompts } };
-    } catch (error) {
-      console.error('❌ Failed to load prompt templates:', error);
-      return { success: false, error: error.message };
-    }
-  });
+  // プロンプトテンプレートの読み込み（旧実装 - template-handler.tsに移行済み）
+  // REMOVED: file:load-prompts handler - now handled by template-handler.ts
 
   // Downloadsフォルダにファイルをコピー
   ipcMain.handle('file:copy-to-downloads', async (event, srcPath: string, filename: string) => {

@@ -1,5 +1,7 @@
 /**
- * SyncService - ローカルファースト同期サービス
+ * SyncService - ローカルファースト同期サービス [開発中]
+ * 
+ * ⚠️ MVP除外: 高度な同期機能は開発中のため無効化
  * 
  * masterfile.md 345-352行の同期ポリシー準拠
  * - UUID使用・LWW（最後の書き込み優先）
@@ -10,6 +12,7 @@
  */
 
 import { EventEmitter } from 'events';
+import { isFeatureEnabled } from '../../shared/feature-flags';
 import { v4 as uuidv4 } from 'uuid';
 import { WorkspaceService } from './WorkspaceService';
 import { DbService } from './DbService';
@@ -108,10 +111,17 @@ export class SyncService extends EventEmitter {
   }
 
   /**
-   * サービス初期化
+   * サービス初期化 [MVP除外]
    */
   public async initialize(): Promise<void> {
     if (this.initialized) {
+      return;
+    }
+
+    // MVP除外: 同期機能は開発中のため無効化
+    if (!isFeatureEnabled('syncFunction')) {
+      console.log('🚧 SyncService disabled in MVP mode (under development)');
+      this.initialized = true;
       return;
     }
 

@@ -2,7 +2,7 @@ appId: com.gijiroku.app.v2
 productName: 議事録アプリ v2
 directories:
   buildResources: ./resources
-  output: ./release
+  output: ./dist-release
 files:
   - dist/**/*
   - dist-electron/**/*

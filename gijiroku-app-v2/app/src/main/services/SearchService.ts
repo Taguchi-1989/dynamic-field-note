@@ -1,5 +1,7 @@
 /**
- * SearchService - 検索・埋め込み機能サービス
+ * SearchService - 検索・埋め込み機能サービス [開発中]
+ * 
+ * ⚠️ MVP除外: 高度な検索機能は開発中のため無効化
  * 
  * masterfile.md 220-231行のembeddingsテーブル準拠
  * - 全文検索（SQLite FTS）
@@ -9,6 +11,7 @@
  */
 
 import { EventEmitter } from 'events';
+import { isFeatureEnabled } from '../../shared/feature-flags';
 import { WorkspaceService } from './WorkspaceService';
 import { DbService } from './DbService';
 import { SecureStorageService } from './SecureStorageService';
@@ -109,10 +112,17 @@ export class SearchService extends EventEmitter {
   }
 
   /**
-   * サービス初期化
+   * サービス初期化 [MVP除外]
    */
   public async initialize(): Promise<void> {
     if (this.initialized) {
+      return;
+    }
+
+    // MVP除外: 検索機能は開発中のため無効化
+    if (!isFeatureEnabled('searchFunction')) {
+      console.log('🚧 SearchService disabled in MVP mode (under development)');
+      this.initialized = true;
       return;
     }
 
@@ -151,9 +161,19 @@ export class SearchService extends EventEmitter {
   }
 
   /**
-   * 検索実行
+   * 検索実行 [MVP除外]
    */
   public async search(query: SearchQuery): Promise<SearchResult> {
+    if (!isFeatureEnabled('searchFunction')) {
+      console.warn('🚧 Search function disabled in MVP mode');
+      return {
+        items: [],
+        total: 0,
+        query,
+        took_ms: 0
+      };
+    }
+
     if (!this.initialized) {
       throw new Error('SearchService not initialized');
     }

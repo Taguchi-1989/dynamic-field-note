@@ -1,0 +1,142 @@
+/**
+ * 開発中機能のスタイル定義
+ * MVP版での高度機能の無効化・開発中表示
+ */
+
+/* 開発中タグ */
+.dev-tag {
+  background: #ff9800;
+  color: white;
+  font-size: 0.8em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  font-weight: normal;
+  opacity: 0.9;
+}
+
+/* 開発中通知エリア */
+.development-notice {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 2px solid #ff9800;
+  border-radius: 8px;
+  margin: 16px 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.dev-message {
+  padding: 24px;
+  text-align: center;
+  color: #e65100;
+}
+
+.dev-message i {
+  font-size: 3em;
+  color: #ff9800;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.dev-message h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.4em;
+  color: #bf360c;
+}
+
+.dev-message p {
+  margin: 8px 0;
+  font-size: 1em;
+  line-height: 1.5;
+  color: #5d4037;
+}
+
+/* 無効化されたフォーム要素 */
+.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+.disabled::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 152, 0, 0.1);
+  backdrop-filter: blur(1px);
+  z-index: 1;
+}
+
+/* 開発中ボタン */
+button:disabled[title*="開発中"],
+button:disabled[title*="無効"] {
+  background: #ffcc80 !important;
+  color: #bf360c !important;
+  cursor: not-allowed;
+}
+
+/* 開発環境での特別表示 */
+.development-only {
+  display: none;
+}
+
+[data-env="development"] .development-only {
+  display: block;
+  background: #e8f5e8;
+  border: 1px solid #4caf50;
+  padding: 8px;
+  border-radius: 4px;
+  margin: 8px 0;
+  font-size: 0.9em;
+  color: #2e7d32;
+}
+
+/* 機能フラグ表示 */
+.feature-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  margin-left: 8px;
+}
+
+.feature-status.enabled {
+  background: #c8e6c9;
+  color: #2e7d32;
+}
+
+.feature-status.development {
+  background: #ffe0b2;
+  color: #ef6c00;
+}
+
+.feature-status.disabled {
+  background: #ffcdd2;
+  color: #c62828;
+}
+
+/* MVP完了インジケーター */
+.mvp-complete {
+  background: linear-gradient(45deg, #4caf50, #8bc34a);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-weight: bold;
+  font-size: 0.9em;
+  display: inline-block;
+  margin-left: 8px;
+}
+
+.mvp-progress {
+  background: linear-gradient(45deg, #2196f3, #03a9f4);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-weight: bold;
+  font-size: 0.9em;
+  display: inline-block;
+  margin-left: 8px;
+}

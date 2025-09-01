@@ -1,3 +1,10 @@
+/**
+ * LogService - ログ管理サービス [開発中]
+ * 
+ * ⚠️ MVP基盤のみ: 詳細ログUI機能は開発中
+ */
+import { isFeatureEnabled } from '../../shared/feature-flags';
+
 export interface LogEntry {
   timestamp: string;
   level: 'info' | 'warn' | 'error' | 'debug';
@@ -51,6 +58,11 @@ class LogServiceClass {
   }
 
   getLogs(level?: LogEntry['level']): LogEntry[] {
+    // MVP基盤: 基本ログ機能は動作、UI機能は開発中
+    if (!isFeatureEnabled('logFunction')) {
+      console.warn('🚧 Advanced log UI features disabled in MVP mode');
+    }
+    
     if (level) {
       return this.logs.filter(log => log.level === level);
     }

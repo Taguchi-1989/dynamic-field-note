@@ -210,7 +210,7 @@ export class DbService {
     console.log('SQLiteスキーママイグレーション開始');
 
     // masterfile.md の DDL を実行
-    const migrations = [
+    const migrations: string[] = [
       // users テーブル
       `
       CREATE TABLE IF NOT EXISTS users (
@@ -335,19 +335,6 @@ export class DbService {
       )`,
       `CREATE UNIQUE INDEX IF NOT EXISTS idx_dict_unique ON dictionary_entries(owner_id, term)`,
 
-      // prompt_templates テーブル
-      `
-      CREATE TABLE IF NOT EXISTS prompt_templates (
-        id TEXT PRIMARY KEY,
-        owner_id TEXT REFERENCES users(id),
-        name TEXT NOT NULL,
-        purpose TEXT,
-        version INTEGER NOT NULL DEFAULT 1,
-        template_json TEXT NOT NULL,
-        is_active INTEGER DEFAULT 1,
-        created_at TEXT DEFAULT (datetime('now'))
-      )`,
-      `CREATE UNIQUE INDEX IF NOT EXISTS idx_prompt_version ON prompt_templates(owner_id, name, version)`,
 
       // embeddings テーブル
       `
@@ -418,8 +405,10 @@ export class DbService {
       `CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status, created_at)`,
 
       // prompt_templates テーブル（CODEX_REVIEW.md準拠）
+      // 古いテーブルを削除して新しいスキーマで再作成
+      `DROP TABLE IF EXISTS prompt_templates`,
       `
-      CREATE TABLE IF NOT EXISTS prompt_templates (
+      CREATE TABLE prompt_templates (
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
         content TEXT NOT NULL,
@@ -433,10 +422,19 @@ export class DbService {
       `CREATE INDEX IF NOT EXISTS idx_prompt_templates_active ON prompt_templates(is_active)`,
     ];
 
+    console.log(`Total migrations to run: ${migrations.length}`);
+    
     // トランザクション内でマイグレーション実行
     const migration = db.transaction(() => {
-      for (const sql of migrations) {
-        db.exec(sql);
+      for (let i = 0; i < migrations.length; i++) {
+        const sql = migrations[i];
+        try {
+          db.exec(sql);
+        } catch (error: any) {
+          console.error(`Migration error at index ${i}:`, error);
+          console.error('Failed SQL:', sql);
+          throw error;
+        }
       }
     });
 
