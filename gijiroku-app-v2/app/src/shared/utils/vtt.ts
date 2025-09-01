@@ -1,6 +1,33 @@
 // Simple WebVTT parser utilities (client-side)
 // Extracts text-only and a lightly formatted text with speakers preserved when available
 
+/**
+ * 話者名をクリーンアップ（ローマ字部分、括弧、番号などを除去）
+ * 例: "壷井　佑夏(Tsuboi, Yuka)" → "壷井　佑夏"
+ *     "@1" → "@1" (そのまま)
+ */
+function cleanSpeakerName(rawSpeaker: string): string {
+  if (!rawSpeaker) return ''
+  
+  let cleaned = rawSpeaker.trim()
+  
+  // @記号で始まる場合はそのまま返す（システム話者）
+  if (cleaned.startsWith('@')) {
+    return cleaned
+  }
+  
+  // 括弧とその中身を除去 (Tsuboi, Yuka) など
+  cleaned = cleaned.replace(/\([^)]*\)/g, '')
+  
+  // 行末の数字やハイフンを除去
+  cleaned = cleaned.replace(/[-\d]+$/, '')
+  
+  // 余分な空白を除去
+  cleaned = cleaned.replace(/\s+/g, ' ').trim()
+  
+  return cleaned
+}
+
 export interface VTTEntry {
   start: string
   end: string
@@ -30,13 +57,22 @@ export function parseVtt(content: string): VTTEntry[] {
     while (i < lines.length && lines[i].trim() === "") i++
 
     const full = textLines.join(" ").trim()
-    // Try to split speaker: "Name: text"
+    // Parse speaker from VTT voice tags: <v Speaker>text</v> or "Speaker: text"
     let speaker: string | undefined
     let text = full
-    const colonIdx = full.indexOf(": ")
-    if (colonIdx > 0 && colonIdx < 40) {
-      speaker = full.slice(0, colonIdx).trim()
-      text = full.slice(colonIdx + 1).trim()
+
+    // Handle <v Speaker>text</v> format
+    const voiceTagMatch = full.match(/^<v\s+([^>]+)>(.+)<\/v>$/)
+    if (voiceTagMatch) {
+      speaker = cleanSpeakerName(voiceTagMatch[1])
+      text = voiceTagMatch[2].trim()
+    } else {
+      // Handle "Speaker: text" format
+      const colonIdx = full.indexOf(": ")
+      if (colonIdx > 0 && colonIdx < 40) {
+        speaker = cleanSpeakerName(full.slice(0, colonIdx))
+        text = full.slice(colonIdx + 1).trim()
+      }
     }
     if (full) {
       entries.push({ start: (start || '').trim(), end: end || '', speaker, text })

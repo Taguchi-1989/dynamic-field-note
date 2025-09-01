@@ -54,7 +54,7 @@ export class AIProcessingService {
   private dbService: DbService;
   private chunkingService: ChunkingService;
   private defaultOptions: AIProcessingOptions = {
-    provider: 'offline',
+    provider: 'offline', // 初期値、実際の処理時に自動判定される
     temperature: 0.7,
     maxTokens: 8192,
     timeout: 60000,
@@ -87,6 +87,12 @@ export class AIProcessingService {
     const startTime = Date.now();
     const processingOptions = { ...this.defaultOptions, ...options };
     const warnings: string[] = [];
+
+    // プロバイダー自動判定（offline以外が指定されていない場合）
+    if (processingOptions.provider === 'offline' && !options?.provider) {
+      processingOptions.provider = await this.determineProvider();
+      console.log(`🎯 Provider auto-selected: ${processingOptions.provider}`);
+    }
 
     try {
       console.log(`🤖 AI処理開始 - Provider: ${processingOptions.provider}`);
@@ -273,14 +279,20 @@ export class AIProcessingService {
   ): Promise<AIProcessingResult> {
     let apiKey = await this.secureStorage.getCredential('gemini_api_key');
     
-    // フォールバック: 環境変数からAPIキーを取得
-    if (!apiKey) {
+    // 本番環境では環境変数からのAPIキー取得を無効化
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VITE_FORCE_USER_API_KEYS === 'true';
+    
+    if (!apiKey && !isProduction) {
+      // 開発環境のみ：フォールバックとして環境変数からAPIキーを取得
       apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
-      console.log('🔑 Using Gemini API key from environment variables');
+      console.log('🔑 [開発環境] Using Gemini API key from environment variables');
     }
     
     if (!apiKey) {
-      throw new Error('Gemini API key not found in SecureStorage or environment variables');
+      const message = isProduction 
+        ? 'Gemini API key not configured. Please set your API key in Settings > API Configuration.'
+        : 'Gemini API key not found in SecureStorage or environment variables';
+      throw new Error(message);
     }
 
     const request = {
@@ -324,14 +336,20 @@ export class AIProcessingService {
   ): Promise<AIProcessingResult> {
     let apiKey = await this.secureStorage.getCredential('openai_api_key');
     
-    // フォールバック: 環境変数からAPIキーを取得
-    if (!apiKey) {
+    // 本番環境では環境変数からのAPIキー取得を無効化
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VITE_FORCE_USER_API_KEYS === 'true';
+    
+    if (!apiKey && !isProduction) {
+      // 開発環境のみ：フォールバックとして環境変数からAPIキーを取得
       apiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
-      console.log('🔑 Using OpenAI API key from environment variables');
+      console.log('🔑 [開発環境] Using OpenAI API key from environment variables');
     }
     
     if (!apiKey) {
-      throw new Error('OpenAI API key not found in SecureStorage or environment variables');
+      const message = isProduction 
+        ? 'OpenAI API key not configured. Please set your API key in Settings > API Configuration.'
+        : 'OpenAI API key not found in SecureStorage or environment variables';
+      throw new Error(message);
     }
 
     const request = {
@@ -574,6 +592,33 @@ ${originalText}
 修正指示に正確に従い、Markdownフォーマットで出力してください。`;
 
     return await this.processText('', 'revision', revisionPrompt, options);
+  }
+
+  /**
+   * 最適なプロバイダーの自動判定
+   */
+  private async determineProvider(): Promise<'gemini' | 'openai' | 'offline'> {
+    try {
+      // Gemini APIキーの確認
+      const geminiKey = await this.secureStorage.getCredential('gemini_api_key');
+      if (geminiKey) {
+        console.log('🔑 Gemini API key found, selecting gemini provider');
+        return 'gemini';
+      }
+      
+      // OpenAI APIキーの確認
+      const openaiKey = await this.secureStorage.getCredential('openai_api_key');
+      if (openaiKey) {
+        console.log('🔑 OpenAI API key found, selecting openai provider');
+        return 'openai';
+      }
+    } catch (error) {
+      console.warn('⚠️ API key check failed:', error);
+    }
+    
+    // APIキーがない場合はオフライン処理
+    console.log('📴 No API keys found, using offline processing');
+    return 'offline';
   }
 
   /**

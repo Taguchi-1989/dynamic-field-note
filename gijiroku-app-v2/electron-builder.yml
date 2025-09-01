@@ -19,6 +19,8 @@ files:
   - "!*.ts"
   - "!*.tsx"
 
+# Electronリソースファイルが自動的に含まれるよう設定調整済み
+
 win:
   target:
     - target: portable

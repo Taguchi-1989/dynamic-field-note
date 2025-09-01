@@ -52,6 +52,7 @@ const InputSection: React.FC<InputSectionProps> = ({
     try {
       const fileName = file.name.toLowerCase();
       let uploadedText = '';
+      let vttProcessingInfo = '';
       
       if (fileName.endsWith('.vtt')) {
         // クライアントでVTTを解析してテキストを適用
@@ -59,11 +60,19 @@ const InputSection: React.FC<InputSectionProps> = ({
         const formatted = extractFormatted(raw);
         const textOnly = extractTextOnly(raw);
         uploadedText = formatted || textOnly;
+        
+        // VTT処理情報を生成（冒頭3行の比較）
+        const rawLines = raw.split('\n').filter(line => line.trim() && !line.includes('-->') && !line.startsWith('WEBVTT')).slice(0, 3);
+        const processedLines = uploadedText.split('\n').filter(line => line.trim()).slice(0, 3);
+        
+        vttProcessingInfo = `【VTT処理結果】\n元データ（冒頭3行）:\n${rawLines.map(line => `  ${line.trim()}`).join('\n')}\n\n↓ 話者名クリーンアップ後 ↓\n${processedLines.map(line => `  ${line}`).join('\n')}`;
       } else {
         uploadedText = await file.text();
       }
 
-      setUploadedText(uploadedText);
+      // VTT処理情報があれば追加
+      const finalText = vttProcessingInfo ? `${vttProcessingInfo}\n\n${uploadedText}` : uploadedText;
+      setUploadedText(finalText);
       setUploadStatus('completed');
       
       // 文字数計算（時刻除去済みテキストの文字数）

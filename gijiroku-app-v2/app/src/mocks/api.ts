@@ -113,12 +113,37 @@ export const mockApiResponses = {
 
 /**
  * モックAPIサーバーの起動チェック
+ * APIキーが設定されている場合は実際のAPIを使用
  */
-export const isMockMode = (): boolean => {
-  return (import.meta.env?.VITE_MOCK_MODE === 'true') || 
-         (import.meta.env?.NODE_ENV === 'development') ||
-         process.env.VITE_MOCK_MODE === 'true' ||
-         process.env.NODE_ENV === 'development';
+export const isMockMode = async (): Promise<boolean> => {
+  // 強制モック設定の場合
+  if (import.meta.env?.VITE_MOCK_MODE === 'true' || process.env.VITE_MOCK_MODE === 'true') {
+    console.log('🎭 Forced mock mode enabled via VITE_MOCK_MODE');
+    return true;
+  }
+  
+  // APIキーが設定されているかチェック
+  try {
+    if (typeof window !== 'undefined' && window.electronAPI?.secure?.getApiConfigStatus) {
+      const apiStatus = await window.electronAPI.secure.getApiConfigStatus();
+      if (apiStatus.success && (apiStatus.data?.gemini || apiStatus.data?.openai)) {
+        console.log('🔑 API keys found, disabling mock mode', apiStatus.data);
+        return false;
+      }
+    }
+  } catch (error) {
+    console.warn('⚠️ Failed to check API key status:', error);
+  }
+  
+  // 開発環境でAPIキーがない場合のみモック有効
+  const isDevMode = (import.meta.env?.NODE_ENV === 'development') || (process.env.NODE_ENV === 'development');
+  if (isDevMode) {
+    console.log('🛠️ Development mode with no API keys, enabling mock mode');
+    return true;
+  }
+  
+  // 本番環境ではモック無効
+  return false;
 };
 
 /**

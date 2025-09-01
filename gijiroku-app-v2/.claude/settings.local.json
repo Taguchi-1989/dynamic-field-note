@@ -33,7 +33,12 @@
       "Bash(npx playwright:*)",
       "Bash(git checkout:*)",
       "Bash(git commit:*)",
-      "Bash(start \"\" \"./release/win-unpacked/議事録アプリ v2.exe\")"
+      "Bash(start \"\" \"./release/win-unpacked/議事録アプリ v2.exe\")",
+      "Bash(git branch:*)",
+      "Bash(\"./議事録アプリ v2.exe\")",
+      "Bash(npx asar extract:*)",
+      "Bash(cat:*)",
+      "Bash(tasklist:*)"
     ],
     "deny": [],
     "ask": []

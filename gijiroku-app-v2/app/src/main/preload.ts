@@ -59,6 +59,7 @@ interface ElectronAPI {
     saveDialog: (options: SaveDialogOptions) => Promise<IPCResponse<SaveDialogResult>>;
     copyFile: (srcPath: string, destPath: string) => Promise<IPCResponse<void>>;
     copyToDownloads: (srcPath: string, filename: string) => Promise<IPCResponse<{destPath: string}>>;
+    loadPrompts: () => Promise<IPCResponse<{ prompts: Array<{ id: string; title: string; content: string; description: string; category: string; is_active: boolean }> }>>;
   };
   storage: {
     get: <T = unknown>(key: string) => Promise<IPCResponse<T>>;
@@ -187,6 +188,13 @@ const createElectronAPI = (): ElectronAPI => ({
     copyToDownloads: async (srcPath: string, filename: string): Promise<IPCResponse<{destPath: string}>> => {
       try {
         return await ipcRenderer.invoke('file:copy-to-downloads', srcPath, filename);
+      } catch (error) {
+        return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+    loadPrompts: async (): Promise<IPCResponse<{ prompts: Array<{ id: string; title: string; content: string; description: string; category: string; is_active: boolean }> }>> => {
+      try {
+        return await ipcRenderer.invoke('file:load-prompts');
       } catch (error) {
         return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
       }

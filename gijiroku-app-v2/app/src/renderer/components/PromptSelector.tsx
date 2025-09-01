@@ -49,10 +49,54 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
     
     setIsLoading(true);
     try {
-      console.log('🔄 プロンプトテンプレートを読み込み中...', { endpoint: API_ENDPOINTS.prompts, mockMode: isMockMode() });
+      
+      // まずローカルIPCからプロンプトを読み込み試行
+      console.log('🔄 Attempting to load prompts from local IPC...');
+      try {
+        const ipcResult = await window.electronAPI?.file?.loadPrompts();
+        console.log('📡 IPC Result:', ipcResult);
+        
+        if (ipcResult?.success && ipcResult.data?.prompts) {
+          const result = { success: true, data: { prompts: ipcResult.data.prompts } };
+          console.log('✅ Successfully loaded prompts from local files via IPC');
+          
+          if (!result.success || !Array.isArray(result.data.prompts)) {
+            throw new Error(`Invalid prompts data structure from IPC: ${JSON.stringify(result)}`);
+          }
+
+          const fetchedTemplates = result.data.prompts || [];
+          console.log('📋 Template loaded:', { count: fetchedTemplates.length, templates: fetchedTemplates.map(t => ({ id: t.id, title: t.title })) });
+
+          // Update cache
+          promptCache = {
+            templates: fetchedTemplates,
+            timestamp: Date.now()
+          };
+
+          setTemplates(fetchedTemplates);
+
+          // Select initial template
+          const selId = selectedTemplate || (fetchedTemplates[0] ? fetchedTemplates[0].id : '');
+          const sel = fetchedTemplates.find(t => t.id === selId) || fetchedTemplates[0];
+          if (sel) {
+            setCurrentTemplate(sel.id);
+            setPreviewContent(sel.content || '');
+            console.log('🎯 Template Selected (IPC):', { id: sel.id, title: sel.title });
+            window.setTimeout(() => onPromptSelect(sel.id, sel.content), 100);
+          }
+          setIsLoading(false);
+          return;
+        }
+      } catch (ipcError) {
+        console.warn('⚠️ IPC prompts loading failed, trying mock/API fallback:', ipcError);
+      }
+      
+      // IPCが失敗した場合はモック/APIにフォールバック
+      const mockModeEnabled = await isMockMode();
+      console.log('🔄 Checking fallback options...', { mockMode: mockModeEnabled });
       
       // モックモード時の処理
-      if (isMockMode()) {
+      if (mockModeEnabled) {
         console.log('🎭 Mock mode enabled, using mock data');
         const mockTemplatesFormatted = mockPromptTemplates.map(template => ({
           id: template.id,
@@ -75,7 +119,7 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
         setIsLoading(false);
         return;
       }
-      
+      console.log('🔄 Falling back to API prompts loading...');
       let response = await fetch(API_ENDPOINTS.prompts);
       console.log('📡 API Response:', { status: response.status, statusText: response.statusText, ok: response.ok, url: response.url });
       if (!response.ok) {
