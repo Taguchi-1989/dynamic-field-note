@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import API_ENDPOINTS from '../config/api';
-import { mockFetch, isMockMode, mockPromptTemplates } from '../../mocks/api';
+import { mockPromptTemplates } from '../../mocks/api';
 import './PromptSelector.css';
 
 // Simple cache for prompt templates to avoid multiple requests
@@ -50,21 +49,33 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
     setIsLoading(true);
     try {
       
-      // まずローカルIPCからプロンプトを読み込み試行
-      console.log('🔄 Attempting to load prompts from local IPC...');
+      // まずローカルIPCからプロンプトを読み込み試行（新templates API優先）
+      console.log('🔄 Attempting to load prompts from templates API...');
       try {
-        const ipcResult = await window.electronAPI?.file?.loadPrompts();
+        // 新templates APIを優先的に使用 (CODEX_REVIEW.md準拠)
+        let ipcResult = null;
+        let fetchedTemplates = [];
+        
+        if (window.electronAPI?.templates?.list) {
+          console.log('🔌 Using new templates API (DB-based)');
+          ipcResult = await window.electronAPI.templates.list();
+          if (ipcResult?.success && Array.isArray(ipcResult.data)) {
+            // 新API形式: dataが直接配列
+            fetchedTemplates = ipcResult.data;
+          }
+        } else if (window.electronAPI?.file?.loadPrompts) {
+          console.log('⚠️ Falling back to legacy file:loadPrompts API');
+          ipcResult = await window.electronAPI.file.loadPrompts();
+          if (ipcResult?.success && ipcResult.data?.prompts) {
+            // 旧API形式: data.promptsに配列
+            fetchedTemplates = ipcResult.data.prompts;
+          }
+        }
+        
         console.log('📡 IPC Result:', ipcResult);
         
-        if (ipcResult?.success && ipcResult.data?.prompts) {
-          const result = { success: true, data: { prompts: ipcResult.data.prompts } };
-          console.log('✅ Successfully loaded prompts from local files via IPC');
-          
-          if (!result.success || !Array.isArray(result.data.prompts)) {
-            throw new Error(`Invalid prompts data structure from IPC: ${JSON.stringify(result)}`);
-          }
-
-          const fetchedTemplates = result.data.prompts || [];
+        if (fetchedTemplates.length > 0) {
+          console.log('✅ Successfully loaded prompts via IPC');
           console.log('📋 Template loaded:', { count: fetchedTemplates.length, templates: fetchedTemplates.map(t => ({ id: t.id, title: t.title })) });
 
           // Update cache
@@ -129,10 +140,7 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
   }, [onPromptSelect, selectedTemplate]);
 
   useEffect(() => {
-    console.log('🚀 PromptSelector初期化 - API設定:', {
-      API_BASE: (import.meta as any).env?.VITE_API_BASE,
-      promptsEndpoint: API_ENDPOINTS.prompts,
-    });
+    console.log('🚀 PromptSelector初期化 - Templates API');
     fetchTemplates();
   }, []); // 依存配列を空にして初回のみ実行
 
@@ -207,21 +215,35 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
       setCustomPrompt(editingPrompt);
       onPromptSelect('custom', editingPrompt);
     } else {
-      // 既存テンプレートの更新（DB保存）
+      // 既存テンプレートの更新（DB保存 - CODEX_REVIEW.md準拠）
       try {
-        const response = await fetch(`${API_ENDPOINTS.prompts}/${currentTemplate}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            content: editingPrompt
-          })
-        });
-        if (response.ok) {
-          await fetchTemplates();
-          onPromptSelect(currentTemplate, editingPrompt);
-          alert('プロンプトがデータベースに保存されました');
+        // 新templates APIを使用
+        if (window.electronAPI?.templates?.upsert) {
+          const currentTemplateData = templates.find(t => t.id === currentTemplate);
+          if (currentTemplateData) {
+            const response = await window.electronAPI.templates.upsert({
+              id: currentTemplate,
+              title: currentTemplateData.title,
+              content: editingPrompt,
+              description: currentTemplateData.description,
+              category: currentTemplateData.category,
+              is_active: currentTemplateData.is_active
+            });
+            
+            if (response?.success) {
+              // キャッシュをクリアして再取得
+              promptCache = null;
+              await fetchTemplates();
+              onPromptSelect(currentTemplate, editingPrompt);
+              alert('プロンプトがデータベースに保存されました');
+            } else {
+              alert('プロンプトの保存に失敗しました: ' + (response?.error || 'Unknown error'));
+            }
+          }
         } else {
-          alert('プロンプトの保存に失敗しました');
+          // templates APIが利用できない場合は保存をスキップ
+          console.warn('⚠️ Templates API not available, cannot save to DB');
+          alert('プロンプトの保存機能は現在利用できません');
         }
       } catch (error) {
         console.error('プロンプト更新エラー:', error);

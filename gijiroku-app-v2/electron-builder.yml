@@ -74,5 +74,9 @@ dmg:
 
 compression: normal
 asar: true
+# better-sqlite3のネイティブモジュールをASAR外に配置
+asarUnpack:
+  - "**/*.node"
+  - "**/better-sqlite3/**"
 buildVersion: "1"
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}

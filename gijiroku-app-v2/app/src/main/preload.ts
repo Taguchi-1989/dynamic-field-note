@@ -133,6 +133,13 @@ interface ElectronAPI {
     getApiConfigStatus: () => Promise<IPCResponse<{ gemini: boolean; openai: boolean; lastCheck?: string }>>;
     healthCheck: () => Promise<IPCResponse<SecureStorageHealth>>;
   };
+  // === NEW: Templates API (CODEX_REVIEW.md準拠) ===
+  templates: {
+    list: () => Promise<IPCResponse<Array<{ id: string; title: string; content: string; description?: string; category?: string; is_active?: boolean }>>>;
+    get: (id: string) => Promise<IPCResponse<{ id: string; title: string; content: string; description?: string; category?: string; is_active?: boolean }>>;
+    upsert: (template: { id?: string; title: string; content: string; description?: string; category?: string; is_active?: boolean }) => Promise<IPCResponse<{ id: string; title: string; content: string; description?: string; category?: string; is_active?: boolean }>>;
+    delete: (id: string) => Promise<IPCResponse<boolean>>;
+  };
 }
 
 // バリデーション付きAPIを公開
@@ -400,6 +407,47 @@ const createElectronAPI = (): ElectronAPI => ({
     healthCheck: async (): Promise<IPCResponse<SecureStorageHealth>> => {
       try {
         return await ipcRenderer.invoke('secure:health-check');
+      } catch (error) {
+        return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
+    }
+  },
+
+  // === NEW: Templates API (CODEX_REVIEW.md準拠) ===
+  templates: {
+    list: async (): Promise<IPCResponse<Array<{ id: string; title: string; content: string; description?: string; category?: string; is_active?: boolean }>>> => {
+      try {
+        return await ipcRenderer.invoke('templates:list');
+      } catch (error) {
+        return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+    get: async (id: string): Promise<IPCResponse<{ id: string; title: string; content: string; description?: string; category?: string; is_active?: boolean }>> => {
+      try {
+        if (!id) {
+          throw new Error('Template ID is required');
+        }
+        return await ipcRenderer.invoke('templates:get', id);
+      } catch (error) {
+        return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+    upsert: async (template: { id?: string; title: string; content: string; description?: string; category?: string; is_active?: boolean }): Promise<IPCResponse<{ id: string; title: string; content: string; description?: string; category?: string; is_active?: boolean }>> => {
+      try {
+        if (!template.title || !template.content) {
+          throw new Error('Template title and content are required');
+        }
+        return await ipcRenderer.invoke('templates:upsert', template);
+      } catch (error) {
+        return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+    delete: async (id: string): Promise<IPCResponse<boolean>> => {
+      try {
+        if (!id) {
+          throw new Error('Template ID is required');
+        }
+        return await ipcRenderer.invoke('templates:delete', id);
       } catch (error) {
         return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
       }

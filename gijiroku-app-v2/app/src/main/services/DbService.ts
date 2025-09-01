@@ -91,6 +91,18 @@ export const JobSchema = z.object({
   updated_at: z.string(),
 });
 
+// プロンプトテンプレートスキーマ（CODEX_REVIEW.md準拠）
+export const PromptTemplateSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  content: z.string(),
+  description: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
+  is_active: z.boolean().default(true),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
 // 型定義
 export type User = z.infer<typeof UserSchema>;
 export type Meeting = z.infer<typeof MeetingSchema>;
@@ -99,6 +111,7 @@ export type DocumentVersion = z.infer<typeof DocumentVersionSchema>;
 export type Task = z.infer<typeof TaskSchema>;
 export type Attachment = z.infer<typeof AttachmentSchema>;
 export type Job = z.infer<typeof JobSchema>;
+export type PromptTemplate = z.infer<typeof PromptTemplateSchema>;
 
 export interface AuditLogEntry {
   actor_id?: string;
@@ -403,6 +416,21 @@ export class DbService {
         updated_at TEXT DEFAULT (datetime('now'))
       )`,
       `CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status, created_at)`,
+
+      // prompt_templates テーブル（CODEX_REVIEW.md準拠）
+      `
+      CREATE TABLE IF NOT EXISTS prompt_templates (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        description TEXT,
+        category TEXT,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
+      )`,
+      `CREATE INDEX IF NOT EXISTS idx_prompt_templates_category ON prompt_templates(category)`,
+      `CREATE INDEX IF NOT EXISTS idx_prompt_templates_active ON prompt_templates(is_active)`,
     ];
 
     // トランザクション内でマイグレーション実行
@@ -618,6 +646,136 @@ export class DbService {
     const stmt = db.prepare('SELECT * FROM jobs WHERE id = ?');
     const row = stmt.get(id) as any;
     return row ? JobSchema.parse(row) : null;
+  }
+
+  // ==================== Prompt Templates DAO ====================
+
+  /**
+   * プロンプトテンプレート一覧を取得
+   */
+  public getPromptTemplates(activeOnly = false): PromptTemplate[] {
+    const db = this.getDb();
+    const query = activeOnly 
+      ? 'SELECT * FROM prompt_templates WHERE is_active = 1 ORDER BY category, title'
+      : 'SELECT * FROM prompt_templates ORDER BY category, title';
+    
+    const stmt = db.prepare(query);
+    const rows = stmt.all() as any[];
+    
+    return rows.map(row => ({
+      ...row,
+      is_active: row.is_active === 1
+    }));
+  }
+
+  /**
+   * IDでプロンプトテンプレートを取得
+   */
+  public getPromptTemplateById(id: string): PromptTemplate | null {
+    const db = this.getDb();
+    const stmt = db.prepare('SELECT * FROM prompt_templates WHERE id = ?');
+    const row = stmt.get(id) as any;
+    
+    if (!row) return null;
+    
+    return {
+      ...row,
+      is_active: row.is_active === 1
+    };
+  }
+
+  /**
+   * プロンプトテンプレートを作成または更新
+   */
+  public upsertPromptTemplate(template: Omit<PromptTemplate, 'created_at' | 'updated_at'>): PromptTemplate {
+    const db = this.getDb();
+    const now = new Date().toISOString();
+    
+    // IDが指定されていない場合は新規作成
+    const id = template.id || uuidv4();
+    
+    const stmt = db.prepare(`
+      INSERT INTO prompt_templates (id, title, content, description, category, is_active, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        title = excluded.title,
+        content = excluded.content,
+        description = excluded.description,
+        category = excluded.category,
+        is_active = excluded.is_active,
+        updated_at = excluded.updated_at
+    `);
+    
+    stmt.run(
+      id,
+      template.title,
+      template.content,
+      template.description || null,
+      template.category || null,
+      template.is_active ? 1 : 0,
+      now,
+      now
+    );
+    
+    // 変更ログを記録
+    this.addChangeLog({
+      entity: 'prompt_templates',
+      entity_id: id,
+      op: template.id ? 'update' : 'insert',
+      version: 1,
+      patch: JSON.stringify(template)
+    });
+    
+    return this.getPromptTemplateById(id)!;
+  }
+
+  /**
+   * プロンプトテンプレートを削除
+   */
+  public deletePromptTemplate(id: string): boolean {
+    const db = this.getDb();
+    const stmt = db.prepare('DELETE FROM prompt_templates WHERE id = ?');
+    const result = stmt.run(id);
+    
+    if (result.changes > 0) {
+      // 変更ログを記録
+      this.addChangeLog({
+        entity: 'prompt_templates',
+        entity_id: id,
+        op: 'delete',
+        version: 1,
+        patch: null
+      });
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * プロンプトテンプレートの初期データをシード
+   */
+  public async seedPromptTemplates(templates: Array<Omit<PromptTemplate, 'id' | 'created_at' | 'updated_at'>>): Promise<void> {
+    const db = this.getDb();
+    
+    // 既存のテンプレート数を確認
+    const count = (db.prepare('SELECT COUNT(*) as count FROM prompt_templates').get() as any).count;
+    
+    // 既にデータがある場合はスキップ
+    if (count > 0) {
+      console.log(`プロンプトテンプレート既存: ${count}件`);
+      return;
+    }
+    
+    // トランザクション内で一括挿入
+    const transaction = db.transaction(() => {
+      for (const template of templates) {
+        this.upsertPromptTemplate(template);
+      }
+    });
+    
+    transaction();
+    console.log(`プロンプトテンプレート初期投入: ${templates.length}件`);
   }
 
   public getJobsByStatus(status: Job['status']): Job[] {

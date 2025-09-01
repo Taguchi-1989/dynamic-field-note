@@ -25,6 +25,7 @@ import { SecurityPolicy } from './security/security-policy';
 import { setupFileHandler } from './ipc/file-handler';
 import { setupStorageHandler } from './ipc/storage-handler';
 import { setupWorkspaceHandler } from './ipc/workspace-handler';
+import { registerTemplateHandlers } from './ipc/template-handler';
 
 // パフォーマンス測定
 const startTime = performance.now();
@@ -90,6 +91,7 @@ app.whenReady().then(async () => {
     setupStorageHandler();
     // setupBackendBridge(backendManager); // Removed
     setupWorkspaceHandler();
+    registerTemplateHandlers(); // テンプレート管理ハンドラー登録
     setupDatabaseHandlers();
     setupMarkdownHandlers();
     setupSecureStorageHandlers();
