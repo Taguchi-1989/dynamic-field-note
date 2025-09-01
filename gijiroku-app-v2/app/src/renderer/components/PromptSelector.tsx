@@ -88,16 +88,10 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
           return;
         }
       } catch (ipcError) {
-        console.warn('⚠️ IPC prompts loading failed, trying mock/API fallback:', ipcError);
-      }
-      
-      // IPCが失敗した場合はモック/APIにフォールバック
-      const mockModeEnabled = await isMockMode();
-      console.log('🔄 Checking fallback options...', { mockMode: mockModeEnabled });
-      
-      // モックモード時の処理
-      if (mockModeEnabled) {
-        console.log('🎭 Mock mode enabled, using mock data');
+        console.warn('⚠️ IPC prompts loading failed, falling back to mock data:', ipcError);
+        
+        // IPCが失敗した場合は必ずモックデータを使用（外部API呼び出しを削除）
+        console.log('🎭 Using mock data as fallback');
         const mockTemplatesFormatted = mockPromptTemplates.map(template => ({
           id: template.id,
           title: template.name,
@@ -107,63 +101,24 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
           is_active: true
         }));
         
+        // Cache the templates
+        promptCache = {
+          templates: mockTemplatesFormatted,
+          timestamp: Date.now()
+        };
+        
         setTemplates(mockTemplatesFormatted);
         const selId = selectedTemplate || (mockTemplatesFormatted[0] ? mockTemplatesFormatted[0].id : '');
         const sel = mockTemplatesFormatted.find(t => t.id === selId) || mockTemplatesFormatted[0];
         if (sel) {
           setCurrentTemplate(sel.id);
           setPreviewContent(sel.content || '');
-          console.log('🎯 Mock Template Selected:', { id: sel.id, title: sel.title });
+          console.log('🎯 Mock Template Selected (fallback):', { id: sel.id, title: sel.title });
           window.setTimeout(() => onPromptSelect(sel.id, sel.content), 100);
         }
         setIsLoading(false);
         return;
       }
-      console.log('🔄 Falling back to API prompts loading...');
-      let response = await fetch(API_ENDPOINTS.prompts);
-      console.log('📡 API Response:', { status: response.status, statusText: response.statusText, ok: response.ok, url: response.url });
-      if (!response.ok) {
-        console.warn('🔄 バックエンドAPI失敗、フォールバック実行...', { fallbackEndpoint: API_ENDPOINTS.promptsFallback });
-        try {
-          response = await fetch(API_ENDPOINTS.promptsFallback);
-          console.log('📡 Fallback API Response:', { status: response.status, statusText: response.statusText, ok: response.ok, url: response.url });
-        } catch (fallbackError) {
-          console.error('❌ フォールバックAPI失敗:', fallbackError);
-          const errorText = await response.text();
-          throw new Error(`Both main and fallback prompts APIs failed: ${response.status} - ${errorText}`);
-        }
-      }
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ API Error Response:', errorText);
-        throw new Error(`Prompts fetch failed: ${response.status} - ${errorText}`);
-      }
-      const result = await response.json() as { success: boolean; data: { prompts: PromptTemplate[] } };
-      console.log('📄 Raw API Result:', result);
-      if (!result.success) {
-        console.error('❌ API returned success=false:', result);
-        throw new Error('Prompts not successful');
-      }
-      const normalized = normalizeTemplates(result);
-      console.log('✅ Normalized Templates:', normalized);
-      
-      // Cache the templates
-      promptCache = {
-        templates: normalized,
-        timestamp: Date.now()
-      };
-      
-      setTemplates(normalized);
-      const selId = selectedTemplate || (normalized[0] ? normalized[0].id : '');
-      const sel = normalized.find(t => t.id === selId) || normalized[0];
-      if (sel) {
-        setCurrentTemplate(sel.id);
-        setPreviewContent(sel.content || '');
-        console.log('🎯 Initial Template Selected:', { id: sel.id, title: sel.title });
-        window.setTimeout(() => onPromptSelect(sel.id, sel.content), 100);
-      }
-      setIsLoading(false);
-      console.log('✅ テンプレート読み込み完了:', { count: normalized.length });
     } catch (error) {
       console.error('❌ テンプレート取得エラー:', error);
       console.error('エラーの詳細:', { name: error instanceof Error ? error.name : 'Unknown', message: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : 'No stack' });

@@ -38,7 +38,9 @@
       "Bash(\"./議事録アプリ v2.exe\")",
       "Bash(npx asar extract:*)",
       "Bash(cat:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "WebSearch",
+      "Bash(claude mcp:*)"
     ],
     "deny": [],
     "ask": []
