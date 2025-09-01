@@ -1,6 +1,6 @@
 {
   "name": "gijiroku-app-v2",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "AIを活用した議事録修正支援アプリケーション - 分割処理機能搭載版",
   "author": "ZEAL-BOOT-CAMP",
   "main": "dist-electron/main.cjs",
@@ -23,6 +23,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "echo \"Running tests...\" && npm run typecheck",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
     "test:api": "cd test && node test-direct-api.cjs",
     "test:pdf": "cd test && node test-simple-markdown-pdf.cjs",
     "test:pdf-standalone": "cd test && node test-standalone-pdf.cjs",
@@ -63,6 +66,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@playwright/test": "^1.55.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
@@ -78,6 +82,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "playwright": "^1.55.0",
     "rimraf": "^5.0.5",
     "terser": "^5.43.1",
     "tsup": "^8.0.0",

@@ -29,6 +29,7 @@ const FrontMatterSchema = z.object({
   latex: z.enum(['katex', 'tectonic']).default('katex'),
   pageSize: z.enum(['A4', 'Letter']).default('A4'),
   marginMm: z.number().default(15),
+  format: z.enum(['standard', 'latex']).default('standard'),
   mermaid: z.object({
     theme: z.string().default('default'),
   }).optional(),
@@ -45,6 +46,9 @@ export interface MarkdownCompileOptions {
   title?: string;
   author?: string;
   date?: string;
+  format?: 'standard' | 'latex'; // PDF出力フォーマット
+  includeImages?: boolean; // 画像を含むかどうか
+  imageData?: {[key: string]: string}; // 画像データ（base64）
 }
 
 export interface MarkdownCompileInput {
@@ -200,17 +204,28 @@ export class MarkdownCompilerService {
         throw new Error('Either mdPath or mdContent must be provided');
       }
 
+      // 画像データの前処理（base64データURIに変換）
+      if (input.options?.includeImages && input.options?.imageData) {
+        console.log('🖼️  Processing images for PDF generation...');
+        mdContent = await this.preprocessImages(mdContent, input.options.imageData, warnings);
+      }
+
       // FrontMatter解析
       const matter = grayMatter(mdContent);
       const frontMatter = FrontMatterSchema.parse({
         ...matter.data,
         ...input.options,
         // optionsのtitleを最優先で設定
-        title: input.options?.title || matter.data?.title || 'Document'
+        title: input.options?.title || matter.data?.title || 'Document',
+        // LaTeX形式設定
+        latex: input.options?.format === 'latex' ? 'tectonic' : (matter.data?.latex || 'katex')
       });
 
       // Mermaidブロックの事前処理
       const processedContent = await this.preprocessMermaid(matter.content, warnings);
+
+      // LaTeX数式処理（format=latexの場合に強化）
+      const mathProcessedContent = await this.preprocessMath(processedContent, frontMatter.format || 'standard', warnings);
 
       // プロセッサーが未初期化の場合は初期化
       if (!this.processor) {
@@ -218,10 +233,10 @@ export class MarkdownCompilerService {
       }
 
       // Markdown → HTML変換
-      const vfile = await this.processor.process(processedContent);
+      const vfile = await this.processor.process(mathProcessedContent);
       let htmlContent = String(vfile);
 
-      // カスタムCSSの適用
+      // カスタムCSSの適用（LaTeX形式対応）
       htmlContent = await this.applyCustomStyles(htmlContent, frontMatter);
 
       // TOC生成（無効化）
@@ -238,6 +253,77 @@ export class MarkdownCompilerService {
     } catch (error) {
       console.error('Markdown compilation error:', error);
       throw new Error(`Failed to compile markdown: ${error}`);
+    }
+  }
+
+  /**
+   * 画像データを事前処理（base64データURIに変換）
+   */
+  private async preprocessImages(content: string, imageData: {[key: string]: string}, warnings: string[]): Promise<string> {
+    let processedContent = content;
+    
+    try {
+      // 画像IDを実際のbase64データURIに置換（サイズ制御付きHTMLタグで）
+      Object.entries(imageData).forEach(([imageId, dataUri]) => {
+        const regex = new RegExp(`!\\[([^\\]]*?)\\]\\(${imageId}\\)`, 'g');
+        const matches = processedContent.match(regex);
+        
+        if (matches) {
+          console.log(`🖼️  Replacing image ID "${imageId}" with base64 data (${matches.length} occurrences)`);
+          
+          // dataUri の検証
+          if (!dataUri || !dataUri.startsWith('data:')) {
+            console.warn(`⚠️  Invalid data URI for image "${imageId}":`, dataUri?.substring(0, 50));
+            warnings.push(`Invalid image data for ${imageId}`);
+            return;
+          }
+          
+          // Markdownの画像記法をHTMLのimgタグに置換（PDF用最適化サイズ制御）
+          processedContent = processedContent.replace(regex, (match, altText) => {
+            const sanitizedAlt = (altText || '').replace(/"/g, '&quot;');
+            // PDFではみ出しを防ぐため、max-width制限とobject-fitを使用
+            return `<img src="${dataUri}" alt="${sanitizedAlt}" style="max-width: 90%; width: auto; height: auto; display: block; margin: 1em auto; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); object-fit: contain; page-break-inside: avoid;" />`;
+          });
+          
+          console.log(`✅ Successfully processed ${matches.length} image(s) for ID: ${imageId}`);
+        }
+      });
+      
+      console.log('✅ Image preprocessing completed');
+    } catch (error) {
+      console.warn('⚠️  Image preprocessing failed:', error);
+      warnings.push(`Image processing failed: ${error}`);
+    }
+    
+    return processedContent;
+  }
+
+  /**
+   * LaTeX数式処理を強化（LaTeX形式時）
+   */
+  private async preprocessMath(content: string, format: string, warnings: string[]): Promise<string> {
+    if (format !== 'latex') {
+      return content; // 標準形式の場合はそのまま
+    }
+    
+    try {
+      console.log('🧮 Processing LaTeX math expressions...');
+      
+      // LaTeX数式ブロック ($$...$$) の強化処理
+      let processedContent = content;
+      
+      // インライン数式 $...$ を KaTeXクラス付きに変換
+      processedContent = processedContent.replace(/\$([^$]+)\$/g, '<span class="katex-inline">$$1$</span>');
+      
+      // ブロック数式 $$...$$ を KaTeXクラス付きに変換
+      processedContent = processedContent.replace(/\$\$([\s\S]*?)\$\$/g, '<div class="katex-block">$$$$1$$</div>');
+      
+      console.log('✅ LaTeX math preprocessing completed');
+      return processedContent;
+    } catch (error) {
+      console.warn('⚠️  Math preprocessing failed:', error);
+      warnings.push(`Math processing failed: ${error}`);
+      return content;
     }
   }
 
@@ -394,14 +480,63 @@ export class MarkdownCompilerService {
   }
 
   /**
-   * カスタムCSSを生成
+   * カスタムCSSを生成（LaTeX形式対応）
    */
   private generateCustomCss(frontMatter: FrontMatter): string {
+    const isLatexFormat = frontMatter.format === 'latex';
+    
+    // LaTeX形式用の追加スタイル
+    const latexStyles = isLatexFormat ? `
+/* LaTeX format specific styles */
+.katex-inline {
+  display: inline;
+  margin: 0 2px;
+}
+
+.katex-block {
+  display: block;
+  margin: 1em 0;
+  text-align: center;
+}
+
+/* Enhanced KaTeX styling for LaTeX format */
+.katex {
+  font-size: 1.1em;
+}
+
+.katex-display {
+  margin: 1.5em 0;
+  text-align: center;
+}
+
+/* LaTeX-like typography */
+body {
+  font-family: 'Computer Modern', 'Latin Modern', 'CMU Serif', serif;
+  text-rendering: optimizeLegibility;
+}
+
+/* Enhanced mathematical expressions */
+.katex .base {
+  position: relative;
+}
+
+/* Better spacing for LaTeX documents */
+p {
+  margin: 0.8em 0;
+  text-indent: 1.2em;
+}
+
+p:first-child, 
+h1 + p, h2 + p, h3 + p, h4 + p, h5 + p, h6 + p {
+  text-indent: 0;
+}
+` : '';
+    
     return `
 /* Document styles */
 body {
-  font-family: 'Noto Sans JP', sans-serif;
-  line-height: 1.6;
+  font-family: ${isLatexFormat ? "'Computer Modern', 'Latin Modern', 'CMU Serif', serif" : "'Noto Sans JP', sans-serif"};
+  line-height: ${isLatexFormat ? '1.5' : '1.6'};
   color: #333;
   max-width: none;
   margin: 0;
@@ -412,31 +547,32 @@ body {
 h1, h2, h3, h4, h5, h6 {
   letter-spacing: normal !important;
   word-spacing: normal !important;
-  font-weight: 600;
+  font-weight: ${isLatexFormat ? '500' : '600'};
   line-height: 1.3;
-  margin: 0.8em 0 0.4em 0;
+  margin: ${isLatexFormat ? '1.2em 0 0.6em 0' : '0.8em 0 0.4em 0'};
 }
 
 h1 { 
-  font-size: 1.8em; 
+  font-size: ${isLatexFormat ? '2.2em' : '1.8em'}; 
   margin-top: 0;
-  margin-bottom: 0.6em;
-  border-bottom: 2px solid #333;
-  padding-bottom: 0.3em;
+  margin-bottom: ${isLatexFormat ? '0.8em' : '0.6em'};
+  border-bottom: ${isLatexFormat ? 'none' : '2px solid #333'};
+  padding-bottom: ${isLatexFormat ? '0' : '0.3em'};
+  text-align: ${isLatexFormat ? 'center' : 'left'};
 }
 
 h2 { 
-  font-size: 1.5em; 
-  margin-top: 1.2em;
-  margin-bottom: 0.5em;
+  font-size: ${isLatexFormat ? '1.7em' : '1.5em'}; 
+  margin-top: ${isLatexFormat ? '1.5em' : '1.2em'};
+  margin-bottom: ${isLatexFormat ? '0.7em' : '0.5em'};
 }
 
 h3 { 
-  font-size: 1.3em; 
+  font-size: ${isLatexFormat ? '1.4em' : '1.3em'}; 
 }
 
 h4 { 
-  font-size: 1.1em; 
+  font-size: ${isLatexFormat ? '1.2em' : '1.1em'}; 
 }
 
 h5, h6 { 
@@ -444,20 +580,22 @@ h5, h6 {
 }
 
 .document-header {
-  border-bottom: 2px solid #2196f3;
+  border-bottom: ${isLatexFormat ? 'none' : '2px solid #2196f3'};
   margin-bottom: 2em;
-  padding-bottom: 1em;
+  padding-bottom: ${isLatexFormat ? '0' : '1em'};
+  text-align: ${isLatexFormat ? 'center' : 'left'};
 }
 
 .document-header h1 {
-  color: #2196f3;
+  color: ${isLatexFormat ? '#333' : '#2196f3'};
   margin: 0;
-  font-size: 2em;
+  font-size: ${isLatexFormat ? '2.5em' : '2em'};
 }
 
 .document-meta {
   margin-top: 0.5em;
   color: #666;
+  text-align: ${isLatexFormat ? 'center' : 'left'};
 }
 
 .document-meta .author,
@@ -474,7 +612,7 @@ table {
 
 th, td {
   border: 1px solid #ddd;
-  padding: 8px 12px;
+  padding: ${isLatexFormat ? '10px 14px' : '8px 12px'};
   text-align: left;
 }
 
@@ -503,6 +641,28 @@ pre code {
   padding: 0;
 }
 
+/* Image styles */
+img {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 1em auto !important;
+  box-shadow: ${isLatexFormat ? 'none' : '0 2px 8px rgba(0,0,0,0.1)'};
+  border-radius: ${isLatexFormat ? '0' : '4px'};
+  object-fit: contain;
+  page-break-inside: avoid;
+}
+
+/* Ensure all images are responsive and full width */
+.document-content img,
+.markdown-content img,
+img[src] {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
 /* Mermaid diagram styles */
 .mermaid-diagram {
   display: block;
@@ -510,6 +670,8 @@ pre code {
   max-width: 100%;
   height: auto;
 }
+
+${latexStyles}
 
 /* Print optimization */
 @media print {
@@ -531,7 +693,11 @@ pre code {
     page-break-inside: avoid;
   }
   
-  .mermaid-diagram {
+  .mermaid-diagram, img {
+    page-break-inside: avoid;
+  }
+  
+  .katex-block {
     page-break-inside: avoid;
   }
 }

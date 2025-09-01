@@ -79,6 +79,80 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
     setPromptText(defaultPrompt);
   }, [defaultPrompt]);
 
+  // ズーム機能の実装
+  const [zoomLevel, setZoomLevel] = useState<number>(100);
+  
+  useEffect(() => {
+    const handleZoom = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        
+        // deltaYが正の値 = 下スクロール = ズームアウト（縮小）
+        // deltaYが負の値 = 上スクロール = ズームイン（拡大）
+        const zoomDelta = event.deltaY < 0 ? 10 : -10;
+        setZoomLevel(prevZoom => {
+          const newZoom = Math.min(Math.max(prevZoom + zoomDelta, 50), 200);
+          // CSS transformを使用してズーム
+          const scale = newZoom / 100;
+          document.body.style.transform = `scale(${scale})`;
+          document.body.style.transformOrigin = '0 0';
+          document.body.style.width = `${100 / scale}%`;
+          document.body.style.height = `${100 / scale}%`;
+          return newZoom;
+        });
+      }
+    };
+
+    const handleKeyboardZoom = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === '0') {
+        event.preventDefault();
+        setZoomLevel(100);
+        document.body.style.transform = 'scale(1)';
+        document.body.style.width = '100%';
+        document.body.style.height = '100%';
+      } else if ((event.ctrlKey || event.metaKey) && (event.key === '+' || event.key === '=')) {
+        event.preventDefault();
+        setZoomLevel(prevZoom => {
+          const newZoom = Math.min(prevZoom + 10, 200);
+          const scale = newZoom / 100;
+          document.body.style.transform = `scale(${scale})`;
+          document.body.style.transformOrigin = '0 0';
+          document.body.style.width = `${100 / scale}%`;
+          document.body.style.height = `${100 / scale}%`;
+          return newZoom;
+        });
+      } else if ((event.ctrlKey || event.metaKey) && event.key === '-') {
+        event.preventDefault();
+        setZoomLevel(prevZoom => {
+          const newZoom = Math.max(prevZoom - 10, 50);
+          const scale = newZoom / 100;
+          document.body.style.transform = `scale(${scale})`;
+          document.body.style.transformOrigin = '0 0';
+          document.body.style.width = `${100 / scale}%`;
+          document.body.style.height = `${100 / scale}%`;
+          return newZoom;
+        });
+      }
+    };
+
+    document.addEventListener('wheel', handleZoom, { passive: false });
+    document.addEventListener('keydown', handleKeyboardZoom);
+    
+    // 初期化時にtransformをリセット
+    document.body.style.transform = 'scale(1)';
+    document.body.style.transformOrigin = '0 0';
+    
+    return () => {
+      document.removeEventListener('wheel', handleZoom);
+      document.removeEventListener('keydown', handleKeyboardZoom);
+      // クリーンアップ時にスタイルをリセット
+      document.body.style.transform = '';
+      document.body.style.transformOrigin = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+    };
+  }, []);
+
   // ステップの状態を計算
   const getStepStatus = (stepNumber: number): StepStatus => {
     const hasInput = dashboardState.uploadedText || dashboardState.directTextInput;
@@ -98,6 +172,43 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // リフレッシュ機能（新規作成機能と統合）
+  const handleRefresh = () => {
+    if (window.confirm('入力内容をすべてクリアして新しい議事録を作成しますか？')) {
+      // 全ての入力と出力をクリア
+      dashboardState.setUploadedText('');
+      dashboardState.setDirectTextInput('');
+      dashboardState.setOutputText('');
+      
+      // 処理状態をリセット
+      dashboardState.setIsProcessing(false);
+      setTotalCharacters(0);
+      setChunkingProgress(undefined);
+      
+      // 初期タブに戻る（重要：input タブでリセット）
+      dashboardState.setActiveTab('input');
+      
+      // 保存タイトルを新しい日付で設定
+      dashboardState.setSaveTitle(`${new Date().toISOString().slice(0, 10)}_議事録`);
+      
+      // 成功メッセージ
+      dashboardState.showToast('新しい議事録を作成しました', 'success');
+      
+      // フォーカスを確実に復元するため少し遅延させる
+      setTimeout(() => {
+        // 入力フィールドを再フォーカス
+        const textArea = document.querySelector('.text-input textarea') as HTMLTextAreaElement;
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        
+        if (textArea) {
+          textArea.focus();
+        } else if (fileInput) {
+          fileInput.focus();
+        }
+      }, 100);
+    }
+  };
+
   return (
     <div className="dashboard">
       {/* Header */}
@@ -105,6 +216,20 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
         <div className="header-content container">
           <div className="header-title">
             <h1>📋 議事録修正支援アプリ</h1>
+            <div className="header-actions">
+              <button 
+                className="header-btn refresh-btn" 
+                onClick={handleRefresh}
+                title="新しい議事録を作成"
+              >
+                🔄 新規作成
+              </button>
+              {zoomLevel !== 100 && (
+                <div className="zoom-indicator" title="現在のズーム倍率 (Ctrl+0でリセット)">
+                  🔍 {zoomLevel}%
+                </div>
+              )}
+            </div>
           </div>
           <div className="header-workflow">
             <span className={`workflow-step ${getStepStatus(1)}`}>📤 入力</span>
@@ -116,9 +241,6 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
             <span className={`workflow-step ${getStepStatus(4)}`}>✏️ 編集</span>
           </div>
           <div className="header-buttons">
-            <button className="header-btn contact-btn" onClick={() => dashboardState.setIsContactOpen(true)} data-modal="contact">
-              📧 お問い合わせ
-            </button>
             <button className="header-btn" onClick={() => dashboardState.setIsAboutOpen(true)}>
               ℹ️ このアプリについて
             </button>
@@ -217,6 +339,7 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
             showToast={dashboardState.showToast}
             totalCharacters={totalCharacters}
             chunkingProgress={chunkingProgress}
+            apiKeysAvailable={dashboardState.apiKeysAvailable}
           />
         </div>
 
@@ -268,6 +391,7 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
             onToggleDarkMode={dashboardState.toggleDarkMode}
             useCustomDictionary={dashboardState.useCustomDictionary}
             onToggleCustomDictionary={dashboardState.toggleCustomDictionary}
+            onOpenContact={() => dashboardState.setIsContactOpen(true)}
           />
         </Suspense>
       )}

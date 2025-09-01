@@ -92,18 +92,17 @@ export class PdfGenerationService {
       const pdfWindow = await this.createPdfWindow();
 
       try {
-        // HTMLコンテンツをロード（loadHTMLを使用してdata URL問題を回避）
+        // HTMLコンテンツをロード（data URL経由）
         console.log('🌐 Loading HTML content...');
-        await pdfWindow.webContents.loadURL('data:text/html,<html><body>Loading...</body></html>');
+        console.log('📝 HTML content length:', compileResult.htmlContent?.length || 0);
         
-        // HTMLを直接設定
-        console.log('📝 Setting HTML content...');
-        await pdfWindow.webContents.executeJavaScript(`
-          document.open();
-          document.write(${JSON.stringify(compileResult.htmlContent)});
-          document.close();
-        `);
-        console.log('✅ HTML content set');
+        // HTMLコンテンツを安全にエンコード
+        const encodedHtml = encodeURIComponent(compileResult.htmlContent);
+        const dataUrl = `data:text/html;charset=utf-8,${encodedHtml}`;
+        
+        console.log('📝 Loading via data URL...');
+        await pdfWindow.webContents.loadURL(dataUrl);
+        console.log('✅ HTML content loaded');
 
         // レンダリング完了を待機
         console.log('⏱️ Waiting for rendering...');
@@ -168,15 +167,31 @@ export class PdfGenerationService {
     } catch (error) {
       console.error('❌ PDF generation failed:', error);
       
+      // 詳細なエラー情報をログ出力
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      
       // エラーログ記録
       this.dbService.addAuditLog({
         action: 'pdf_generate_failed',
         entity: 'document',
         entity_id: this.generateDocumentId(input),
-        detail: JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' })
+        detail: JSON.stringify({ 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+          name: error instanceof Error ? error.name : undefined
+        })
       });
 
-      throw new Error(`PDF generation failed: ${error}`);
+      // より詳細なエラーメッセージを投げる
+      const errorMessage = error instanceof Error ? 
+        `PDF generation failed: ${error.name} - ${error.message}` : 
+        `PDF generation failed: ${error}`;
+      
+      throw new Error(errorMessage);
     }
   }
 
@@ -184,19 +199,43 @@ export class PdfGenerationService {
    * PDF生成用BrowserWindowを作成
    */
   private async createPdfWindow(): Promise<BrowserWindow> {
-    const window = new BrowserWindow({
-      show: false,  // hidden window
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
-        sandbox: false,
-        offscreen: true  // オフスクリーンレンダリング
-      },
-      width: 1200,
-      height: 1600  // A4相当
-    });
+    try {
+      console.log('🌐 Creating PDF generation window...');
+      
+      const window = new BrowserWindow({
+        show: false,  // hidden window
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true,
+          sandbox: false,
+          offscreen: true,  // オフスクリーンレンダリング
+          webSecurity: false  // ローカルリソースアクセスのため
+        },
+        width: 1200,
+        height: 1600,  // A4相当
+        skipTaskbar: true,
+        enableLargerThanScreen: true
+      });
 
-    return window;
+      // ウィンドウイベントのログ
+      window.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+        console.error('❌ PDF window failed to load:', {
+          errorCode,
+          errorDescription,
+          url: validatedURL
+        });
+      });
+
+      window.webContents.on('crashed', (event, killed) => {
+        console.error('❌ PDF window crashed:', { killed });
+      });
+
+      console.log('✅ PDF window created successfully');
+      return window;
+    } catch (error) {
+      console.error('❌ Failed to create PDF window:', error);
+      throw new Error(`Cannot create PDF window: ${error}`);
+    }
   }
 
   /**

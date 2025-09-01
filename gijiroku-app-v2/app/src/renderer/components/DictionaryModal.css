@@ -362,3 +362,24 @@
     min-width: 600px;
   }
 }
+
+/* Export group styling */
+.export-group {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.export-btn {
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  font-weight: 500;
+  min-width: 60px;
+  justify-content: center;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

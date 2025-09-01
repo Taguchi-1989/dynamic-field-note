@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import './Header.css';
 import './Header.mobile.css';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onRefresh?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onRefresh }) => {
   const [open, setOpen] = useState(false);
   return (
     <header className="header">
@@ -11,6 +15,18 @@ const Header: React.FC = () => {
           <h1 className="header-title">議事録修正支援アプリ</h1>
           <p className="header-subtitle">Microsoft Teams VTT → Markdown/PDF 自動変換</p>
         </div>
+
+        {onRefresh && (
+          <button
+            className="header-refresh-btn tap-target"
+            onClick={onRefresh}
+            aria-label="リフレッシュ"
+            title="入力内容をクリア"
+          >
+            <i className="fas fa-sync-alt"></i>
+            <span className="refresh-label">リフレッシュ</span>
+          </button>
+        )}
 
         <button
           className="menu-toggle tap-target"

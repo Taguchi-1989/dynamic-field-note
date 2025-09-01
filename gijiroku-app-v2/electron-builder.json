@@ -21,6 +21,7 @@
     "!*.ts",
     "!*.tsx"
   ],
+  "includeSubNodeModules": false,
   "win": {
     "target": [
       {

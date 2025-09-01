@@ -363,6 +363,18 @@
   overflow-wrap: break-word !important;
 }
 
+/* 画像スタイル - はみ出し防止 */
+.markdown-preview-vertical img {
+  max-width: 90% !important;
+  width: auto !important;
+  height: auto !important;
+  display: block !important;
+  margin: 1em auto !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+  object-fit: contain !important;
+}
+
 .markdown-editor-vertical.with-revision-panel {
   min-height: 150px;
 }

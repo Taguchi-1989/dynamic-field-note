@@ -1,4 +1,4 @@
-import React, { useEffect, memo } from 'react';
+import React, { useEffect, memo, useState, useRef, useMemo } from 'react';
 // 統合AI処理（Electron IPC）を使用
 import PdfDownloadButton from '../PdfDownloadButton';
 import './EditorSection.css';
@@ -42,6 +42,113 @@ const EditorSection: React.FC<EditorSectionProps> = ({
   showToast,
   selectedModel,
 }) => {
+  // 画像管理用のstate
+  const [insertedImages, setInsertedImages] = useState<{[key: string]: string}>({});
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // PDF出力フォーマット管理
+  const [outputFormat, setOutputFormat] = useState<'standard' | 'latex'>('standard');
+
+  // 画像挿入機能
+  const handleImageInsert = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // ファイル選択処理
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 画像ファイルかチェック
+    if (!file.type.startsWith('image/')) {
+      showToast('画像ファイルを選択してください', 'error');
+      return;
+    }
+
+    // ファイルサイズチェック（5MB制限）
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('画像サイズは5MB以下にしてください', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      const imageId = `img_${Date.now()}`;
+      const fileName = file.name;
+      
+      // 画像を状態に保存
+      setInsertedImages(prev => ({
+        ...prev,
+        [imageId]: result
+      }));
+
+      // Markdownに画像参照を挿入
+      const imageMarkdown = `![${fileName}](${imageId})`;
+      const currentPosition = getTextareaCursorPosition();
+      const newText = insertTextAtPosition(editorText || outputText, imageMarkdown, currentPosition);
+      
+      setOutputText(newText);
+      if (editorText !== null) {
+        setEditorText(newText);
+      }
+
+      showToast('✅ 画像を挿入しました（PDF出力時は自動で最適サイズに調整されます）', 'success');
+    };
+
+    reader.readAsDataURL(file);
+    
+    // input をリセット
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // テキストエリアのカーソル位置を取得
+  const getTextareaCursorPosition = (): number => {
+    const textarea = document.querySelector('.markdown-editor-vertical') as HTMLTextAreaElement;
+    return textarea ? textarea.selectionStart : 0;
+  };
+
+  // 指定位置にテキストを挿入
+  const insertTextAtPosition = (text: string, insertText: string, position: number): string => {
+    return text.slice(0, position) + insertText + text.slice(position);
+  };
+
+  // 画像削除機能
+  const handleImageDelete = (imageId: string) => {
+    if (window.confirm('この画像を削除しますか？')) {
+      // 状態から画像を削除
+      setInsertedImages(prev => {
+        const newImages = { ...prev };
+        delete newImages[imageId];
+        return newImages;
+      });
+
+      // Markdownから画像参照を削除
+      const imageRegex = new RegExp(`!\\[([^\\]]*?)\\]\\(${imageId}\\)`, 'g');
+      const newText = (editorText || outputText).replace(imageRegex, '');
+      
+      setOutputText(newText);
+      if (editorText !== null) {
+        setEditorText(newText);
+      }
+
+      showToast('画像を削除しました', 'info');
+    }
+  };
+
+  // 画像ギャラリー表示切り替え
+  const toggleImageGallery = () => {
+    setShowImageGallery(!showImageGallery);
+  };
+
+  // 画像データのメモ化（useEffect依存関係の安定化のため）
+  const imageDataSnapshot = useMemo(() => ({ ...insertedImages }), [Object.keys(insertedImages).join(',')]);
+
   // Markdownプレビュー更新
   useEffect(() => {
     if (!outputText.trim()) {
@@ -51,8 +158,15 @@ const EditorSection: React.FC<EditorSectionProps> = ({
 
     const updatePreview = async () => {
       try {
+        // カスタム画像IDを実際のデータURIに置換
+        let processedText = outputText;
+        Object.entries(imageDataSnapshot).forEach(([imageId, dataUri]) => {
+          const regex = new RegExp(`!\\[([^\\]]*?)\\]\\(${imageId}\\)`, 'g');
+          processedText = processedText.replace(regex, `![$1](${dataUri})`);
+        });
+
         const { marked } = await import('marked');
-        const html = await marked.parse(outputText);
+        const html = await marked.parse(processedText);
         setPreviewText(html);
       } catch (error) {
         console.error('Markdown parsing error:', error);
@@ -66,7 +180,7 @@ const EditorSection: React.FC<EditorSectionProps> = ({
     };
     
     updatePreview();
-  }, [outputText, setPreviewText]);
+  }, [outputText, imageDataSnapshot, setPreviewText]);
 
   const executeRevision = async () => {
     const currentText = editorText || outputText;
@@ -349,7 +463,115 @@ const EditorSection: React.FC<EditorSectionProps> = ({
           <div className="edit-section">
             <div className="section-header">
               <h3><i className="fas fa-edit"></i> 編集時の内容 <span style={{ fontSize: '0.8rem', color: '#666', fontWeight: 'normal' }}>({outputText.length}文字)</span></h3>
-              <div style={{ marginLeft: 'auto' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {/* 画像管理ボタン */}
+                <button
+                  onClick={() => showToast('🚧 画像機能は開発中です', 'warning')}
+                  title="画像機能は開発中です"
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    cursor: 'not-allowed',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    opacity: 0.6
+                  }}
+                  disabled
+                >
+                  🚧 画像機能（開発中）
+                </button>
+                {Object.keys(insertedImages).length > 0 && (
+                  <button
+                    onClick={toggleImageGallery}
+                    title="挿入済み画像を確認"
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      borderRadius: '4px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      backgroundColor: showImageGallery ? '#dc3545' : '#6c757d',
+                      color: 'white',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    👁️ 画像確認 ({Object.keys(insertedImages).length})
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    if (!outputText.trim()) {
+                      showToast('チェックするテキストがありません', 'warning');
+                      return;
+                    }
+                    // 基本的な文章チェック実行
+                    const checkResults = [];
+                    const text = outputText;
+                    
+                    // 長すぎる文の検出
+                    const sentences = text.split(/[。！？\n]/);
+                    const longSentences = sentences.filter(s => s.trim().length > 100);
+                    if (longSentences.length > 0) {
+                      checkResults.push(`長すぎる文: ${longSentences.length}箇所`);
+                    }
+                    
+                    // 同じ語尾の連続検出
+                    const endPatterns = sentences.map(s => {
+                      const trimmed = s.trim();
+                      if (trimmed.endsWith('です') || trimmed.endsWith('ます')) return 'です/ます調';
+                      if (trimmed.endsWith('である') || trimmed.endsWith('だ')) return 'である調';
+                      return 'その他';
+                    }).filter(p => p !== 'その他');
+                    
+                    let consecutiveCount = 0;
+                    let maxConsecutive = 0;
+                    let prevPattern = '';
+                    endPatterns.forEach(pattern => {
+                      if (pattern === prevPattern) {
+                        consecutiveCount++;
+                        maxConsecutive = Math.max(maxConsecutive, consecutiveCount);
+                      } else {
+                        consecutiveCount = 1;
+                      }
+                      prevPattern = pattern;
+                    });
+                    
+                    if (maxConsecutive > 3) {
+                      checkResults.push(`同じ語尾の連続: ${maxConsecutive}回`);
+                    }
+                    
+                    // 結果表示
+                    if (checkResults.length === 0) {
+                      showToast('✅ 文章に問題は見つかりませんでした', 'success');
+                    } else {
+                      showToast(`📝 改善提案: ${checkResults.join(', ')}`, 'info');
+                    }
+                  }}
+                  disabled={!outputText.trim()}
+                  title={!outputText.trim() ? 'チェックするテキストがありません' : '文章の読みやすさをチェック'}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    cursor: !outputText.trim() ? 'not-allowed' : 'pointer',
+                    opacity: !outputText.trim() ? 0.6 : 1,
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  📝 文章チェック
+                </button>
                 <button
                   onClick={saveMarkdown}
                   disabled={!outputText.trim()}
@@ -379,18 +601,146 @@ const EditorSection: React.FC<EditorSectionProps> = ({
                 placeholder="ここにAIの出力結果が表示され、編集できます..."
                 className={`markdown-editor-vertical ${showRevisionPanel ? 'with-revision-panel' : ''}`}
               />
+              
+              {/* 隠しファイル入力 */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                accept="image/*"
+                style={{ display: 'none' }}
+              />
+
+              {/* 画像ギャラリー */}
+              {showImageGallery && Object.keys(insertedImages).length > 0 && (
+                <div className="image-gallery" style={{
+                  marginTop: '1rem',
+                  padding: '1rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  backgroundColor: '#f8f9fa'
+                }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    marginBottom: '1rem'
+                  }}>
+                    <h4 style={{ margin: 0, fontSize: '14px', color: '#333' }}>
+                      📸 挿入済み画像 ({Object.keys(insertedImages).length}個)
+                    </h4>
+                    <button
+                      onClick={() => setShowImageGallery(false)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '16px',
+                        cursor: 'pointer',
+                        color: '#666'
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                    gap: '1rem'
+                  }}>
+                    {Object.entries(insertedImages).map(([imageId, dataUri]) => (
+                      <div key={imageId} style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        padding: '8px',
+                        border: '1px solid #ddd',
+                        borderRadius: '6px',
+                        backgroundColor: 'white'
+                      }}>
+                        <img
+                          src={dataUri}
+                          alt="Inserted image"
+                          style={{
+                            width: '100px',
+                            height: '80px',
+                            objectFit: 'cover',
+                            borderRadius: '4px',
+                            marginBottom: '8px'
+                          }}
+                        />
+                        <button
+                          onClick={() => handleImageDelete(imageId)}
+                          style={{
+                            padding: '4px 8px',
+                            fontSize: '10px',
+                            borderRadius: '3px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            backgroundColor: '#dc3545',
+                            color: 'white'
+                          }}
+                          title="この画像を削除"
+                        >
+                          🗑️ 削除
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
           <div className="preview-section">
             <div className="section-header">
               <h3><i className="fas fa-eye"></i> 印刷時の品質</h3>
-              <div style={{ marginLeft: 'auto' }}>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {/* PDF出力フォーマット選択 */}
+                <select
+                  value={outputFormat}
+                  onChange={(e) => {
+                    const newFormat = e.target.value as 'standard' | 'latex';
+                    if (newFormat === 'latex') {
+                      // LaTeX選択時は警告を表示して標準に戻す
+                      alert('LaTeX PDF機能は現在開発中です。標準PDFをご利用ください。');
+                      setOutputFormat('standard');
+                    } else {
+                      setOutputFormat(newFormat);
+                    }
+                  }}
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    borderRadius: '4px',
+                    border: '1px solid #d1d5db',
+                    backgroundColor: '#ffffff',
+                    color: '#374151',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s ease',
+                    fontWeight: '500',
+                    minWidth: '120px'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#d1d5db';
+                    e.target.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
+                  }}
+                >
+                  <option value="standard" style={{ color: '#374151', backgroundColor: '#ffffff', fontWeight: '500' }}>📄 標準PDF</option>
+                  <option value="latex" style={{ color: '#999999', backgroundColor: '#f5f5f5', fontWeight: '500' }} disabled>🧮 LaTeX PDF (開発中)</option>
+                </select>
                 <PdfDownloadButton 
                   content={outputText}
                   title={saveTitle || '議事録'}
                   disabled={!outputText.trim()}
                   size="small"
+                  images={insertedImages}
+                  outputFormat={outputFormat}
                 />
                 {/* Debug: 保存タイトル確認用 */}
                 {process.env.NODE_ENV === 'development' && (
