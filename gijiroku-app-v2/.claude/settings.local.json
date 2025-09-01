@@ -30,7 +30,8 @@
       "Bash(npm search:*)",
       "Bash(npx playwright:*)",
       "Bash(git checkout:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(start \"\" \"./release/win-unpacked/議事録アプリ v2.exe\")"
     ],
     "deny": [],
     "ask": []
