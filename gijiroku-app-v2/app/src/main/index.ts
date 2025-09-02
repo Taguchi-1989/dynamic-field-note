@@ -26,6 +26,7 @@ import { setupFileHandler } from './ipc/file-handler';
 import { setupStorageHandler } from './ipc/storage-handler';
 import { setupWorkspaceHandler } from './ipc/workspace-handler';
 import { registerTemplateHandlers } from './ipc/template-handler';
+import { registerDictionaryHandlers } from './ipc/dictionary-handler';
 
 // パフォーマンス測定
 const startTime = performance.now();
@@ -92,6 +93,7 @@ app.whenReady().then(async () => {
     // setupBackendBridge(backendManager); // Removed
     setupWorkspaceHandler();
     registerTemplateHandlers(); // テンプレート管理ハンドラー登録
+    registerDictionaryHandlers(); // 辞書機能ハンドラー登録
     setupDatabaseHandlers();
     setupMarkdownHandlers();
     setupSecureStorageHandlers();

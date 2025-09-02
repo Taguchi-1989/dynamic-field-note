@@ -140,6 +140,15 @@ interface ElectronAPI {
     upsert: (template: { id?: string; title: string; content: string; description?: string; category?: string; is_active?: boolean }) => Promise<IPCResponse<{ id: string; title: string; content: string; description?: string; category?: string; is_active?: boolean }>>;
     delete: (id: string) => Promise<IPCResponse<boolean>>;
   };
+  // === NEW: Dictionary API (Phase 1実装) ===
+  dictionary: {
+    list: () => Promise<IPCResponse<Array<{ id: string; original: string; corrected: string; description?: string; category?: string; is_active?: boolean }>>>;
+    get: (id: string) => Promise<IPCResponse<{ id: string; original: string; corrected: string; description?: string; category?: string; is_active?: boolean }>>;
+    upsert: (entry: { id?: string; original: string; corrected: string; description?: string; category?: string; is_active?: boolean }) => Promise<IPCResponse<{ id: string; original: string; corrected: string; description?: string; category?: string; is_active?: boolean }>>;
+    delete: (id: string) => Promise<IPCResponse<boolean>>;
+    export: () => Promise<IPCResponse<Array<{ id: string; original: string; corrected: string; description?: string; category?: string; is_active?: boolean }>>>;
+    import: (data: { entries: Array<{ original: string; corrected: string; description?: string; category?: string; is_active?: boolean }>; overwrite: boolean }) => Promise<IPCResponse<{ imported: number }>>;
+  };
 }
 
 // バリデーション付きAPIを公開
@@ -448,6 +457,64 @@ const createElectronAPI = (): ElectronAPI => ({
           throw new Error('Template ID is required');
         }
         return await ipcRenderer.invoke('templates:delete', id);
+      } catch (error) {
+        return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
+    }
+  },
+
+  // === NEW: Dictionary API (Phase 1実装) ===
+  dictionary: {
+    list: async (): Promise<IPCResponse<Array<{ id: string; original: string; corrected: string; description?: string; category?: string; is_active?: boolean }>>> => {
+      try {
+        return await ipcRenderer.invoke('dictionary:list');
+      } catch (error) {
+        return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+    get: async (id: string): Promise<IPCResponse<{ id: string; original: string; corrected: string; description?: string; category?: string; is_active?: boolean }>> => {
+      try {
+        if (!id) {
+          throw new Error('Dictionary entry ID is required');
+        }
+        return await ipcRenderer.invoke('dictionary:get', id);
+      } catch (error) {
+        return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+    upsert: async (entry: { id?: string; original: string; corrected: string; description?: string; category?: string; is_active?: boolean }): Promise<IPCResponse<{ id: string; original: string; corrected: string; description?: string; category?: string; is_active?: boolean }>> => {
+      try {
+        if (!entry.original || !entry.corrected) {
+          throw new Error('Original and corrected text are required');
+        }
+        return await ipcRenderer.invoke('dictionary:upsert', entry);
+      } catch (error) {
+        return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+    delete: async (id: string): Promise<IPCResponse<boolean>> => {
+      try {
+        if (!id) {
+          throw new Error('Dictionary entry ID is required');
+        }
+        return await ipcRenderer.invoke('dictionary:delete', id);
+      } catch (error) {
+        return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+    export: async (): Promise<IPCResponse<Array<{ id: string; original: string; corrected: string; description?: string; category?: string; is_active?: boolean }>>> => {
+      try {
+        return await ipcRenderer.invoke('dictionary:export');
+      } catch (error) {
+        return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+    import: async (data: { entries: Array<{ original: string; corrected: string; description?: string; category?: string; is_active?: boolean }>; overwrite: boolean }): Promise<IPCResponse<{ imported: number }>> => {
+      try {
+        if (!data.entries || !Array.isArray(data.entries) || data.entries.length === 0) {
+          throw new Error('Entries array is required and must not be empty');
+        }
+        return await ipcRenderer.invoke('dictionary:import', data);
       } catch (error) {
         return createErrorResponse(error instanceof Error ? error : new Error(String(error)));
       }

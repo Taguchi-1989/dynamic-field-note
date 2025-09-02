@@ -1,10 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import API_ENDPOINTS from '../config/api';
 import { isFeatureEnabled, shouldShowDevelopmentTag } from '../../shared/feature-flags';
 import './DictionaryModal.css';
 import './modal-close-style.css';
 import './DevelopmentStyles.css';
+
+// Electron API の型定義
+declare global {
+  interface Window {
+    electronAPI: {
+      dictionary: {
+        list: () => Promise<{ success: boolean; data?: DictionaryEntry[]; error?: string }>;
+        get: (id: string) => Promise<{ success: boolean; data?: DictionaryEntry; error?: string }>;
+        upsert: (entry: DictionaryEntry) => Promise<{ success: boolean; data?: DictionaryEntry; error?: string }>;
+        delete: (id: string) => Promise<{ success: boolean; data?: boolean; error?: string }>;
+        export: () => Promise<{ success: boolean; data?: DictionaryEntry[]; error?: string }>;
+        import: (data: { entries: DictionaryEntry[]; overwrite: boolean }) => Promise<{ success: boolean; data?: { imported: number }; error?: string }>;
+      };
+    };
+  }
+}
 
 interface DictionaryEntry {
   id?: string;
@@ -46,8 +60,12 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
     }
     
     try {
-      const response = await axios.get(API_ENDPOINTS.dictionary);
-      setEntries(response.data.entries);
+      const response = await window.electronAPI.dictionary.list();
+      if (response.success && response.data) {
+        setEntries(response.data);
+      } else {
+        console.error('Failed to fetch dictionary entries:', response.error);
+      }
     } catch (error) {
       console.error('Failed to fetch dictionary entries:', error);
     }
@@ -68,14 +86,18 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
 
     setIsLoading(true);
     try {
-      await axios.post(API_ENDPOINTS.dictionary, newEntry);
-      await fetchEntries();
-      setNewEntry({
-        original: '',
-        corrected: '',
-        description: '',
-        category: '一般'
-      });
+      const response = await window.electronAPI.dictionary.upsert(newEntry);
+      if (response.success) {
+        await fetchEntries();
+        setNewEntry({
+          original: '',
+          corrected: '',
+          description: '',
+          category: '一般'
+        });
+      } else {
+        alert(`エントリの追加に失敗しました: ${response.error}`);
+      }
     } catch (error) {
       console.error('Failed to add entry:', error);
       alert('エントリの追加に失敗しました');
@@ -88,9 +110,13 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
   const handleUpdateEntry = async (id: string, updatedEntry: DictionaryEntry) => {
     setIsLoading(true);
     try {
-      await axios.put(`${API_ENDPOINTS.dictionary}/${id}`, updatedEntry);
-      await fetchEntries();
-      setEditingId(null);
+      const response = await window.electronAPI.dictionary.upsert(updatedEntry);
+      if (response.success) {
+        await fetchEntries();
+        setEditingId(null);
+      } else {
+        alert(`エントリの更新に失敗しました: ${response.error}`);
+      }
     } catch (error) {
       console.error('Failed to update entry:', error);
       alert('エントリの更新に失敗しました');
@@ -107,8 +133,12 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
 
     setIsLoading(true);
     try {
-      await axios.delete(`${API_ENDPOINTS.dictionary}/${id}`);
-      await fetchEntries();
+      const response = await window.electronAPI.dictionary.delete(id);
+      if (response.success) {
+        await fetchEntries();
+      } else {
+        alert(`エントリの削除に失敗しました: ${response.error}`);
+      }
     } catch (error) {
       console.error('Failed to delete entry:', error);
       alert('エントリの削除に失敗しました');
@@ -128,15 +158,19 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
   // エクスポート（JSON形式）
   const exportDictionaryJSON = async () => {
     try {
-      const response = await axios.get(API_ENDPOINTS.dictionaryExport);
-      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `dictionary_${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      alert('辞書をJSON形式でエクスポートしました');
+      const response = await window.electronAPI.dictionary.export();
+      if (response.success && response.data) {
+        const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dictionary_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('辞書をJSON形式でエクスポートしました');
+      } else {
+        alert(`JSONエクスポートに失敗しました: ${response.error}`);
+      }
     } catch (error) {
       console.error('JSON export failed:', error);
       alert('JSONエクスポートに失敗しました');
@@ -146,24 +180,28 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
   // エクスポート（テキスト形式）
   const exportDictionaryText = async () => {
     try {
-      const response = await axios.get(API_ENDPOINTS.dictionaryExport);
-      const entries = response.data;
-      
-      // テキスト形式に変換（TSVフォーマット）
-      let textContent = '誤字\t修正後\t説明\tカテゴリ\n'; // ヘッダー
-      
-      entries.forEach((entry: DictionaryEntry) => {
-        textContent += `${entry.original}\t${entry.corrected}\t${entry.description || ''}\t${entry.category || '一般'}\n`;
-      });
-      
-      const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `dictionary_${new Date().toISOString().split('T')[0]}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-      alert('辞書をテキスト形式でエクスポートしました');
+      const response = await window.electronAPI.dictionary.export();
+      if (response.success && response.data) {
+        const entries = response.data;
+        
+        // テキスト形式に変換（TSVフォーマット）
+        let textContent = '誤字\t修正後\t説明\tカテゴリ\n'; // ヘッダー
+        
+        entries.forEach((entry: DictionaryEntry) => {
+          textContent += `${entry.original}\t${entry.corrected}\t${entry.description || ''}\t${entry.category || '一般'}\n`;
+        });
+        
+        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `dictionary_${new Date().toISOString().split('T')[0]}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('辞書をテキスト形式でエクスポートしました');
+      } else {
+        alert(`テキストエクスポートに失敗しました: ${response.error}`);
+      }
     } catch (error) {
       console.error('Text export failed:', error);
       alert('テキストエクスポートに失敗しました');
@@ -213,12 +251,17 @@ const DictionaryModal: React.FC<DictionaryModalProps> = ({ isOpen, onClose }) =>
           throw new Error('インポートするエントリが見つかりませんでした。');
         }
         
-        await axios.post(API_ENDPOINTS.dictionaryImport, {
+        const response = await window.electronAPI.dictionary.import({
           entries: entries,
           overwrite: true
         });
-        await fetchEntries();
-        alert(`辞書をインポートしました（${entries.length}件）`);
+        
+        if (response.success && response.data) {
+          await fetchEntries();
+          alert(`辞書をインポートしました（${response.data.imported}件）`);
+        } else {
+          throw new Error(response.error || '不明なエラー');
+        }
       } catch (error) {
         console.error('インポートエラー:', error);
         alert(`インポートに失敗しました: ${error instanceof Error ? error.message : error}`);

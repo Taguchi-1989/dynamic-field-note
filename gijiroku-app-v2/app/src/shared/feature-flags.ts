@@ -39,7 +39,7 @@ export const FEATURE_FLAGS: FeatureFlags = {
 
   // === 高度機能（開発中・無効化） ===
   searchFunction: false, // SearchService.ts は実装済みだが無効化
-  dictionaryFunction: false, // DictionaryModal.tsx は実装済みだが無効化
+  dictionaryFunction: true, // ✅ Phase 1: 辞書機能有効化 - DB・IPC実装完了後
   logFunction: false, // LogService.ts は基盤のみ、UI無効化
   syncFunction: false, // SyncService.ts は実装済みだが無効化
 

@@ -103,6 +103,19 @@ export const PromptTemplateSchema = z.object({
   updated_at: z.string(),
 });
 
+// 辞書エントリスキーマ（DictionaryModal.tsx互換）
+export const DictionaryEntrySchema = z.object({
+  id: z.string().uuid(),
+  owner_id: z.string().uuid().nullable().optional(),
+  original: z.string(), // term -> original (フロントエンド互換)
+  corrected: z.string(), // canonical -> corrected (フロントエンド互換)
+  description: z.string().nullable().optional(), // notes -> description (フロントエンド互換)
+  category: z.string().nullable().optional(), // kind -> category (フロントエンド互換)
+  is_active: z.boolean().default(true),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
 // 型定義
 export type User = z.infer<typeof UserSchema>;
 export type Meeting = z.infer<typeof MeetingSchema>;
@@ -112,6 +125,7 @@ export type Task = z.infer<typeof TaskSchema>;
 export type Attachment = z.infer<typeof AttachmentSchema>;
 export type Job = z.infer<typeof JobSchema>;
 export type PromptTemplate = z.infer<typeof PromptTemplateSchema>;
+export type DictionaryEntry = z.infer<typeof DictionaryEntrySchema>;
 
 export interface AuditLogEntry {
   actor_id?: string;
@@ -774,6 +788,166 @@ export class DbService {
     
     transaction();
     console.log(`プロンプトテンプレート初期投入: ${templates.length}件`);
+  }
+
+  // ==================== Dictionary Entries DAO ====================
+
+  /**
+   * 辞書エントリ一覧を取得
+   */
+  public getDictionaryEntries(activeOnly = false): DictionaryEntry[] {
+    const db = this.getDb();
+    
+    // DB列名をフロントエンド互換形式にマッピング
+    const query = `
+      SELECT 
+        id,
+        owner_id,
+        term as original,
+        canonical as corrected,
+        notes as description,
+        kind as category,
+        CASE WHEN kind != 'stopword' THEN 1 ELSE 0 END as is_active,
+        datetime('now') as created_at,
+        updated_at
+      FROM dictionary_entries 
+      ${activeOnly ? "WHERE kind != 'stopword'" : ''}
+      ORDER BY category, term
+    `;
+    
+    const stmt = db.prepare(query);
+    const rows = stmt.all() as any[];
+    
+    return rows.map(row => ({
+      ...row,
+      is_active: row.is_active === 1,
+      created_at: row.created_at || row.updated_at,
+    }));
+  }
+
+  /**
+   * ID で辞書エントリを取得
+   */
+  public getDictionaryEntryById(id: string): DictionaryEntry | null {
+    const db = this.getDb();
+    const query = `
+      SELECT 
+        id,
+        owner_id,
+        term as original,
+        canonical as corrected,
+        notes as description,
+        kind as category,
+        CASE WHEN kind != 'stopword' THEN 1 ELSE 0 END as is_active,
+        datetime('now') as created_at,
+        updated_at
+      FROM dictionary_entries 
+      WHERE id = ?
+    `;
+    
+    const stmt = db.prepare(query);
+    const row = stmt.get(id) as any;
+    
+    if (!row) return null;
+    
+    return {
+      ...row,
+      is_active: row.is_active === 1,
+      created_at: row.created_at || row.updated_at,
+    };
+  }
+
+  /**
+   * 辞書エントリを作成または更新
+   */
+  public upsertDictionaryEntry(entry: Omit<DictionaryEntry, 'created_at' | 'updated_at'>): DictionaryEntry {
+    const db = this.getDb();
+    const now = new Date().toISOString();
+    
+    // ID が指定されていない場合は新規作成
+    const id = entry.id || uuidv4();
+    
+    // フロントエンド互換形式からDB形式にマッピング
+    const stmt = db.prepare(`
+      INSERT INTO dictionary_entries (id, owner_id, term, canonical, kind, notes, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        term = excluded.term,
+        canonical = excluded.canonical,
+        kind = excluded.kind,
+        notes = excluded.notes,
+        updated_at = excluded.updated_at
+    `);
+    
+    stmt.run(
+      id,
+      entry.owner_id || null,
+      entry.original, // original -> term
+      entry.corrected, // corrected -> canonical
+      entry.category || 'alias', // category -> kind
+      entry.description || null, // description -> notes
+      now
+    );
+    
+    // 変更ログを記録
+    this.addChangeLog({
+      entity: 'dictionary_entries',
+      entity_id: id,
+      op: entry.id ? 'update' : 'insert',
+      version: 1,
+      patch: JSON.stringify(entry)
+    });
+    
+    return this.getDictionaryEntryById(id)!;
+  }
+
+  /**
+   * 辞書エントリを削除
+   */
+  public deleteDictionaryEntry(id: string): boolean {
+    const db = this.getDb();
+    const stmt = db.prepare('DELETE FROM dictionary_entries WHERE id = ?');
+    const result = stmt.run(id);
+    
+    if (result.changes > 0) {
+      // 変更ログを記録
+      this.addChangeLog({
+        entity: 'dictionary_entries',
+        entity_id: id,
+        op: 'delete',
+        version: 1,
+        patch: null
+      });
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * 辞書エントリの初期データをシード
+   */
+  public async seedDictionaryEntries(entries: Array<Omit<DictionaryEntry, 'id' | 'created_at' | 'updated_at'>>): Promise<void> {
+    const db = this.getDb();
+    
+    // 既存のエントリ数を確認
+    const count = (db.prepare('SELECT COUNT(*) as count FROM dictionary_entries').get() as any).count;
+    
+    // 既にデータがある場合はスキップ
+    if (count > 0) {
+      console.log(`辞書エントリ既存: ${count}件`);
+      return;
+    }
+    
+    // トランザクション内で一括挿入
+    const transaction = db.transaction(() => {
+      for (const entry of entries) {
+        this.upsertDictionaryEntry(entry);
+      }
+    });
+    
+    transaction();
+    console.log(`辞書エントリ初期投入: ${entries.length}件`);
   }
 
   public getJobsByStatus(status: Job['status']): Job[] {
