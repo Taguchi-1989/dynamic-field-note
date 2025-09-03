@@ -46,7 +46,7 @@ export const FEATURE_FLAGS: FeatureFlags = {
   // === 拡張機能（部分実装・開発中） ===
   imageSupport: false, // 部分実装、PDF埋め込み未完成
   latexSupport: false, // KaTeX基盤のみ、プレビュー未実装
-  mermaidSupport: false, // 充実実装だが挑戦的・MVP除外
+  mermaidSupport: true, // ✅ GPT-5レビュー準拠実装完了・有効化
 
   // === UI制御 ===
   showDevelopmentFeatures: process.env.NODE_ENV === 'development', // 開発環境でのみ表示

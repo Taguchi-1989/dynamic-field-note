@@ -158,18 +158,53 @@ const EditorSection: React.FC<EditorSectionProps> = ({
 
     const updatePreview = async () => {
       try {
-        // カスタム画像IDを実際のデータURIに置換
-        let processedText = outputText;
-        Object.entries(imageDataSnapshot).forEach(([imageId, dataUri]) => {
-          const regex = new RegExp(`!\\[([^\\]]*?)\\]\\(${imageId}\\)`, 'g');
-          processedText = processedText.replace(regex, `![$1](${dataUri})`);
-        });
+        // MarkdownCompilerServiceを使用してMermaidも含めて処理
+        if (window.electronAPI?.markdown?.compile) {
+          console.log('🔄 Using MarkdownCompilerService for preview with Mermaid support');
+          
+          // カスタム画像IDを実際のデータURIに置換
+          let processedText = outputText;
+          Object.entries(imageDataSnapshot).forEach(([imageId, dataUri]) => {
+            const regex = new RegExp(`!\\[([^\\]]*?)\\]\\(${imageId}\\)`, 'g');
+            processedText = processedText.replace(regex, `![$1](${dataUri})`);
+          });
 
-        const { marked } = await import('marked');
-        const html = await marked.parse(processedText);
-        setPreviewText(html);
+          const result = await window.electronAPI.markdown.compile({
+            content: processedText,
+            options: {
+              title: saveTitle || 'プレビュー',
+              toc: false,
+              theme: 'default',
+              imageData: imageDataSnapshot
+            }
+          });
+          
+          if (result.success) {
+            console.log('✅ Markdown compiled with Mermaid support');
+            setPreviewText(result.data.htmlContent);
+          } else {
+            console.warn('⚠️ Markdown compilation failed, using fallback');
+            // フォールバック処理
+            const { marked } = await import('marked');
+            const html = await marked.parse(processedText);
+            setPreviewText(html);
+          }
+        } else {
+          // Electron APIが利用できない場合のフォールバック
+          console.log('⚠️ Electron API not available, using marked directly');
+          let processedText = outputText;
+          Object.entries(imageDataSnapshot).forEach(([imageId, dataUri]) => {
+            const regex = new RegExp(`!\\[([^\\]]*?)\\]\\(${imageId}\\)`, 'g');
+            processedText = processedText.replace(regex, `![$1](${dataUri})`);
+          });
+
+          const { marked } = await import('marked');
+          const html = await marked.parse(processedText);
+          setPreviewText(html);
+        }
       } catch (error) {
         console.error('Markdown parsing error:', error);
+        // 最小限のフォールバック処理
         let html = outputText;
         html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
         html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
@@ -180,7 +215,7 @@ const EditorSection: React.FC<EditorSectionProps> = ({
     };
     
     updatePreview();
-  }, [outputText, imageDataSnapshot, setPreviewText]);
+  }, [outputText, imageDataSnapshot, setPreviewText, saveTitle]);
 
   const executeRevision = async () => {
     const currentText = editorText || outputText;
