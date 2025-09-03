@@ -12,6 +12,7 @@
 import { BrowserWindow } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import * as os from 'os';
 import { MarkdownCompilerService, MarkdownCompileInput } from './MarkdownCompilerService';
 import { MermaidRenderWorker } from './MermaidRenderWorker';
 import { WorkspaceService } from './WorkspaceService';
@@ -90,18 +91,24 @@ export class PdfGenerationService {
 
       // PDF生成用BrowserWindow作成
       const pdfWindow = await this.createPdfWindow();
+      let tempFilePath: string | undefined;
 
       try {
-        // HTMLコンテンツをロード（data URL経由）
+        // HTMLコンテンツをロード（一時ファイル経由）
         console.log('🌐 Loading HTML content...');
         console.log('📝 HTML content length:', compileResult.htmlContent?.length || 0);
         
-        // HTMLコンテンツを安全にエンコード
-        const encodedHtml = encodeURIComponent(compileResult.htmlContent);
-        const dataUrl = `data:text/html;charset=utf-8,${encodedHtml}`;
+        // 一時ファイルにHTMLを保存
+        const tempDir = os.tmpdir();
+        tempFilePath = path.join(tempDir, `pdf-temp-${Date.now()}.html`);
+        console.log('📝 Writing HTML to temp file:', tempFilePath);
         
-        console.log('📝 Loading via data URL...');
-        await pdfWindow.webContents.loadURL(dataUrl);
+        await fs.writeFile(tempFilePath, compileResult.htmlContent, 'utf-8');
+        
+        // ファイルURLとしてロード
+        const fileUrl = `file://${tempFilePath.replace(/\\/g, '/')}`;
+        console.log('📝 Loading via file URL:', fileUrl);
+        await pdfWindow.webContents.loadURL(fileUrl);
         console.log('✅ HTML content loaded');
 
         // レンダリング完了を待機
@@ -146,6 +153,16 @@ export class PdfGenerationService {
 
         console.log(`✅ PDF generation completed: ${pdfPath}`);
 
+        // 一時ファイルのクリーンアップ
+        if (tempFilePath) {
+          try {
+            await fs.unlink(tempFilePath);
+            console.log('🗑️ Temp HTML file cleaned up');
+          } catch (error) {
+            console.warn('⚠️ Failed to clean up temp file:', error);
+          }
+        }
+
         return {
           pdfPath,
           pages,
@@ -154,6 +171,16 @@ export class PdfGenerationService {
         };
 
       } finally {
+        // 一時ファイルのクリーンアップ（エラー時）
+        if (tempFilePath) {
+          try {
+            await fs.unlink(tempFilePath);
+            console.log('🗑️ Temp HTML file cleaned up (finally)');
+          } catch (error) {
+            console.warn('⚠️ Failed to clean up temp file (finally):', error);
+          }
+        }
+        
         // PDFウィンドウを破棄
         console.log('🧹 Cleaning up PDF window...');
         if (!pdfWindow.isDestroyed()) {

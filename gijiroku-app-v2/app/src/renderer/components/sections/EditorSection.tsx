@@ -58,7 +58,7 @@ const EditorSection: React.FC<EditorSectionProps> = ({
   };
 
   // ファイル選択処理
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -501,25 +501,30 @@ const EditorSection: React.FC<EditorSectionProps> = ({
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
                 {/* 画像管理ボタン */}
                 <button
-                  onClick={() => showToast('🚧 画像機能は開発中です', 'warning')}
-                  title="画像機能は開発中です"
+                  onClick={handleImageInsert}
+                  title="画像を挿入"
                   style={{
                     padding: '6px 12px',
                     fontSize: '12px',
                     borderRadius: '4px',
                     border: 'none',
-                    cursor: 'not-allowed',
-                    backgroundColor: '#6c757d',
+                    cursor: 'pointer',
+                    backgroundColor: '#28a745',
                     color: 'white',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    opacity: 0.6
+                    gap: '6px'
                   }}
-                  disabled
                 >
-                  🚧 画像機能（開発中）
+                  📷 画像を挿入
                 </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleImageFileSelect}
+                />
                 {Object.keys(insertedImages).length > 0 && (
                   <button
                     onClick={toggleImageGallery}
@@ -641,7 +646,7 @@ const EditorSection: React.FC<EditorSectionProps> = ({
               <input
                 type="file"
                 ref={fileInputRef}
-                onChange={handleFileSelect}
+                onChange={handleImageFileSelect}
                 accept="image/*"
                 style={{ display: 'none' }}
               />
