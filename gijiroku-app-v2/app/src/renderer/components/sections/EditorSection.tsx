@@ -1,6 +1,7 @@
 import React, { useEffect, memo, useState, useRef, useMemo } from 'react';
 // 統合AI処理（Electron IPC）を使用
 import PdfDownloadButton from '../PdfDownloadButton';
+import ImageListDropdown from '../ImageListDropdown';
 import './EditorSection.css';
 
 interface EditorSectionProps {
@@ -44,7 +45,6 @@ const EditorSection: React.FC<EditorSectionProps> = ({
 }) => {
   // 画像管理用のstate
   const [insertedImages, setInsertedImages] = useState<{[key: string]: string}>({});
-  const [showImageGallery, setShowImageGallery] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // PDF出力フォーマット管理
@@ -120,31 +120,26 @@ const EditorSection: React.FC<EditorSectionProps> = ({
 
   // 画像削除機能
   const handleImageDelete = (imageId: string) => {
-    if (window.confirm('この画像を削除しますか？')) {
-      // 状態から画像を削除
-      setInsertedImages(prev => {
-        const newImages = { ...prev };
-        delete newImages[imageId];
-        return newImages;
-      });
+    // ImageListDropdownコンポーネントで既に確認ダイアログが表示されるため、ここでは直接削除処理を行う
+    // 状態から画像を削除
+    setInsertedImages(prev => {
+      const newImages = { ...prev };
+      delete newImages[imageId];
+      return newImages;
+    });
 
-      // Markdownから画像参照を削除
-      const imageRegex = new RegExp(`!\\[([^\\]]*?)\\]\\(${imageId}\\)`, 'g');
-      const newText = (editorText || outputText).replace(imageRegex, '');
-      
-      setOutputText(newText);
-      if (editorText !== null) {
-        setEditorText(newText);
-      }
-
-      showToast('画像を削除しました', 'info');
+    // Markdownから画像参照を削除
+    const imageRegex = new RegExp(`!\\[([^\\]]*?)\\]\\(${imageId}\\)`, 'g');
+    const newText = (editorText || outputText).replace(imageRegex, '');
+    
+    setOutputText(newText);
+    if (editorText !== null) {
+      setEditorText(newText);
     }
+
+    showToast('画像を削除しました', 'info');
   };
 
-  // 画像ギャラリー表示切り替え
-  const toggleImageGallery = () => {
-    setShowImageGallery(!showImageGallery);
-  };
 
   // 画像データのメモ化（useEffect依存関係の安定化のため）
   const imageDataSnapshot = useMemo(() => ({ ...insertedImages }), [Object.keys(insertedImages).join(',')]);
@@ -526,24 +521,10 @@ const EditorSection: React.FC<EditorSectionProps> = ({
                   onChange={handleImageFileSelect}
                 />
                 {Object.keys(insertedImages).length > 0 && (
-                  <button
-                    onClick={toggleImageGallery}
-                    title="挿入済み画像を確認"
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      borderRadius: '4px',
-                      border: 'none',
-                      cursor: 'pointer',
-                      backgroundColor: showImageGallery ? '#dc3545' : '#6c757d',
-                      color: 'white',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    👁️ 画像確認 ({Object.keys(insertedImages).length})
-                  </button>
+                  <ImageListDropdown
+                    insertedImages={insertedImages}
+                    onImageDelete={handleImageDelete}
+                  />
                 )}
                 <button
                   onClick={() => {
@@ -651,83 +632,6 @@ const EditorSection: React.FC<EditorSectionProps> = ({
                 style={{ display: 'none' }}
               />
 
-              {/* 画像ギャラリー */}
-              {showImageGallery && Object.keys(insertedImages).length > 0 && (
-                <div className="image-gallery" style={{
-                  marginTop: '1rem',
-                  padding: '1rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  backgroundColor: '#f8f9fa'
-                }}>
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: '1rem'
-                  }}>
-                    <h4 style={{ margin: 0, fontSize: '14px', color: '#333' }}>
-                      📸 挿入済み画像 ({Object.keys(insertedImages).length}個)
-                    </h4>
-                    <button
-                      onClick={() => setShowImageGallery(false)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        fontSize: '16px',
-                        cursor: 'pointer',
-                        color: '#666'
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-                    gap: '1rem'
-                  }}>
-                    {Object.entries(insertedImages).map(([imageId, dataUri]) => (
-                      <div key={imageId} style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        padding: '8px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        backgroundColor: 'white'
-                      }}>
-                        <img
-                          src={dataUri}
-                          alt="Inserted image"
-                          style={{
-                            width: '100px',
-                            height: '80px',
-                            objectFit: 'cover',
-                            borderRadius: '4px',
-                            marginBottom: '8px'
-                          }}
-                        />
-                        <button
-                          onClick={() => handleImageDelete(imageId)}
-                          style={{
-                            padding: '4px 8px',
-                            fontSize: '10px',
-                            borderRadius: '3px',
-                            border: 'none',
-                            cursor: 'pointer',
-                            backgroundColor: '#dc3545',
-                            color: 'white'
-                          }}
-                          title="この画像を削除"
-                        >
-                          🗑️ 削除
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
           

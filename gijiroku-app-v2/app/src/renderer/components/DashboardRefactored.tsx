@@ -349,7 +349,7 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
             </div>
           </div>
 
-          {/* 3. AI実行エリア */}
+          {/* 3. AI実行エリア - プロンプト選択の直後に移動 */}
           <AIExecutionSection
             uploadedText={dashboardState.uploadedText}
             directTextInput={dashboardState.directTextInput}
