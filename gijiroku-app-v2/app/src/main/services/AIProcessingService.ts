@@ -277,7 +277,7 @@ export class AIProcessingService {
     prompt: string, 
     options: AIProcessingOptions
   ): Promise<AIProcessingResult> {
-    let apiKey = await this.secureStorage.getCredential('gemini_api_key');
+    let apiKey = await this.secureStorage.getApiKey('gemini');
     
     // 本番環境では環境変数からのAPIキー取得を無効化
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VITE_FORCE_USER_API_KEYS === 'true';
@@ -334,7 +334,7 @@ export class AIProcessingService {
     prompt: string, 
     options: AIProcessingOptions
   ): Promise<AIProcessingResult> {
-    let apiKey = await this.secureStorage.getCredential('openai_api_key');
+    let apiKey = await this.secureStorage.getApiKey('openai');
     
     // 本番環境では環境変数からのAPIキー取得を無効化
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VITE_FORCE_USER_API_KEYS === 'true';
@@ -598,26 +598,42 @@ ${originalText}
    * 最適なプロバイダーの自動判定
    */
   private async determineProvider(): Promise<'gemini' | 'openai' | 'offline'> {
+    console.log('🔍 [DEBUG] Provider determination started');
+    
     try {
-      // Gemini APIキーの確認
-      const geminiKey = await this.secureStorage.getCredential('gemini_api_key');
+      // === Gemini APIキー詳細チェック ===
+      console.log('🔑 [DEBUG] Checking Gemini API key...');
+      const geminiKey = await this.secureStorage.getApiKey('gemini');
+      console.log('🔑 [DEBUG] Gemini key result:', {
+        found: !!geminiKey,
+        length: geminiKey?.length || 0,
+        firstChars: geminiKey ? geminiKey.substring(0, 8) + '...' : 'none'
+      });
+      
       if (geminiKey) {
-        console.log('🔑 Gemini API key found, selecting gemini provider');
+        console.log('✅ [DEBUG] Gemini provider selected');
         return 'gemini';
       }
       
-      // OpenAI APIキーの確認
-      const openaiKey = await this.secureStorage.getCredential('openai_api_key');
+      // === OpenAI APIキー詳細チェック ===
+      console.log('🔑 [DEBUG] Checking OpenAI API key...');
+      const openaiKey = await this.secureStorage.getApiKey('openai');
+      console.log('🔑 [DEBUG] OpenAI key result:', {
+        found: !!openaiKey,
+        length: openaiKey?.length || 0,
+        firstChars: openaiKey ? openaiKey.substring(0, 8) + '...' : 'none'
+      });
+      
       if (openaiKey) {
-        console.log('🔑 OpenAI API key found, selecting openai provider');
+        console.log('✅ [DEBUG] OpenAI provider selected');
         return 'openai';
       }
     } catch (error) {
-      console.warn('⚠️ API key check failed:', error);
+      console.error('❌ [DEBUG] Provider check error:', error);
+      console.error('❌ [DEBUG] SecureStorage health check needed');
     }
     
-    // APIキーがない場合はオフライン処理
-    console.log('📴 No API keys found, using offline processing');
+    console.log('📴 [DEBUG] No API keys found, falling back to offline');
     return 'offline';
   }
 
@@ -629,10 +645,10 @@ ${originalText}
     
     // API キーの存在確認
     try {
-      const geminiKey = await this.secureStorage.getCredential('gemini_api_key');
+      const geminiKey = await this.secureStorage.getApiKey('gemini');
       if (geminiKey) providers.push('gemini');
       
-      const openaiKey = await this.secureStorage.getCredential('openai_api_key');
+      const openaiKey = await this.secureStorage.getApiKey('openai');
       if (openaiKey) providers.push('openai');
     } catch (error) {
       console.warn('API キー確認中にエラー:', error);

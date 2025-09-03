@@ -306,8 +306,11 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
   // ローディング中でも枠とスケルトンを出したいので、早期returnはしない
 
   return (
+    // プロンプト選択セクション全体 - PromptSelector.css
     <div className="prompt-selector">
+      {/* プロンプト操作ボタンエリア - セレクトボックスと編集ボタン */}
       <div className="prompt-controls">
+        {/* テンプレート選択ドロップダウン */}
         <div className="template-selector">
           <select value={currentTemplate} onChange={(e) => handleTemplateChange(e.target.value)}>
             {templates.map((template) => (

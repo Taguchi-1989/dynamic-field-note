@@ -319,24 +319,66 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   // APIキーとモデル設定の保存
-  const saveApiKeys = () => {
-    localStorage.setItem('apiKeys', JSON.stringify(apiKeys));
-    localStorage.setItem('selectedModels', JSON.stringify(selectedModels));
-    console.log('💾 Saving API keys and models:', { apiKeys, selectedModels });
-    
-    // カスタムイベントを発行してメイン画面に変更を通知
-    const modelSettingsEvent = new CustomEvent('modelSettingsChanged', { 
-      detail: selectedModels 
-    });
-    window.dispatchEvent(modelSettingsEvent);
-    console.log('🔔 Dispatched modelSettingsChanged event:', selectedModels);
-    
-    // APIキー変更イベントも発行
-    const apiKeysEvent = new CustomEvent('apiKeysChanged');
-    window.dispatchEvent(apiKeysEvent);
-    console.log('🔑 Dispatched apiKeysChanged event');
-    
-    alert('APIキーとモデル設定を保存しました');
+  const saveApiKeys = async () => {
+    try {
+      console.log('🔑 [DEBUG] Starting API key save process');
+      
+      // localStorageに保存（互換性のため保持）
+      localStorage.setItem('apiKeys', JSON.stringify(apiKeys));
+      localStorage.setItem('selectedModels', JSON.stringify(selectedModels));
+      console.log('💾 [DEBUG] Saved to localStorage:', { apiKeys: Object.keys(apiKeys), selectedModels });
+      
+      // Electron環境: SecureStorageにも保存
+      if (typeof window !== 'undefined' && (window as any).electronAPI) {
+        const electronAPI = (window as any).electronAPI;
+        
+        // Gemini APIキーの保存
+        if (apiKeys.gemini && apiKeys.gemini.trim()) {
+          console.log('🔑 [DEBUG] Saving Gemini key to SecureStorage');
+          const geminiResult = await electronAPI.secure.setCredential({
+            id: 'gemini_api_key',
+            type: 'api_token',
+            service: 'gemini',
+            account: 'main',
+            value: apiKeys.gemini
+          });
+          console.log('🔑 [DEBUG] Gemini key save result:', geminiResult);
+        }
+        
+        // OpenAI APIキーの保存
+        if (apiKeys.openai && apiKeys.openai.trim()) {
+          console.log('🔑 [DEBUG] Saving OpenAI key to SecureStorage');
+          const openaiResult = await electronAPI.secure.setCredential({
+            id: 'openai_api_key',
+            type: 'api_token', 
+            service: 'openai',
+            account: 'main',
+            value: apiKeys.openai
+          });
+          console.log('🔑 [DEBUG] OpenAI key save result:', openaiResult);
+        }
+        
+        console.log('✅ [DEBUG] API keys saved to both localStorage and SecureStorage');
+      }
+      
+      // カスタムイベントを発行してメイン画面に変更を通知
+      const modelSettingsEvent = new CustomEvent('modelSettingsChanged', { 
+        detail: selectedModels 
+      });
+      window.dispatchEvent(modelSettingsEvent);
+      console.log('🔔 Dispatched modelSettingsChanged event:', selectedModels);
+      
+      // APIキー変更イベントも発行
+      const apiKeysEvent = new CustomEvent('apiKeysChanged');
+      window.dispatchEvent(apiKeysEvent);
+      console.log('🔑 Dispatched apiKeysChanged event');
+      
+      alert('APIキーとモデル設定を保存しました');
+      
+    } catch (error) {
+      console.error('❌ [ERROR] API key save failed:', error);
+      alert('エラー: APIキーの保存に失敗しました: ' + (error as Error).message);
+    }
   };
 
   // プロンプトエクスポート（全テンプレート）
@@ -659,9 +701,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 )}
               </div>
               
-              <div className="settings-button-group">
-                <button className="settings-action-button primary" onClick={saveApiKeys}>
-                  <i className="fas fa-save"></i> APIキーを保存
+              <div className="api-save-section">
+                <div className="api-save-info">
+                  <div className="save-info-icon">
+                    <i className="fas fa-shield-alt"></i>
+                  </div>
+                  <div className="save-info-text">
+                    <h4>セキュアストレージに保存</h4>
+                    <p>APIキーは暗号化されてOSキーチェーンに安全に保存されます</p>
+                  </div>
+                </div>
+                <button 
+                  className="api-save-button"
+                  onClick={saveApiKeys}
+                  disabled={!apiKeys.gemini && !apiKeys.openai}
+                >
+                  <div className="save-button-content">
+                    <div className="save-button-icon">
+                      <i className="fas fa-key"></i>
+                    </div>
+                    <div className="save-button-text">
+                      <span className="save-button-title">APIキーを保存</span>
+                      <span className="save-button-subtitle">設定完了後、AI修正が利用可能になります</span>
+                    </div>
+                  </div>
                 </button>
               </div>
             </div>

@@ -331,6 +331,16 @@ export class MarkdownCompilerService {
    * Mermaidコードブロックを事前描画
    */
   private async preprocessMermaid(content: string, warnings: string[]): Promise<string> {
+    const { isFeatureEnabled } = await import('../../shared/feature-flags');
+    
+    // GPT-5レビュー: 機能フラグによる完全独立性確保
+    if (!isFeatureEnabled('mermaidSupport')) {
+      // Mermaid機能が無効化されている場合は、コードブロックとして処理
+      return content.replace(/```mermaid\n([\s\S]*?)\n```/g, (match, code) => {
+        return `<pre><code class="language-mermaid">${code}</code></pre>`;
+      });
+    }
+
     const mermaidRegex = /```mermaid\n([\s\S]*?)\n```/g;
     let processedContent = content;
     let match;
@@ -338,6 +348,12 @@ export class MarkdownCompilerService {
     while ((match = mermaidRegex.exec(content)) !== null) {
       try {
         const mermaidCode = match[1].trim();
+        
+        // GPT-5レビュー: 入力検証強化
+        if (!mermaidCode || mermaidCode.length > 10000) {
+          throw new Error('Invalid mermaid code: empty or too large');
+        }
+        
         const svgResult = await this.mermaidWorker.renderToSvg(mermaidCode);
         
         // SVGをdata URLとして埋め込み
@@ -348,8 +364,10 @@ export class MarkdownCompilerService {
         console.log('✅ Mermaid diagram preprocessed and cached');
         
       } catch (error) {
-        console.warn('Mermaid preprocessing failed:', error);
-        warnings.push(`Mermaid diagram could not be rendered: ${error}`);
+        // GPT-5レビュー: 詳細エラーログ・安全なフォールバック
+        console.warn('⚠️ Mermaid preprocessing failed:', error);
+        console.warn('📊 Failed diagram code:', match[1].substring(0, 100) + '...');
+        warnings.push(`⚠️ Mermaid diagram could not be rendered: ${error}`);
         
         // フォールバック: コードブロックとして残す
         const fallback = `<pre><code class="language-mermaid">${match[1]}</code></pre>`;

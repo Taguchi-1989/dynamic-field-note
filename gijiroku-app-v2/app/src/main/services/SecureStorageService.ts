@@ -427,6 +427,30 @@ export class SecureStorageService {
   }
 
   /**
+   * 統一されたAPIキー取得メソッド
+   */
+  public async getApiKey(provider: 'gemini' | 'openai'): Promise<string | null> {
+    console.log(`🔑 [DEBUG] Getting ${provider} API key...`);
+    
+    const keyId = `${provider}_api_key`;
+    const account = 'main'; // アカウント名を統一
+    
+    try {
+      const key = await this.getCredential(keyId, account);
+      console.log(`🔑 [DEBUG] ${provider} key retrieval:`, {
+        found: !!key,
+        length: key?.length || 0,
+        source: key ? 'secure_storage' : 'not_found'
+      });
+      
+      return key;
+    } catch (error) {
+      console.error(`❌ [DEBUG] ${provider} key retrieval failed:`, error);
+      return null;
+    }
+  }
+
+  /**
    * ヘルスチェック
    */
   public async healthCheck(): Promise<{

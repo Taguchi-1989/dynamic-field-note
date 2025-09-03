@@ -30,6 +30,7 @@ interface AIExecutionSectionProps {
   showToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
   totalCharacters?: number;
   chunkingProgress?: ChunkingProgress;
+  setChunkingProgress?: (progress: ChunkingProgress | undefined) => void;
   apiKeysAvailable?: boolean;
 }
 
@@ -57,6 +58,40 @@ const AIExecutionSection: React.FC<AIExecutionSectionProps> = ({
     if (!inputText.trim()) {
       showToast('まずファイルをアップロードするか、テキストを入力してください', 'warning');
       return;
+    }
+
+    // === 新規追加: 事前APIキーチェック ===
+    console.log('🔍 Pre-execution API key validation...');
+    
+    try {
+      if (typeof window !== 'undefined' && (window as any).electronAPI) {
+        const electronAPI = (window as any).electronAPI;
+        
+        // API設定状況の確認
+        const apiStatus = await electronAPI.security.getApiConfigStatus();
+        console.log('📊 API Status:', apiStatus);
+        
+        const hasAnyApiKey = apiStatus.gemini?.apiKey || apiStatus.openai?.apiKey;
+        
+        if (!hasAnyApiKey) {
+          showToast(
+            'APIキーが設定されていません。設定画面でGeminiまたはOpenAI APIキーを設定してください。', 
+            'error'
+          );
+          return;
+        }
+        
+        // 利用可能プロバイダーの確認
+        const availableProviders = await electronAPI.ai.getAvailableProviders();
+        console.log('🎯 Available providers:', availableProviders);
+        
+        if (!availableProviders.includes('gemini') && !availableProviders.includes('openai')) {
+          console.warn('⚠️ No API providers available, will use offline processing');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Pre-execution check failed:', error);
+      // エラーがあっても実行は継続（オフライン処理にフォールバック）
     }
 
     setIsProcessing(true);

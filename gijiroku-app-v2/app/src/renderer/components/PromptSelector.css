@@ -126,8 +126,11 @@
   box-sizing: border-box;
 }
 
-/* Ensure compact preview occupies space under controls */
-.template-preview-compact { margin-top: 0.75rem; }
+/* プロンプトプレビュー - コンパクト表示エリア (コメント追加) */
+/* Dashboard.cssのpanel-contentスタイル(1rem)より優先 */
+.prompt-selection-panel .template-preview-compact { 
+  margin-top: 0.25rem !important; 
+}
 
 /* Skeleton loader for initial render */
 .skeleton-lines {
@@ -445,27 +448,35 @@
 }
 
 /* Compact preview under selector (first few lines visible, scrollable) */
+/* プロンプトプレビューコンテナ - 全体のスタイル */
 .template-preview-compact {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  margin-top: 0.75rem;
+  margin-top: 0.25rem;
   display: block;
 }
 
+/* Dashboard.cssのpanel系スタイルに対する優先度確保 */
+.prompt-selection-panel .prompt-selector .template-preview-compact {
+  margin-top: 0.25rem !important;
+  padding: 0 !important;
+}
+
+/* プロンプトプレビュー内容 - テンプレート内容を表示するエリア */
 .prompt-preview-compact {
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
   border-radius: 0 0 6px 6px;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem; /* 縮小済み */
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   font-size: 0.8rem;
-  line-height: 1.5;
+  line-height: 1.4; /* 行間縮小済み */
   color: #374151;
   white-space: pre-wrap;
   word-wrap: break-word;
-  max-height: 5rem; /* 約3-4行に拡大 */
-  min-height: 2rem;
+  max-height: 4rem; /* 高さ縮小済み */
+  min-height: 1.5rem; /* 最小高さ縮小済み */
   overflow-y: auto;
   overflow-x: hidden;
   cursor: pointer;
@@ -520,11 +531,12 @@
   font-size: 0.75rem;
 }
 
+/* プレビューヘッダー - タイトル「現在のテンプレート（概要）」部分 */
 .preview-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem; /* 縮小済み */
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
   border-radius: 6px 6px 0 0;

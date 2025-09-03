@@ -53,17 +53,20 @@ export class MermaidRenderWorker {
 
     console.log('🧩 Initializing MermaidRenderWorker...');
     try {
-      console.log('🪟 Creating render window...');
+      console.log('🪟 Creating optimized render window...');
       this.renderWindow = new BrowserWindow({
         show: false,  // hidden window
         webPreferences: {
           nodeIntegration: false,
           contextIsolation: true,
           sandbox: false,
-          offscreen: true  // オフスクリーンレンダリング
+          offscreen: true,  // オフスクリーンレンダリング
+          // GPT-5レビュー: パフォーマンス最適化
+          additionalArguments: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
         },
-        width: 1200,
-        height: 800
+        // GPT-5レビュー: メモリ使用量最適化 (1200x800 → 800x600)
+        width: 800,
+        height: 600
       });
 
       // Mermaidライブラリを含むHTMLページを読み込み
@@ -139,8 +142,14 @@ export class MermaidRenderWorker {
       };
 
     } catch (error) {
-      console.error('Mermaid rendering failed:', error);
-      throw new Error(`Failed to render Mermaid diagram: ${error}`);
+      // GPT-5レビュー: 詳細エラーログ・安全なフォールバック
+      console.error('⚠️ Mermaid rendering failed:', error);
+      console.error('📊 Diagram code:', mermaidCode.substring(0, 100) + '...');
+      console.error('⚙️ Render options:', JSON.stringify(options));
+      
+      // エラー詳細を含む例外を投げる
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Mermaid rendering failed: ${errorMessage}`);
     }
   }
 
@@ -256,16 +265,25 @@ export class MermaidRenderWorker {
   }
 
   /**
-   * Mermaidレンダリング用HTMLテンプレートを取得
+   * Mermaidレンダリング用HTMLテンプレートを取得（オフライン対応版）
    */
   private getMermaidHtmlTemplate(): string {
+    const { app } = require('electron');
+    const resourcesDir = app.isPackaged 
+      ? path.join(process.resourcesPath, 'app.asar.unpacked', 'resources')
+      : path.join(__dirname, '../../../resources');
+    
+    // ローカル同封版のMermaidライブラリパス
+    const mermaidPath = path.join(resourcesDir, 'vendor', 'mermaid', 'mermaid.min.js');
+    const mermaidUrl = `file://${mermaidPath.replace(/\\/g, '/')}`;
+    
     return `<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mermaid Renderer</title>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11.10.1/dist/mermaid.min.js"></script>
+  <title>Mermaid Renderer (Offline)</title>
+  <script src="${mermaidUrl}"></script>
   <style>
     body {
       font-family: 'Noto Sans JP', sans-serif;
@@ -276,13 +294,20 @@ export class MermaidRenderWorker {
     .mermaid {
       text-align: center;
     }
+    /* GPT-5レビュー: パフォーマンス最適化 */
+    #mermaid-container {
+      max-width: 800px;
+      max-height: 600px;
+      overflow: hidden;
+    }
   </style>
 </head>
 <body>
   <div id="mermaid-container"></div>
   <script>
-    // Mermaidを初期化（後でJavaScriptから設定される）
-    console.log('Mermaid renderer page loaded');
+    // オフライン版Mermaid初期化完了
+    console.log('🔄 Offline Mermaid renderer page loaded');
+    console.log('📦 Mermaid library:', typeof mermaid !== 'undefined' ? 'loaded' : 'failed');
   </script>
 </body>
 </html>`;

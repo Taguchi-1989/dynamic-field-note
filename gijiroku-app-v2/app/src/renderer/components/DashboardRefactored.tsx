@@ -1,5 +1,16 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { DashboardProps, StepStatus } from '../types';
+
+// ChunkingProgress interface
+interface ChunkingProgress {
+  totalChunks: number;
+  processedChunks: number;
+  currentChunk: number;
+  status: 'chunking' | 'processing' | 'merging' | 'completed' | 'error';
+  estimatedTimeLeft: number;
+  errorCount: number;
+  currentChunkText?: string;
+}
 import { useDashboard } from '../hooks/useDashboard';
 import { usePerformance, useWebVitals } from '../hooks/usePerformance';
 
@@ -36,15 +47,7 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
   const [totalCharacters, setTotalCharacters] = useState<number>(0);
   
   // 分割処理進捗管理
-  const [chunkingProgress, setChunkingProgress] = useState<{
-    totalChunks: number;
-    processedChunks: number;
-    currentChunk: number;
-    status: 'chunking' | 'processing' | 'merging' | 'completed' | 'error';
-    estimatedTimeLeft: number;
-    errorCount: number;
-    currentChunkText?: string;
-  } | undefined>(undefined);
+  const [chunkingProgress, setChunkingProgress] = useState<ChunkingProgress | undefined>(undefined);
   
   const defaultPrompt = `あなたはプロの議事録編集者です。以下のテキストは会議の音声認識結果です。
 以下のルールに従って、テキストを修正し、Markdown形式で出力してください。
@@ -81,6 +84,31 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
 
   // ズーム機能の実装
   const [zoomLevel, setZoomLevel] = useState<number>(100);
+
+  // 初回マウント時とタブ切り替え時のフォーカス管理
+  useEffect(() => {
+    // 遅延実行で確実にDOMがレンダリングされた後にフォーカスを設定
+    const focusTimer = setTimeout(() => {
+      // アクティブタブに応じてフォーカスを設定
+      if (dashboardState.activeTab === 'input') {
+        // テキスト入力エリアを優先的にフォーカス
+        const textArea = document.querySelector('.text-input textarea') as HTMLTextAreaElement;
+        if (textArea) {
+          textArea.focus();
+          console.log('✅ Input textarea focused');
+        }
+      } else if (dashboardState.activeTab === 'edit') {
+        // エディターのテキストエリアにフォーカス
+        const editorTextarea = document.querySelector('.markdown-editor-vertical') as HTMLTextAreaElement;
+        if (editorTextarea) {
+          editorTextarea.focus();
+          console.log('✅ Editor textarea focused');
+        }
+      }
+    }, 200); // DOMレンダリングを待つため200ms遅延
+
+    return () => clearTimeout(focusTimer);
+  }, [dashboardState.activeTab]); // タブ切り替え時に再実行
   
   useEffect(() => {
     const handleZoom = (event: WheelEvent) => {
@@ -198,14 +226,14 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
       setTimeout(() => {
         // 入力フィールドを再フォーカス
         const textArea = document.querySelector('.text-input textarea') as HTMLTextAreaElement;
-        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
         
         if (textArea) {
           textArea.focus();
-        } else if (fileInput) {
-          fileInput.focus();
+          // フォーカス後にカーソルを最後に移動
+          textArea.setSelectionRange(textArea.value.length, textArea.value.length);
+          console.log('✅ Input textarea focused after refresh');
         }
-      }, 100);
+      }, 200); // より確実にするため200msに延長
     }
   };
 
@@ -339,6 +367,7 @@ const DashboardRefactored: React.FC<DashboardProps> = () => {
             showToast={dashboardState.showToast}
             totalCharacters={totalCharacters}
             chunkingProgress={chunkingProgress}
+            setChunkingProgress={setChunkingProgress}
             apiKeysAvailable={dashboardState.apiKeysAvailable}
           />
         </div>
