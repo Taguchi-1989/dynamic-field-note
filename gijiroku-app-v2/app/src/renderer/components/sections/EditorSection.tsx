@@ -19,7 +19,6 @@ interface EditorSectionProps {
   setIsRevising: (revising: boolean) => void;
   saveTitle: string;
   setSaveTitle: (title: string) => void;
-  setActiveTab: (tab: 'edit' | 'preview') => void;
   showToast: (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
   selectedModel: string;
 }
@@ -39,7 +38,6 @@ const EditorSection: React.FC<EditorSectionProps> = ({
   setIsRevising,
   saveTitle,
   setSaveTitle,
-  setActiveTab,
   showToast,
   selectedModel,
 }) => {
@@ -49,6 +47,8 @@ const EditorSection: React.FC<EditorSectionProps> = ({
 
   // PDF出力フォーマット管理
   const [outputFormat, setOutputFormat] = useState<'standard' | 'latex'>('standard');
+
+
 
   // 画像挿入機能
   const handleImageInsert = () => {
@@ -142,7 +142,7 @@ const EditorSection: React.FC<EditorSectionProps> = ({
 
 
   // 画像データのメモ化（useEffect依存関係の安定化のため）
-  const imageDataSnapshot = useMemo(() => ({ ...insertedImages }), [Object.keys(insertedImages).join(',')]);
+  const imageDataSnapshot = useMemo(() => ({ ...insertedImages }), [Object.keys(insertedImages).join(',')]);  
 
   // Markdownプレビュー更新
   useEffect(() => {
@@ -157,7 +157,7 @@ const EditorSection: React.FC<EditorSectionProps> = ({
         if (window.electronAPI?.markdown?.compile) {
           console.log('🔄 Using MarkdownCompilerService for preview with Mermaid support');
           
-          // カスタム画像IDを実際のデータURIに置換
+          // カスタム画像IDを実際のデータＵＲＩに置換
           let processedText = outputText;
           Object.entries(imageDataSnapshot).forEach(([imageId, dataUri]) => {
             const regex = new RegExp(`!\\[([^\\]]*?)\\]\\(${imageId}\\)`, 'g');
@@ -211,6 +211,7 @@ const EditorSection: React.FC<EditorSectionProps> = ({
     
     updatePreview();
   }, [outputText, imageDataSnapshot, setPreviewText, saveTitle]);
+
 
   const executeRevision = async () => {
     const currentText = editorText || outputText;
@@ -489,8 +490,8 @@ const EditorSection: React.FC<EditorSectionProps> = ({
           </div>
         )}
         
-        <div className="edit-preview-layout">
-          <div className="edit-section">
+        <div className="edit-preview-layout-vertical">
+          <div className="edit-section-top">
             <div className="section-header">
               <h3><i className="fas fa-edit"></i> 編集時の内容 <span style={{ fontSize: '0.8rem', color: '#666', fontWeight: 'normal' }}>({outputText.length}文字)</span></h3>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -635,7 +636,7 @@ const EditorSection: React.FC<EditorSectionProps> = ({
             </div>
           </div>
           
-          <div className="preview-section">
+          <div className="preview-section-bottom">
             <div className="section-header">
               <h3><i className="fas fa-eye"></i> 印刷時の品質</h3>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -645,8 +646,7 @@ const EditorSection: React.FC<EditorSectionProps> = ({
                   onChange={(e) => {
                     const newFormat = e.target.value as 'standard' | 'latex';
                     if (newFormat === 'latex') {
-                      // LaTeX選択時は警告を表示して標準に戻す
-                      alert('LaTeX PDF機能は現在開発中です。標準PDFをご利用ください。');
+                      showToast('⚠️ LaTeX PDF機能は開発中です。標準PDFをご利用ください。', 'warning');
                       setOutputFormat('standard');
                     } else {
                       setOutputFormat(newFormat);
@@ -686,12 +686,6 @@ const EditorSection: React.FC<EditorSectionProps> = ({
                   images={insertedImages}
                   outputFormat={outputFormat}
                 />
-                {/* Debug: 保存タイトル確認用 */}
-                {process.env.NODE_ENV === 'development' && (
-                  <div style={{ fontSize: '10px', color: '#999', marginTop: '4px' }}>
-                    デバッグ: 保存タイトル="{saveTitle}"
-                  </div>
-                )}
               </div>
             </div>
             <div className="section-content">

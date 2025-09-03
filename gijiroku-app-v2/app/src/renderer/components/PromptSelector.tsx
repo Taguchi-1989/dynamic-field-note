@@ -308,10 +308,10 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
   return (
     // プロンプト選択セクション全体 - PromptSelector.css
     <div className="prompt-selector">
-      {/* プロンプト操作ボタンエリア - セレクトボックスと編集ボタン */}
-      <div className="prompt-controls">
+      {/* プロンプト選択 - 簡素化版 */}
+      <div className="prompt-controls-simple">
         {/* テンプレート選択ドロップダウン */}
-        <div className="template-selector">
+        <div className="template-selector-simple">
           <select value={currentTemplate} onChange={(e) => handleTemplateChange(e.target.value)}>
             {templates.map((template) => (
               <option key={template.id} value={template.id}>
@@ -322,14 +322,21 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
           </select>
         </div>
         
-        <div className="template-actions">
+        <div className="template-actions-simple">
           <button 
-            onClick={handleEditTemplate}
-            className="edit-btn"
+            onClick={() => {
+              const selectedTemplate = templates.find(t => t.id === currentTemplate);
+              if (selectedTemplate) {
+                showTemplatePopup(selectedTemplate.content);
+              } else if (currentTemplate === 'custom' && customPrompt) {
+                showTemplatePopup(customPrompt);
+              }
+            }}
+            className="detail-btn"
             disabled={!currentTemplate}
-            title="プロンプトを編集"
+            title="プロンプト詳細を表示"
           >
-            📝 編集
+            👁️ 詳細
           </button>
         </div>
       </div>
@@ -368,98 +375,6 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
         </div>
       )}
 
-      {/* 初期表示で currentTemplate が未設定の際も概要を出す */}
-      {!showEditor && !currentTemplate && (() => {
-        const first = templates && templates.length > 0 ? templates[0] : undefined;
-        const showSkeleton = isLoading && !first;
-        const placeholder = 'テンプレートの内容が未設定です。';
-        const preview = (first?.content || previewContent || '').trim();
-        return (
-          <div className="template-preview-compact" aria-live="polite">
-            <div className="preview-header">
-              <h4>📄 現在のテンプレート（概要）</h4>
-              <button
-                className="toggle-overview-btn"
-                onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
-                aria-expanded={isOverviewExpanded}
-                title={isOverviewExpanded ? '概要を折りたたむ' : '概要を展開する'}
-              >
-                <i className={`fas ${isOverviewExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
-              </button>
-            </div>
-            {isOverviewExpanded && (
-              <div 
-                className="prompt-preview-compact" 
-                role="region" 
-                aria-label="テンプレート概要のプレビュー"
-                onClick={() => preview && showTemplatePopup(preview)}
-                title="クリックで詳細表示"
-              >
-                {showSkeleton ? (
-                  <div className="skeleton-lines" aria-busy="true" aria-label="読み込み中">
-                    <div className="skeleton-line w90" />
-                    <div className="skeleton-line w80" />
-                    <div className="skeleton-line w60" />
-                    <div className="skeleton-line thin w80" />
-                    <div className="skeleton-line thin w40" />
-                  </div>
-                ) : (
-                  <pre>{preview || placeholder}</pre>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-      {currentTemplate && !showEditor && (() => {
-        const selectedTemplate = templates.find(t => t.id === currentTemplate);
-        const displayContent = (tempEditedPrompt || previewContent || selectedTemplate?.content || '').trim();
-        const isEdited = tempEditedPrompt && tempEditedPrompt !== selectedTemplate?.content;
-        const showSkeleton = isLoading && !displayContent;
-
-        return (
-          <div className="template-preview-compact" aria-live="polite">
-            <div className="preview-header">
-              <h4>📄 現在のテンプレート（概要）</h4>
-              <div className="header-controls">
-                {isEdited && (
-                  <span className="edit-status">⚠️ 一時編集中（未保存）</span>
-                )}
-                <button
-                  className="toggle-overview-btn"
-                  onClick={() => setIsOverviewExpanded(!isOverviewExpanded)}
-                  aria-expanded={isOverviewExpanded}
-                  title={isOverviewExpanded ? '概要を折りたたむ' : '概要を展開する'}
-                >
-                  <i className={`fas ${isOverviewExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
-                </button>
-              </div>
-            </div>
-            {isOverviewExpanded && (
-              <div 
-                className="prompt-preview-compact" 
-                role="region" 
-                aria-label="テンプレート概要のプレビュー"
-                onClick={() => displayContent && showTemplatePopup(displayContent)}
-                title="クリックで詳細表示"
-              >
-                {showSkeleton ? (
-                  <div className="skeleton-lines" aria-busy="true" aria-label="読み込み中">
-                    <div className="skeleton-line w90" />
-                    <div className="skeleton-line w80" />
-                    <div className="skeleton-line w60" />
-                    <div className="skeleton-line thin w80" />
-                    <div className="skeleton-line thin w40" />
-                  </div>
-                ) : (
-                  <pre>{displayContent}</pre>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      })()}
 
       {/* ポップアップモーダル */}
       {showPopup && (

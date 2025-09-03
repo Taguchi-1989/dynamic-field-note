@@ -263,6 +263,7 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
         )}
       </button>
 
+{/* PDFプレビューボタンは非表示
       <button
         onClick={handlePreviewPDF}
         disabled={disabled || isPreviewing || !content.trim()}
@@ -295,6 +296,7 @@ const PdfDownloadButton: React.FC<PdfDownloadButtonProps> = ({
           </>
         )}
       </button>
+      */}
 
       {message && (
         <div style={{
