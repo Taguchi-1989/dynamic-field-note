@@ -375,16 +375,16 @@
 }
 
 .left-column {
-  flex: 3; /* 3:7比率の左側 */
+  flex: 4; /* 4:6比率の左側に拡張 */
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem; /* マージンを縮小 */
   overflow-y: auto;
   max-height: calc(100vh - 120px);
 }
 
 .right-column {
-  flex: 7; /* 3:7比率の右側 */
+  flex: 6; /* 4:6比率の右側に調整 */
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -405,12 +405,12 @@
 }
 
 .panel-header {
-  padding: 1rem 1.25rem;
+  padding: 0.75rem 1rem; /* パディングを縮小 */
   border-bottom: 1px solid var(--border-primary);
   background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem; /* ギャップを縮小 */
   flex-shrink: 0;
   justify-content: space-between;
 }
@@ -549,7 +549,7 @@
 
 .panel-content {
   flex: 1;
-  padding: 1rem;
+  padding: 0.75rem; /* 1rem → 0.75rem に縮小 */
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -565,26 +565,26 @@
 
 /* 2. プロンプト選択パネル - PromptSelector.tsx 配置エリア */
 .prompt-selection-panel {
-  height: 120px; /* 180px → 120px にさらに大幅縮小 */
-  min-height: 120px;
-  max-height: 120px;
+  height: auto; /* 詳細版削除により自動調整に変更 */
+  min-height: 120px; /* コンパクトなコンテンツに適した最小高さ */
+  max-height: 180px; /* 不要な余白防止のため制限 */
 }
 
-/* プロンプト選択パネル内部のスペース最適化 - 4pxグリッド */
+/* プロンプト選択パネル内部のスペース最適化 */
 .prompt-selection-panel .panel-content {
-  padding: 4px; /* 4pxグリッドシステムに統一 */
+  padding: 0.75rem; /* 適切なパディングに復元 */
 }
 
 .ai-execution-panel {
-  min-height: 100px; /* さらに縮小して100px */
+  min-height: 140px; /* 100px → 140px に拡張 */
   flex-shrink: 0;
 }
 
 .ai-execution-panel .panel-content {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* さらにコンパクトに */
-  padding: 8px; /* さらにコンパクトに */
+  gap: 0.75rem; /* 適切な間隔に復元 */
+  padding: 1rem; /* 適切なパディングに復元 */
 }
 
 /* 右カラムのエディタプレビューパネル */
@@ -1599,7 +1599,24 @@
   min-height: 150px;
 }
 
-/* レスポンシブ対応 */
+/* レスポンシブ対応 - 中画面での最適化 */
+@media (max-width: 1200px) {
+  .left-column {
+    flex: 5; /* 4:6 → 5:5 により多くのスペースを確保 */
+  }
+  
+  .right-column {
+    flex: 5;
+  }
+  
+  /* プロンプト選択パネルをさらに拡張 */
+  .prompt-selection-panel {
+    height: auto; /* モバイルでも自動調整 */
+    min-height: 140px; /* モバイルで少し余裕を持たせた最小高さ */
+    max-height: 200px; /* モバイルでも余白を制限 */
+  }
+}
+
 @media (max-width: 1024px) {
   .dashboard-layout {
     flex-direction: column;

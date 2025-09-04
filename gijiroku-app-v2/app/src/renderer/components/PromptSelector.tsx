@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { mockPromptTemplates } from '../../mocks/api';
+import PromptDetailModal from './PromptDetailModal';
 import './PromptSelector.css';
 
 // Simple cache for prompt templates to avoid multiple requests
@@ -26,16 +27,10 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
   const [customPrompt, setCustomPrompt] = useState('');
   const [showEditor, setShowEditor] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState('');
-  const [tempEditedPrompt, setTempEditedPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  // 初回表示の不安定さを避けるため、プレビューはローカル状態で管理
-  const [previewContent, setPreviewContent] = useState('');
-  const [_previewReady, setPreviewReady] = useState(false);
-  // 概要開閉用の状態
-  const [isOverviewExpanded, setIsOverviewExpanded] = useState(false);
-  // ポップアップ表示用の状態
-  const [showPopup, setShowPopup] = useState(false);
-  const [popupContent, setPopupContent] = useState('');
+  // モーダル状態管理
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentTemplateForModal, setCurrentTemplateForModal] = useState<PromptTemplate | null>(null);
 
   const fetchTemplates = useCallback(async () => {
     // Check cache first
@@ -91,7 +86,7 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
           const sel = fetchedTemplates.find(t => t.id === selId) || fetchedTemplates[0];
           if (sel) {
             setCurrentTemplate(sel.id);
-            setPreviewContent(sel.content || '');
+            setCurrentTemplateForModal(sel);
             console.log('🎯 Template Selected (IPC):', { id: sel.id, title: sel.title });
             window.setTimeout(() => onPromptSelect(sel.id, sel.content), 100);
           }
@@ -123,7 +118,7 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
         const sel = mockTemplatesFormatted.find(t => t.id === selId) || mockTemplatesFormatted[0];
         if (sel) {
           setCurrentTemplate(sel.id);
-          setPreviewContent(sel.content || '');
+          setCurrentTemplateForModal(sel);
           console.log('🎯 Mock Template Selected (fallback):', { id: sel.id, title: sel.title });
           window.setTimeout(() => onPromptSelect(sel.id, sel.content), 100);
         }
@@ -150,7 +145,7 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
       setCurrentTemplate(selectedTemplate);
       const t = templates.find(t => t.id === selectedTemplate);
       if (t) {
-        setTempEditedPrompt('');
+        setCurrentTemplateForModal(t);
       }
     }
   }, [selectedTemplate, templates]);
@@ -167,7 +162,6 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
       setCurrentTemplate(selId);
     }
     onPromptSelect(selId, tpl.content);
-    setPreviewReady(true);
     initializedRef.current = true;
   }, [templates, isLoading, selectedTemplate, currentTemplate, onPromptSelect]);
 
@@ -185,9 +179,11 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
     const selectedTemplate = templates.find(t => t.id === templateKey);
     
     if (templateKey === 'custom') {
+      setCurrentTemplateForModal(null);
       setShowEditor(true);
       setEditingPrompt(customPrompt || '');
     } else if (selectedTemplate) {
+      setCurrentTemplateForModal(selectedTemplate);
       setShowEditor(false);
       onPromptSelect(templateKey, selectedTemplate.content);
     }
@@ -204,9 +200,6 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
 
   const handleTempEdit = (value: string) => {
     setEditingPrompt(value);
-    setTempEditedPrompt(value);
-    // 一時編集内容を即座に適用（プレビューはローカルで更新）
-    setPreviewContent(value);
     onPromptSelect(currentTemplate, value);
   };
 
@@ -257,33 +250,57 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
     // 編集をキャンセルして元のプロンプトに戻す
     const selectedTemplate = templates.find(t => t.id === currentTemplate);
     if (selectedTemplate) {
-      setPreviewContent(selectedTemplate.content || '');
       onPromptSelect(currentTemplate, selectedTemplate.content);
     }
     setShowEditor(false);
   };
 
-  // ポップアップ表示関数
-  const showTemplatePopup = (content: string) => {
-    setPopupContent(content);
-    setShowPopup(true);
+  // モーダル制御関数
+  const handleShowDetail = () => {
+    setIsModalOpen(true);
   };
 
-  // プレビューのコピー機能
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      alert('クリップボードにコピーしました！');
-    } catch (error) {
-      console.error('コピーに失敗:', error);
-      // フォールバック: テキストエリアを使用
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      alert('クリップボードにコピーしました！');
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleModalEdit = (content: string) => {
+    onPromptSelect(currentTemplate, content);
+  };
+
+  const handleModalSave = async (content: string) => {
+    if (currentTemplate === 'custom') {
+      setCustomPrompt(content);
+      onPromptSelect('custom', content);
+    } else {
+      // 既存テンプレートの更新（DB保存）
+      try {
+        if (window.electronAPI?.templates?.upsert && currentTemplateForModal) {
+          const response = await window.electronAPI.templates.upsert({
+            id: currentTemplate,
+            title: currentTemplateForModal.title,
+            content: content,
+            description: currentTemplateForModal.description,
+            category: currentTemplateForModal.category,
+            is_active: currentTemplateForModal.is_active
+          });
+          
+          if (response?.success) {
+            // キャッシュをクリアして再取得
+            promptCache = null;
+            await fetchTemplates();
+            onPromptSelect(currentTemplate, content);
+            alert('プロンプトがデータベースに保存されました');
+          } else {
+            throw new Error(response?.error || 'Unknown error');
+          }
+        } else {
+          throw new Error('Templates API not available');
+        }
+      } catch (error) {
+        console.error('プロンプト更新エラー:', error);
+        throw error;
+      }
     }
   };
 
@@ -297,7 +314,7 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
     const tpl = templates.find(t => t.id === selId) || templates[0];
     const timer = window.setTimeout(() => {
       onPromptSelect(selId, tpl.content);
-      setPreviewReady(true);
+      setCurrentTemplateForModal(tpl);
       delayedInitRef.current = true;
     }, 100);
     return () => window.clearTimeout(timer);
@@ -306,127 +323,98 @@ const PromptSelector: React.FC<PromptSelectorProps> = ({ onPromptSelect, selecte
   // ローディング中でも枠とスケルトンを出したいので、早期returnはしない
 
   return (
-    // プロンプト選択セクション全体 - PromptSelector.css
     <div className="prompt-selector">
-      {/* プロンプト選択 - 簡素化版 */}
-      <div className="prompt-controls-simple">
-        {/* テンプレート選択ドロップダウン */}
-        <div className="template-selector-simple">
-          <select value={currentTemplate} onChange={(e) => handleTemplateChange(e.target.value)}>
-            {templates.map((template) => (
-              <option key={template.id} value={template.id}>
-                {template.title}
-              </option>
-            ))}
-            <option value="custom">カスタムプロンプト</option>
-          </select>
-        </div>
-        
-        <div className="template-actions-simple">
+      {/* テンプレート選択部 */}
+      <div className="template-selection">
+        <label className="template-label">テンプレート選択:</label>
+        <div className="template-controls">
+          <div className="template-dropdown-wrapper">
+            <select 
+              value={currentTemplate} 
+              onChange={(e) => handleTemplateChange(e.target.value)}
+              className="template-dropdown"
+            >
+              {isLoading ? (
+                <option>読み込み中...</option>
+              ) : (
+                <>
+                  {templates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.title}
+                    </option>
+                  ))}
+                  <option value="custom">カスタムプロンプト</option>
+                </>
+              )}
+            </select>
+          </div>
+          
           <button 
-            onClick={() => {
-              const selectedTemplate = templates.find(t => t.id === currentTemplate);
-              if (selectedTemplate) {
-                showTemplatePopup(selectedTemplate.content);
-              } else if (currentTemplate === 'custom' && customPrompt) {
-                showTemplatePopup(customPrompt);
-              }
-            }}
             className="detail-btn"
-            disabled={!currentTemplate}
-            title="プロンプト詳細を表示"
+            onClick={handleShowDetail}
+            disabled={isLoading || (!currentTemplateForModal && currentTemplate !== 'custom')}
+            title="詳細版を表示"
           >
-            👁️ 詳細
+            <i className="fas fa-expand-alt"></i>
+            詳細版
           </button>
         </div>
       </div>
 
+      {/* 編集モード */}
       {showEditor && (
-        <div className="prompt-editor-full">
+        <div className="prompt-editor">
           <div className="editor-header">
-            <h4>📝 プロンプト編集 - 一時編集中</h4>
+            <h4>
+              <i className="fas fa-edit"></i>
+              プロンプト編集
+            </h4>
             <div className="editor-info">
-              <small>※編集内容は即座にプレビューに反映されます。「保存」をクリックするとデータベースに保存されます。</small>
+              <small>※編集内容は即座にプレビューに反映されます</small>
             </div>
           </div>
-          <textarea
-            value={editingPrompt}
-            onChange={(e) => handleTempEdit(e.target.value)}
-            className="prompt-textarea-full"
-            rows={10}
-            placeholder="プロンプトを入力してください..."
-          />
-          <div className="editor-actions-full">
+          
+          <div className="editor-content">
+            <textarea
+              value={editingPrompt}
+              onChange={(e) => handleTempEdit(e.target.value)}
+              className="prompt-editor-textarea"
+              rows={12}
+              placeholder="プロンプトを入力してください..."
+            />
+          </div>
+          
+          <div className="editor-actions">
             <button 
+              className="editor-btn save-btn"
               onClick={handleSavePrompt}
-              className="save-btn-full"
-              title="データベースに永続保存します"
+              title="データベースに保存"
             >
-              💾 データベースに保存
+              <i className="fas fa-database"></i>
+              データベースに保存
             </button>
             <button 
+              className="editor-btn cancel-btn"
               onClick={handleCancelEdit}
-              className="cancel-btn-full"
-              title="編集をキャンセルして元に戻します"
+              title="編集をキャンセル"
             >
-              ❌ キャンセル
+              <i className="fas fa-times"></i>
+              キャンセル
             </button>
           </div>
         </div>
       )}
-
-
-      {/* ポップアップモーダル */}
-      {showPopup && (
-        <div className="template-popup-overlay" onClick={() => setShowPopup(false)}>
-          <div className="template-popup-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="popup-header">
-              <h3>
-                <i className="fas fa-eye"></i>
-                プロンプトテンプレート詳細
-              </h3>
-              <div className="popup-actions">
-                <button 
-                  className="popup-action-btn" 
-                  onClick={() => copyToClipboard(popupContent)}
-                  title="クリップボードにコピー"
-                >
-                  <i className="fas fa-copy"></i>
-                  コピー
-                </button>
-                <button 
-                  className="popup-action-btn primary" 
-                  onClick={() => {
-                    const selectedTemplate = templates.find(t => t.id === currentTemplate);
-                    if (selectedTemplate) {
-                      setEditingPrompt(popupContent);
-                      setTempEditedPrompt(popupContent);
-                      setShowEditor(true);
-                      setShowPopup(false);
-                    }
-                  }}
-                  title="編集モードで開く"
-                >
-                  <i className="fas fa-edit"></i>
-                  編集
-                </button>
-                <button 
-                  className="popup-close-btn" 
-                  onClick={() => setShowPopup(false)}
-                  title="閉じる"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-            <div className="popup-content">
-              <div className="popup-template-content">
-                {popupContent}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      
+      {/* 詳細版モーダル */}
+      <PromptDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        template={currentTemplateForModal}
+        customPrompt={customPrompt}
+        isCustom={currentTemplate === 'custom'}
+        onEdit={handleModalEdit}
+        onSave={handleModalSave}
+      />
     </div>
   );
 };
