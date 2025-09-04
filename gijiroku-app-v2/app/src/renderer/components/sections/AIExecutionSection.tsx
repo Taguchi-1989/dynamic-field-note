@@ -313,7 +313,7 @@ const AIExecutionSection: React.FC<AIExecutionSectionProps> = ({
               ) : (
                 <div className="execute-btn-content">
                   <i className="fas fa-rocket"></i>
-                  <span className="btn-main-text">AIに実行</span>
+                  <span className="btn-main-text">AI修正実行</span>
                   <span className="btn-sub-text">{models.find(m => m.value === selectedModel)?.label}</span>
                 </div>
               )}

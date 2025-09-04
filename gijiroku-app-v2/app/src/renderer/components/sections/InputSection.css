@@ -32,25 +32,14 @@
 
 .input-layout {
   display: flex;
+  flex-direction: row; /* 左右並びに変更 */
   gap: 1rem;
-}
-
-.input-left {
-  flex: 0.6;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.input-right {
-  flex: 1.8;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  min-height: 300px; /* 適応済みテキストが表示されるための最小高さを確保 */
 }
 
 .file-upload-section {
+  flex: 1; /* 左右レイアウトで1:1 */
+  display: flex;
+  flex-direction: column;
   margin-bottom: 0.75rem;
 }
 
@@ -147,6 +136,7 @@
 }
 
 .text-input-section {
+  flex: 1; /* 左右レイアウトで1:1 */
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -313,17 +303,7 @@
   transform: scale(1.1);
 }
 
-/* レスポンシブ対応 */
-@media (max-width: 1024px) {
-  .input-layout {
-    flex-direction: column;
-  }
-
-  .input-left,
-  .input-right {
-    flex: none;
-  }
-}
+/* レスポンシブ対応 - 縦積みなので特別な設定は不要 */
 
 @media (max-width: 768px) {
   .input-panel .panel-header-left {
