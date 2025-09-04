@@ -306,9 +306,14 @@ async function seedInitialTemplates(): Promise<void> {
     
     // JSONファイルを読み込んでDBに投入
     const templates: any[] = [];
-    const readDir = templatesDir; // workspace/templatesから読み込み（既にコピー済み）
+    // workspace/templatesを優先、リソースが見つからない場合はtemplatesDirを使用
+    const readDir = templatesDir || sourceDir;
     
     console.log(`📋 テンプレートファイル処理開始: ${templateFiles.length}ファイル`);
+    console.log(`📁 読み込み対象ディレクトリ: ${readDir}`);
+    console.log(`📁 templatesDir: ${templatesDir}`);
+    console.log(`📁 sourceDir: ${sourceDir}`);
+    
     let processedCount = 0;
     let skippedCount = 0;
     let errorCount = 0;
