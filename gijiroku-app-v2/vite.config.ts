@@ -48,7 +48,7 @@ export default defineConfig({
     include: ['react', 'react-dom', 'axios', 'marked', 'dexie'],
   },
   server: {
-    port: 5173,
+    port: 3012,
     strictPort: true,
     host: 'localhost'
   },
