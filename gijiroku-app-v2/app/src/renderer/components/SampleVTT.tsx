@@ -1,8 +1,15 @@
-import React from 'react';
+/**
+ * @fileoverview Sample VTT file component for testing
+ * @module components/SampleVTT
+ */
+
+import React, { useCallback, useMemo, memo } from 'react';
 import './SampleVTT.css';
 
-const SampleVTT: React.FC = () => {
-  const sampleVTTContent = `WEBVTT
+/**
+ * Sample VTT file content with intentional errors for testing
+ */
+const SAMPLE_VTT_CONTENT = `WEBVTT
 
 1
 00:00:00.000 --> 00:00:05.000
@@ -36,71 +43,166 @@ const SampleVTT: React.FC = () => {
 00:00:45.000 --> 00:00:52.000
 佐藤: 分かりました。テストも並行して進めていきましょう。`;
 
-  const downloadSampleVTT = () => {
-    const blob = new Blob([sampleVTTContent], { type: 'text/vtt' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'sample_meeting.vtt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+/**
+ * Default filename for downloaded VTT file
+ */
+const DEFAULT_FILENAME = 'sample_meeting.vtt';
 
-  const copySampleVTT = () => {
-    navigator.clipboard.writeText(sampleVTTContent).then(() => {
-      // 成功時の処理は親コンポーネントで行う
-    });
-  };
+/**
+ * MIME type for VTT files
+ */
+const VTT_MIME_TYPE = 'text/vtt';
+
+/**
+ * Number of preview lines to display
+ */
+const PREVIEW_LINES = 10;
+
+/**
+ * Correction examples in the sample
+ */
+const CORRECTION_EXAMPLES = [
+  { before: '会儀', after: '会議' },
+  { before: '議だい', after: '議題' },
+  { before: 'ぎだい', after: '議題' },
+  { before: 'きょう', after: '今日' },
+  { before: 'フィラー「えー」', after: '除去' },
+] as const;
+
+/**
+ * Usage instructions
+ */
+const USAGE_STEPS = [
+  '「VTTファイルをダウンロード」をクリック',
+  '保存されたファイルを上記のドロップエリアにドラッグ',
+  '自動修正結果を確認',
+] as const;
+
+/**
+ * Sample VTT file component
+ *
+ * Provides a downloadable sample VTT file with intentional errors for testing
+ * the correction functionality. Includes preview and copy-to-clipboard features.
+ *
+ * @example
+ * ```tsx
+ * <SampleVTT />
+ * ```
+ */
+const SampleVTT: React.FC = memo(() => {
+  /**
+   * Generate preview text (first N lines)
+   */
+  const previewText = useMemo((): string => {
+    return SAMPLE_VTT_CONTENT.split('\n').slice(0, PREVIEW_LINES).join('\n') + '...';
+  }, []);
+
+  /**
+   * Download sample VTT file
+   */
+  const downloadSampleVTT = useCallback((): void => {
+    const blob = new Blob([SAMPLE_VTT_CONTENT], { type: VTT_MIME_TYPE });
+    const url = URL.createObjectURL(blob);
+
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = DEFAULT_FILENAME;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+
+    URL.revokeObjectURL(url);
+  }, []);
+
+  /**
+   * Copy sample VTT content to clipboard
+   */
+  const copySampleVTT = useCallback((): void => {
+    void navigator.clipboard.writeText(SAMPLE_VTT_CONTENT);
+    // Success handling is performed by parent component
+  }, []);
+
+  /**
+   * Handle download button click
+   */
+  const handleDownloadClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>): void => {
+      event.preventDefault();
+      downloadSampleVTT();
+    },
+    [downloadSampleVTT]
+  );
+
+  /**
+   * Handle copy button click
+   */
+  const handleCopyClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>): void => {
+      event.preventDefault();
+      copySampleVTT();
+    },
+    [copySampleVTT]
+  );
 
   return (
-    <div className="sample-vtt">
+    <div className="sample-vtt" role="region" aria-label="サンプルVTTファイル">
       <div className="sample-header">
         <h3>📄 サンプルVTTファイル</h3>
         <p>テスト用のサンプルファイルをダウンロードできます</p>
       </div>
-      
+
       <div className="sample-content">
         <div className="sample-preview">
           <h4>プレビュー</h4>
           <div className="vtt-preview">
-            <pre>{sampleVTTContent.split('\n').slice(0, 10).join('\n')}...</pre>
+            <pre aria-label="VTTファイルプレビュー">{previewText}</pre>
           </div>
-          
+
           <div className="sample-features">
             <h5>このサンプルに含まれる誤字・修正候補：</h5>
             <ul>
-              <li>「会儀」→「会議」</li>
-              <li>「議だい」→「議題」</li>
-              <li>「ぎだい」→「議題」</li>
-              <li>「きょう」→「今日」</li>
-              <li>フィラー「えー」の除去</li>
+              {CORRECTION_EXAMPLES.map((example) => (
+                <li key={example.before}>
+                  「{example.before}」→「{example.after}」
+                </li>
+              ))}
             </ul>
           </div>
         </div>
-        
+
         <div className="sample-actions">
-          <button className="download-btn" onClick={downloadSampleVTT}>
+          <button
+            className="download-btn"
+            onClick={handleDownloadClick}
+            type="button"
+            aria-label="VTTファイルをダウンロード"
+          >
             📥 VTTファイルをダウンロード
           </button>
-          
-          <button className="copy-btn" onClick={copySampleVTT}>
+
+          <button
+            className="copy-btn"
+            onClick={handleCopyClick}
+            type="button"
+            aria-label="テキストをクリップボードにコピー"
+          >
             📋 テキストをコピー
           </button>
-          
+
           <div className="usage-tip">
             <strong>使い方：</strong>
             <ol>
-              <li>「VTTファイルをダウンロード」をクリック</li>
-              <li>保存されたファイルを上記のドロップエリアにドラッグ</li>
-              <li>自動修正結果を確認</li>
+              {USAGE_STEPS.map((step, index) => (
+                <li key={index}>{step}</li>
+              ))}
             </ol>
           </div>
         </div>
       </div>
     </div>
   );
-};
+});
+
+SampleVTT.displayName = 'SampleVTT';
 
 export default SampleVTT;
