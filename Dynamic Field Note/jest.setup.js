@@ -3,65 +3,90 @@
  * Global test configuration and mocks
  */
 
-import '@testing-library/react-native';
+// Mock React Native
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  RN.Platform.OS = 'ios';
+  return RN;
+});
 
 // Mock expo modules
 jest.mock('expo-status-bar', () => ({
-  StatusBar: 'StatusBar',
+  StatusBar: jest.fn(() => null),
 }));
 
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  setItem: jest.fn(() => Promise.resolve()),
+  getItem: jest.fn(() => Promise.resolve(null)),
+  removeItem: jest.fn(() => Promise.resolve()),
+  clear: jest.fn(() => Promise.resolve()),
+}));
 
 // Mock react-native-paper
-jest.mock('react-native-paper', () => {
-  const RealModule = jest.requireActual('react-native-paper');
-  const MockedModule = {
-    ...RealModule,
-    Portal: ({ children }) => children,
-  };
-  return MockedModule;
-});
+jest.mock('react-native-paper', () => ({
+  Provider: jest.fn(({ children }) => children),
+  Portal: jest.fn(({ children }) => children),
+  Button: jest.fn(() => null),
+  FAB: jest.fn(() => null),
+  Card: jest.fn(() => null),
+  List: jest.fn(() => null),
+  Switch: jest.fn(() => null),
+  SegmentedButtons: jest.fn(() => null),
+}));
 
 // Mock navigation
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: jest.fn(),
-      goBack: jest.fn(),
-      setOptions: jest.fn(),
-    }),
-    useRoute: () => ({
-      params: {},
-    }),
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  NavigationContainer: jest.fn(({ children }) => children),
+  useNavigation: jest.fn(() => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    setOptions: jest.fn(),
+  })),
+  useRoute: jest.fn(() => ({
+    params: {},
+  })),
+}));
+
+// Mock drawer
+jest.mock('@react-navigation/drawer', () => ({
+  createDrawerNavigator: jest.fn(() => ({
+    Navigator: jest.fn(() => null),
+    Screen: jest.fn(() => null),
+  })),
+}));
 
 // Mock Gemini API
 jest.mock('./src/services/geminiService', () => ({
-  summarizeText: jest.fn().mockResolvedValue({
-    summary: {
-      title: 'Test Summary',
-      date: '2025-10-18',
-      summary: 'This is a test summary',
-      key_points: ['Point 1', 'Point 2'],
-      action_items: ['Action 1', 'Action 2'],
-    },
-    processing_time: 1000,
-  }),
-  testGeminiConnection: jest.fn().mockResolvedValue(true),
-  isGeminiConfigured: jest.fn().mockReturnValue(true),
+  summarizeText: jest.fn(() =>
+    Promise.resolve({
+      summary: {
+        title: 'Test Summary',
+        date: '2025-10-18',
+        summary: 'This is a test summary',
+        key_points: ['Point 1', 'Point 2'],
+        action_items: ['Action 1', 'Action 2'],
+      },
+      processing_time: 1000,
+    })
+  ),
+  testGeminiConnection: jest.fn(() => Promise.resolve(true)),
+  isGeminiConfigured: jest.fn(() => true),
 }));
 
 // Global test timeout
 jest.setTimeout(10000);
 
 // Silence console warnings in tests
-global.console = {
-  ...console,
-  warn: jest.fn(),
-  error: jest.fn(),
-};
+const originalWarn = console.warn;
+const originalError = console.error;
+
+beforeAll(() => {
+  console.warn = jest.fn();
+  console.error = jest.fn();
+});
+
+afterAll(() => {
+  console.warn = originalWarn;
+  console.error = originalError;
+});
