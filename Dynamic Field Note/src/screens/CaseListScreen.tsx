@@ -17,7 +17,8 @@ import {
 } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import { caseDAO } from '../services/CaseDAO';
-import type { Case, CaseStatus } from '../types/case';
+import type { Case, CaseStatus, CreateCaseInput, UpdateCaseInput } from '../types/case';
+import { CaseFormModal } from './CaseFormModal';
 
 export const CaseListScreen: React.FC = () => {
   const [cases, setCases] = useState<Case[]>([]);
@@ -25,6 +26,8 @@ export const CaseListScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [filterStatus, setFilterStatus] = useState<CaseStatus | 'all'>('all');
   const [menuVisible, setMenuVisible] = useState<{ [key: number]: boolean }>({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingCase, setEditingCase] = useState<Case | undefined>(undefined);
 
   /**
    * 案件一覧を読み込み
@@ -95,6 +98,55 @@ export const CaseListScreen: React.FC = () => {
   const toggleMenu = useCallback((id: number) => {
     setMenuVisible((prev) => ({ ...prev, [id]: !prev[id] }));
   }, []);
+
+  /**
+   * 新規作成モーダルを開く
+   */
+  const handleCreateCase = useCallback(() => {
+    setEditingCase(undefined);
+    setModalVisible(true);
+  }, []);
+
+  /**
+   * 編集モーダルを開く
+   */
+  const handleEditCase = useCallback((caseItem: Case) => {
+    setEditingCase(caseItem);
+    setModalVisible(true);
+  }, []);
+
+  /**
+   * モーダルを閉じる
+   */
+  const handleCloseModal = useCallback(() => {
+    setModalVisible(false);
+    setEditingCase(undefined);
+  }, []);
+
+  /**
+   * 案件保存（作成 or 更新）
+   */
+  const handleSaveCase = useCallback(
+    async (input: CreateCaseInput | UpdateCaseInput) => {
+      try {
+        if (editingCase) {
+          // 更新
+          await caseDAO.update(editingCase.id, input as UpdateCaseInput);
+          Alert.alert('成功', '案件を更新しました');
+        } else {
+          // 新規作成
+          await caseDAO.create(input as CreateCaseInput);
+          Alert.alert('成功', '案件を作成しました');
+        }
+        await loadCases();
+      } catch (error) {
+        console.error('[CaseListScreen] Failed to save case:', error);
+        Alert.alert('エラー', '案件の保存に失敗しました');
+        throw error; // モーダル側でハンドリング
+      }
+    },
+    [editingCase, loadCases]
+  );
 
   /**
    * ステータス別の色を取得
@@ -220,8 +272,7 @@ export const CaseListScreen: React.FC = () => {
                       leadingIcon="pencil"
                       onPress={() => {
                         toggleMenu(caseItem.id);
-                        // TODO: 編集画面へ遷移
-                        Alert.alert('実装予定', '案件編集機能は次のステップで実装します');
+                        handleEditCase(caseItem);
                       }}
                       title="編集"
                     />
@@ -268,13 +319,14 @@ export const CaseListScreen: React.FC = () => {
       </ScrollView>
 
       {/* FAB: 新規案件作成 */}
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={() => {
-          // TODO: 案件作成画面へ遷移
-          Alert.alert('実装予定', '案件作成機能は次のステップで実装します');
-        }}
+      <FAB icon="plus" style={styles.fab} onPress={handleCreateCase} />
+
+      {/* 案件作成・編集モーダル */}
+      <CaseFormModal
+        visible={modalVisible}
+        onDismiss={handleCloseModal}
+        onSave={handleSaveCase}
+        editingCase={editingCase}
       />
     </View>
   );
