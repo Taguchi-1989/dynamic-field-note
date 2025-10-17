@@ -20,6 +20,7 @@
 ### 初回セットアップ
 
 1. **VS Code で Dev Container を開く**:
+
    ```
    Command Palette (Ctrl+Shift+P / Cmd+Shift+P)
    → "Dev Containers: Reopen in Container"
@@ -69,6 +70,7 @@ npm test
 ### npm install が失敗する場合
 
 コンテナ内で手動実行：
+
 ```bash
 npm install --legacy-peer-deps
 ```
@@ -76,6 +78,7 @@ npm install --legacy-peer-deps
 ### Expo が起動しない場合
 
 環境変数を確認：
+
 ```bash
 echo $EXPO_DEVTOOLS_LISTEN_ADDRESS
 # → 0.0.0.0 と表示されるべき

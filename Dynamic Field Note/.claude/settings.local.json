@@ -22,7 +22,21 @@
       "Bash(npm run format)",
       "Bash(npm run lint)",
       "Bash(npm run lint:*)",
-      "Bash(npm run format:check:*)"
+      "Bash(npm run format:check:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx prettier:*)",
+      "Bash(npm audit)",
+      "Bash(npx madge:*)",
+      "Bash(npx ts-prune:*)",
+      "Bash(npx depcheck:*)",
+      "Bash(npm run test:*)",
+      "Bash(systemd-detect-virt:*)",
+      "Read(//proc/**)",
+      "Read(//workspaces/ZBC-migration-kit/**)",
+      "Bash(chmod:*)",
+      "Bash(echo:*)",
+      "Bash(npm run guardrails)",
+      "Bash(npm run format -- .claude/ docs/ .devcontainer/ tsconfig.json)"
     ],
     "deny": [],
     "ask": []

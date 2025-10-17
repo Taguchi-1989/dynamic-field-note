@@ -8,16 +8,16 @@
 
 ## 📊 解析サマリー
 
-| 解析項目                   | 結果       | 評価 | 詳細                            |
-| -------------------------- | ---------- | ---- | ------------------------------- |
+| 解析項目                  | 結果        | 評価 | 詳細                           |
+| ------------------------- | ----------- | ---- | ------------------------------ |
 | TypeScript 厳密型チェック | ✅ 0 エラー | A+   | strict モード + 拡張オプション |
-| ESLint                     | ✅ 0 警告   | A+   | max-warnings 0 で全チェック    |
-| Prettier                   | ✅ 100%準拠 | A+   | 全ファイルフォーマット済み      |
-| 循環依存                   | ✅ なし     | A+   | madge で検証                    |
-| 型定義カバレッジ           | ✅ 100%     | A+   | 994 個の型定義ファイル          |
-| パッケージ脆弱性           | ⚠️ 2 件     | B    | react-native-markdown-display   |
-| 未使用エクスポート         | ℹ️ 10 件   | A    | Phase 3 以降で使用予定          |
-| 未使用依存パッケージ       | ℹ️ 7 件    | A    | Phase 3 以降で使用予定          |
+| ESLint                    | ✅ 0 警告   | A+   | max-warnings 0 で全チェック    |
+| Prettier                  | ✅ 100%準拠 | A+   | 全ファイルフォーマット済み     |
+| 循環依存                  | ✅ なし     | A+   | madge で検証                   |
+| 型定義カバレッジ          | ✅ 100%     | A+   | 994 個の型定義ファイル         |
+| パッケージ脆弱性          | ⚠️ 2 件     | B    | react-native-markdown-display  |
+| 未使用エクスポート        | ℹ️ 10 件    | A    | Phase 3 以降で使用予定         |
+| 未使用依存パッケージ      | ℹ️ 7 件     | A    | Phase 3 以降で使用予定         |
 
 **総合評価**: **A+ (98/100)** 🎉
 
@@ -191,14 +191,14 @@ npm audit
 
 ### 統計情報
 
-| 項目                   | 数値     |
-| ---------------------- | -------- |
-| TypeScript ファイル数  | 15 個    |
-| 型定義ファイル数       | 994 個   |
-| カスタム型定義         | 12 個    |
-| interface 定義         | 25 個    |
-| type エイリアス        | 8 個     |
-| 型カバレッジ           | **100%** |
+| 項目                  | 数値     |
+| --------------------- | -------- |
+| TypeScript ファイル数 | 15 個    |
+| 型定義ファイル数      | 994 個   |
+| カスタム型定義        | 12 個    |
+| interface 定義        | 25 個    |
+| type エイリアス       | 8 個     |
+| 型カバレッジ          | **100%** |
 
 ### カスタム型定義
 
@@ -321,18 +321,18 @@ npx ts-prune --error
 
 #### 未使用エクスポート（10 件）
 
-| ファイル                               | エクスポート                 | 理由               |
-| -------------------------------------- | ---------------------------- | ------------------ |
-| eslint.config.mjs                      | default                      | 設定ファイル       |
-| src/contexts/AccessibilityContext.tsx  | FONT_SCALE                   | 内部で使用済み     |
-| src/services/geminiService.ts          | isGeminiConfigured           | Phase 3 で使用予定 |
-| src/services/geminiService.ts          | testGeminiConnection         | Phase 3 で使用予定 |
-| src/types/summary.ts                   | SummarySection               | 内部で使用済み     |
-| src/types/summary.ts                   | PrioritizedItem              | 内部で使用済み     |
-| src/types/summary.ts                   | ScheduledTodo                | 内部で使用済み     |
-| src/utils/markdownGenerator.ts         | finalSummaryToMarkdown       | Phase 3 で使用予定 |
-| src/utils/markdownGenerator.ts         | markdownToPlainText          | Phase 3 で使用予定 |
-| src/utils/markdownGenerator.ts         | formatMarkdownForExport      | Phase 3 で使用予定 |
+| ファイル                              | エクスポート            | 理由               |
+| ------------------------------------- | ----------------------- | ------------------ |
+| eslint.config.mjs                     | default                 | 設定ファイル       |
+| src/contexts/AccessibilityContext.tsx | FONT_SCALE              | 内部で使用済み     |
+| src/services/geminiService.ts         | isGeminiConfigured      | Phase 3 で使用予定 |
+| src/services/geminiService.ts         | testGeminiConnection    | Phase 3 で使用予定 |
+| src/types/summary.ts                  | SummarySection          | 内部で使用済み     |
+| src/types/summary.ts                  | PrioritizedItem         | 内部で使用済み     |
+| src/types/summary.ts                  | ScheduledTodo           | 内部で使用済み     |
+| src/utils/markdownGenerator.ts        | finalSummaryToMarkdown  | Phase 3 で使用予定 |
+| src/utils/markdownGenerator.ts        | markdownToPlainText     | Phase 3 で使用予定 |
+| src/utils/markdownGenerator.ts        | formatMarkdownForExport | Phase 3 で使用予定 |
 
 ### 評価
 
@@ -356,15 +356,15 @@ npx depcheck
 
 #### 未使用依存パッケージ（7 件）
 
-| パッケージ                 | 目的                      | Phase |
-| -------------------------- | ------------------------- | ----- |
-| expo-camera                | 写真撮影機能              | 3     |
-| expo-file-system           | ファイル操作              | 3     |
-| expo-secure-store          | 安全なキー保存            | 4     |
-| expo-sqlite                | ローカル DB               | 3     |
-| jszip                      | ZIP 生成                  | 3     |
-| react-native-reanimated    | アニメーション（将来検討） | 5?    |
-| react-native-screens       | Navigation 最適化（依存） | 2     |
+| パッケージ              | 目的                       | Phase |
+| ----------------------- | -------------------------- | ----- |
+| expo-camera             | 写真撮影機能               | 3     |
+| expo-file-system        | ファイル操作               | 3     |
+| expo-secure-store       | 安全なキー保存             | 4     |
+| expo-sqlite             | ローカル DB                | 3     |
+| jszip                   | ZIP 生成                   | 3     |
+| react-native-reanimated | アニメーション（将来検討） | 5?    |
+| react-native-screens    | Navigation 最適化（依存）  | 2     |
 
 ### 評価
 

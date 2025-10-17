@@ -1,6 +1,9 @@
 {
-  "name": "Dynamic Field Note - React Native Dev Container",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
+  "name": "Dynamic Field Note - React Native Dev Container (Bypass Mode)",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
 
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
@@ -31,6 +34,14 @@
         "files.eol": "\n",
         "terminal.integrated.defaultProfile.linux": "bash"
       }
+    },
+    "claude-code": {
+      "bypassMode": true,
+      "autoGuardrails": {
+        "preCommitValidation": true,
+        "autoTest": true,
+        "codeReview": true
+      }
     }
   },
 
@@ -58,9 +69,9 @@
     }
   },
 
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "npm install && git config --global --add safe.directory /workspaces/ZBC-migration-kit",
 
-  "postStartCommand": "echo 'Dev Container Ready! Run: npm start'",
+  "postStartCommand": "echo '🚀 Dev Container Ready! Claude Code bypass mode ENABLED. Run: npm start'",
 
   "remoteUser": "node"
 }

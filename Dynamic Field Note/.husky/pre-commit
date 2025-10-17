@@ -1,0 +1,34 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit guardrails..."
+
+# 1. TypeScript型チェック
+echo "1️⃣ TypeScript type checking..."
+npm run type-check || {
+  echo "❌ TypeScript errors detected!"
+  exit 1
+}
+
+# 2. ESLint
+echo "2️⃣ ESLint checking..."
+npm run lint || {
+  echo "❌ ESLint errors detected!"
+  exit 1
+}
+
+# 3. Prettier
+echo "3️⃣ Prettier format checking..."
+npm run format:check || {
+  echo "❌ Format errors detected! Run: npm run format"
+  exit 1
+}
+
+# 4. Smoke Tests（軽量テスト）
+echo "4️⃣ Running smoke tests..."
+npm run test:smoke || {
+  echo "❌ Smoke tests failed!"
+  exit 1
+}
+
+echo "✅ All guardrails passed! Committing..."

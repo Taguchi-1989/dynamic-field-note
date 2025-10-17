@@ -20,7 +20,10 @@
     "test:local": "jest e2e --coverage --verbose",
     "test:smoke": "jest e2e/smoke",
     "test:comprehensive": "jest e2e/comprehensive --coverage",
-    "precommit": "npm run validate && npm run test:smoke"
+    "precommit": "npm run validate && npm run test:smoke",
+    "prepare": "husky install",
+    "guardrails": "npm run validate && npm run test:smoke",
+    "guardrails:full": "npm run validate && npm run test"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

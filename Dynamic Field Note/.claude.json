@@ -1,0 +1,199 @@
+{
+  "$schema": "https://claude.ai/schemas/claude.json",
+
+  "// GUARDRAIL CONFIGURATION": "バイパスモード前提のガードレール設定 - Dynamic Field Note",
+  "// 重要": "React Native/Expo プロジェクト用に最適化された設定",
+
+  "allowedTools": [
+    "// === 読み取り系（常に安全）===",
+    "Read(*)",
+    "Grep(*)",
+    "Glob(*)",
+    "List(*)",
+    "Search(*)",
+    "View(*)",
+
+    "// === Git操作（読み取り）===",
+    "Bash(git status)",
+    "Bash(git log*)",
+    "Bash(git diff*)",
+    "Bash(git show*)",
+    "Bash(git branch)",
+    "Bash(git branch -a)",
+    "Bash(git remote -v)",
+
+    "// === Git操作（書き込み - 慎重に）===",
+    "Bash(git add*)",
+    "Bash(git commit*)",
+    "Bash(git checkout -b*)",
+    "Bash(git stash*)",
+    "// ⚠️ push/pullは慎重に - 必要に応じてコメント解除",
+    "// Bash(git push*)",
+    "// Bash(git pull*)",
+
+    "// === Node.js / npm（React Native）===",
+    "Bash(npm install*)",
+    "Bash(npm run*)",
+    "Bash(npm test*)",
+    "Bash(npm audit*)",
+    "Bash(npm outdated*)",
+    "Bash(node *)",
+    "Bash(npx *)",
+
+    "// === Expo（React Native開発）===",
+    "Bash(expo start*)",
+    "Bash(expo build*)",
+    "Bash(expo doctor*)",
+    "Bash(expo prebuild*)",
+
+    "// === ビルド・テストツール===",
+    "Bash(jest*)",
+    "Bash(tsc *)",
+    "Bash(eslint*)",
+    "Bash(prettier*)",
+
+    "// === React Native / Metro===",
+    "Bash(react-native *)",
+    "Bash(watchman watch-del-all)",
+
+    "// === 基本的なシェルコマンド===",
+    "Bash(echo *)",
+    "Bash(cat *)",
+    "Bash(ls *)",
+    "Bash(pwd)",
+    "Bash(find *)",
+    "Bash(grep *)",
+    "Bash(wc *)",
+    "Bash(head *)",
+    "Bash(tail *)",
+    "Bash(jq *)",
+
+    "// === ファイル操作（慎重に）===",
+    "Edit(*)",
+    "Write(*)",
+    "Bash(mkdir *)",
+    "Bash(touch *)",
+    "Bash(cp * *)",
+    "Bash(mv * *)",
+    "// ⚠️ 削除コマンドは絶対に許可しない",
+    "// Bash(rm *)",
+    "// Bash(rm -rf*)",
+
+    "// === プロジェクト固有のコマンド===",
+    "Bash(chmod *)"
+  ],
+
+  "hooks": {
+    "// 注意": "hooksは--dangerously-skip-permissionsでも実行されます",
+
+    "beforeEdit": [
+      {
+        "name": "Create Backup",
+        "command": "mkdir -p .claude/backups && cp {file} .claude/backups/$(basename {file}).backup-$(date +%s) 2>/dev/null || true",
+        "description": "編集前に自動バックアップを作成",
+        "ignoreErrors": true
+      }
+    ],
+
+    "afterEdit": [
+      {
+        "name": "Auto Format with Prettier",
+        "command": "npx prettier --write {file}",
+        "filePattern": "\\.(js|jsx|ts|tsx|json|md)$",
+        "ignoreErrors": true
+      },
+      {
+        "name": "Auto Lint Fix",
+        "command": "npx eslint {file} --fix",
+        "filePattern": "\\.(js|jsx|ts|tsx)$",
+        "ignoreErrors": true
+      },
+      {
+        "name": "Type Check",
+        "command": "npx tsc --noEmit --pretty",
+        "filePattern": "\\.(ts|tsx)$",
+        "ignoreErrors": true,
+        "timeout": 30000
+      }
+    ],
+
+    "beforeCommit": [
+      {
+        "name": "Run Guardrails",
+        "command": "npm run guardrails",
+        "continueOnError": false,
+        "timeout": 120000
+      }
+    ],
+
+    "onError": [
+      {
+        "name": "Log Error",
+        "command": "mkdir -p .claude && echo '[$(date)] ERROR: {error}' >> .claude/error.log"
+      }
+    ]
+  },
+
+  "mcp": {
+    "servers": {
+      "filesystem": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "${workspaceFolder}"]
+      },
+      "// github": {
+        "//   command": "npx",
+        "//   args": ["-y", "@modelcontextprotocol/server-github"],
+        "//   env": {"GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_TOKEN}"}
+      }
+    }
+  },
+
+  "guardrails": {
+    "maxFileSizeEdit": "1MB",
+    "maxFilesPerEdit": 10,
+    "protectedPaths": [
+      ".env",
+      ".env.local",
+      ".env.production",
+      "*.pem",
+      "*.key",
+      ".git/",
+      "node_modules/",
+      ".claude/backups/",
+      "claude-code/"
+    ],
+    "requireConfirmation": [
+      "Bash(git push*)",
+      "Bash(npm publish*)",
+      "Bash(rm *)"
+    ]
+  },
+
+  "backup": {
+    "enabled": true,
+    "location": ".claude/backups/",
+    "retention": "7d",
+    "autoBackupBeforeEdit": true
+  },
+
+  "defaultModel": "claude-sonnet-4-5-20250929",
+
+  "contextWindow": {
+    "warningThreshold": 0.75,
+    "compactAutomatically": false,
+    "maxTokens": 200000
+  },
+
+  "permissions": {
+    "mode": "bypass",
+    "rememberDecisions": true,
+    "// 注意": "bypassモードは--dangerously-skip-permissionsと同等"
+  },
+
+  "ui": {
+    "theme": "auto",
+    "showTokenCount": true,
+    "enableSyntaxHighlighting": true,
+    "showDiffPreview": true
+  }
+}

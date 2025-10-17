@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.expo/
+web-build/
+
+# Test coverage
+coverage/
+
+# External projects
+claude-code/
+
+# Generated files
+*.d.ts
+package-lock.json
