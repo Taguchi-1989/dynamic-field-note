@@ -1,8 +1,8 @@
 /**
  * ホーム画面
- * Phase 1: PoC で使用
+ * Phase 2: UI/UX強化版
  *
- * 音声入力 → 要約 → プレビュー の基本フロー
+ * 音声入力 → 要約 → プレビュー の基本フロー + FABボタン
  */
 
 import React, { useState, useEffect } from 'react';
@@ -12,6 +12,7 @@ import { useVoiceBuffer } from '../hooks/useVoiceBuffer';
 import { useSummarize } from '../hooks/useSummarize';
 import { MarkdownPreview } from '../components/MarkdownPreview';
 import { LoadingIndicator } from '../components/LoadingIndicator';
+import { SummaryButtons } from '../components/SummaryButtons';
 
 export const HomeScreen: React.FC = () => {
   const [inputText, setInputText] = useState<string>('');
@@ -55,16 +56,36 @@ export const HomeScreen: React.FC = () => {
   };
 
   /**
-   * 要約実行
+   * 中間まとめ実行（Gemini Fast）
    */
-  const handleSummarize = async () => {
+  const handleQuickSummary = async () => {
     if (!fullText || fullText.trim() === '') {
       showSnackbar('テキストを入力してください');
       return;
     }
 
     await executeSummarize(fullText);
-    showSnackbar(`要約完了 (${processingTime}ms)`);
+    showSnackbar(`中間まとめ完了 (${processingTime}ms)`);
+  };
+
+  /**
+   * 最終まとめ実行（将来のGPT-5用・現在はGemini）
+   */
+  const handleFinalSummary = async () => {
+    if (!fullText || fullText.trim() === '') {
+      showSnackbar('テキストを入力してください');
+      return;
+    }
+
+    await executeSummarize(fullText);
+    showSnackbar(`最終まとめ完了 (${processingTime}ms)`);
+  };
+
+  /**
+   * 要約実行（既存ボタン用・後方互換）
+   */
+  const handleSummarize = async () => {
+    await handleQuickSummary();
   };
 
   /**
@@ -171,6 +192,14 @@ export const HomeScreen: React.FC = () => {
       >
         {snackbarMessage}
       </Snackbar>
+
+      {/* FAB要約ボタン */}
+      <SummaryButtons
+        isLoading={isLoading}
+        isEmpty={!fullText || fullText.trim() === ''}
+        onQuickSummary={handleQuickSummary}
+        onFinalSummary={handleFinalSummary}
+      />
     </View>
   );
 };
