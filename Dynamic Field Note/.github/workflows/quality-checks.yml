@@ -169,6 +169,38 @@ jobs:
           cat audit.json >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
+  # E2Eスモークテスト (最小限のCI/CD用テスト)
+  e2e-smoke-tests:
+    name: E2E Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run smoke tests
+        run: npm run test:ci
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results
+          path: |
+            coverage/
+            junit.xml
+          retention-days: 7
+
   # 全チェック完了通知
   all-checks-complete:
     name: All Checks Complete
@@ -180,6 +212,7 @@ jobs:
       - circular-dependencies
       - unused-code
       - security-audit
+      - e2e-smoke-tests
     if: always()
 
     steps:
@@ -188,7 +221,8 @@ jobs:
           if [ "${{ needs.typescript-check.result }}" != "success" ] || \
              [ "${{ needs.eslint-check.result }}" != "success" ] || \
              [ "${{ needs.prettier-check.result }}" != "success" ] || \
-             [ "${{ needs.circular-dependencies.result }}" != "success" ]; then
+             [ "${{ needs.circular-dependencies.result }}" != "success" ] || \
+             [ "${{ needs.e2e-smoke-tests.result }}" != "success" ]; then
             echo "❌ Some quality checks failed"
             exit 1
           else
@@ -208,3 +242,4 @@ jobs:
           echo "| Circular Deps | ${{ needs.circular-dependencies.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Unused Code | ${{ needs.unused-code.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Security | ${{ needs.security-audit.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Smoke Tests | ${{ needs.e2e-smoke-tests.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
