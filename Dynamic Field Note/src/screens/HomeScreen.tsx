@@ -13,11 +13,13 @@ import { useSummarize } from '../hooks/useSummarize';
 import { MarkdownPreview } from '../components/MarkdownPreview';
 import { LoadingIndicator } from '../components/LoadingIndicator';
 import { SummaryButtons } from '../components/SummaryButtons';
+import { AIStatusIndicator, AIStatus } from '../components/AIStatusIndicator';
 
 export const HomeScreen: React.FC = () => {
   const [inputText, setInputText] = useState<string>('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [aiStatus, setAiStatus] = useState<AIStatus>('idle');
 
   /**
    * スナックバー表示
@@ -64,8 +66,15 @@ export const HomeScreen: React.FC = () => {
       return;
     }
 
+    setAiStatus('processing');
     await executeSummarize(fullText);
-    showSnackbar(`中間まとめ完了 (${processingTime}ms)`);
+    if (error) {
+      setAiStatus('error');
+    } else {
+      setAiStatus('success');
+      showSnackbar(`中間まとめ完了 (${processingTime}ms)`);
+      setTimeout(() => setAiStatus('idle'), 3000);
+    }
   };
 
   /**
@@ -77,8 +86,15 @@ export const HomeScreen: React.FC = () => {
       return;
     }
 
+    setAiStatus('processing');
     await executeSummarize(fullText);
-    showSnackbar(`最終まとめ完了 (${processingTime}ms)`);
+    if (error) {
+      setAiStatus('error');
+    } else {
+      setAiStatus('success');
+      showSnackbar(`最終まとめ完了 (${processingTime}ms)`);
+      setTimeout(() => setAiStatus('idle'), 3000);
+    }
   };
 
   /**
@@ -168,6 +184,9 @@ export const HomeScreen: React.FC = () => {
             </View>
           )}
         </View>
+
+        {/* AI状態インジケーター */}
+        <AIStatusIndicator status={aiStatus} errorMessage={error || undefined} />
 
         {/* プレビューエリア */}
         <View style={styles.previewContainer}>
