@@ -21,7 +21,8 @@
       "Bash(dir node_modulestypescriptbin)",
       "Bash(npm run format)",
       "Bash(npm run lint)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(npm run format:check:*)"
     ],
     "deny": [],
     "ask": []

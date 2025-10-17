@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { Text, Card, List, Switch } from 'react-native-paper';
 
 export const SettingsScreen: React.FC = () => {

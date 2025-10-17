@@ -130,7 +130,26 @@ flowchart LR
 
 ## 📊 開発状況
 
-現在のフェーズ: **Phase 0 - 環境構築**
+現在のフェーズ: **Phase 2 完了 - UI/UX整備完了**
+
+| フェーズ             | ステータス | 完了日     |
+| -------------------- | ---------- | ---------- |
+| **P0 環境構築**      | ✅ 完了    | 2025-10-17 |
+| **P1 PoC**           | ✅ 完了    | 2025-10-17 |
+| **P2 UI/UX整備**     | ✅ 完了    | 2025-10-18 |
+| **P3 ローカル保存**  | 🔲 未着手  | -          |
+| **P4 Azure連携**     | 🔲 未着手  | -          |
+| **P5 α版統合**       | 🔲 未着手  | -          |
+| **P6 β・運用化**     | 🔲 未着手  | -          |
+
+### Phase 2 実装済み機能
+
+- ✅ リッチMarkdownプレビュー（react-native-markdown-display）
+- ✅ FAB要約ボタン（中間・最終まとめ）
+- ✅ Drawerナビゲーション（ハンバーガーメニュー）
+- ✅ AI状態表示インジケーター
+- ✅ 型安全性確保（TypeScript strict mode）
+- ✅ コード品質管理（ESLint・Prettier）
 
 進捗状況は [GitHub Issues](https://github.com/Taguchi-1989/dynamic-field-note/issues) で確認できます。
 
