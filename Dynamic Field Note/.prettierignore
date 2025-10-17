@@ -12,6 +12,9 @@ coverage/
 # External projects
 claude-code/
 
+# Documentation reference files (may contain syntax errors)
+docs/files/
+
 # Generated files
 *.d.ts
 package-lock.json

@@ -16,7 +16,7 @@ import {
   ActivityIndicator,
 } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
-import { caseDAO } from '../services/CaseDAO';
+import { caseDAO } from '../dao/CaseDAO';
 import type { Case, CaseStatus, CreateCaseInput, UpdateCaseInput } from '../types/case';
 import { CaseFormModal } from './CaseFormModal';
 
@@ -35,8 +35,8 @@ export const CaseListScreen: React.FC = () => {
   const loadCases = useCallback(async () => {
     try {
       setLoading(true);
-      const options = filterStatus !== 'all' ? { status: filterStatus } : undefined;
-      const data = await caseDAO.findAll(options);
+      const data =
+        filterStatus !== 'all' ? await caseDAO.findByStatus(filterStatus) : await caseDAO.findAll();
       setCases(data);
     } catch (error) {
       console.error('[CaseListScreen] Failed to load cases:', error);
