@@ -21,9 +21,7 @@ describe('Comprehensive E2E: Contexts', () => {
     expect(FONT_SCALE.large).toBe(1.2);
   });
 
-  it('should validate font size types', async () => {
-    const context = await import('../../src/contexts/AccessibilityContext');
-
+  it('should validate font size types', () => {
     // Type validation - ensures FontSize type is correct
     const validSizes = ['small', 'medium', 'large'];
     expect(validSizes.length).toBe(3);

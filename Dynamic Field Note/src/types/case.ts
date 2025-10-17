@@ -1,0 +1,86 @@
+/**
+ * Case型定義
+ * 案件（プロジェクト）に関する型
+ */
+
+/**
+ * 案件ステータス
+ */
+export type CaseStatus = 'active' | 'completed' | 'archived';
+
+/**
+ * 案件エンティティ
+ */
+export interface Case {
+  id: number;
+  title: string;
+  client_name: string | null;
+  location: string | null;
+  description: string | null;
+  status: CaseStatus;
+  created_at: string;
+  updated_at: string;
+  synced_at: string | null;
+  is_deleted: number; // 0 or 1
+}
+
+/**
+ * 案件作成用データ
+ */
+export interface CreateCaseInput {
+  title: string;
+  client_name?: string;
+  location?: string;
+  description?: string;
+  status?: CaseStatus;
+}
+
+/**
+ * 案件更新用データ
+ */
+export interface UpdateCaseInput {
+  title?: string;
+  client_name?: string;
+  location?: string;
+  description?: string;
+  status?: CaseStatus;
+}
+
+/**
+ * 報告書エンティティ
+ */
+export interface Report {
+  id: number;
+  case_id: number;
+  title: string;
+  content: string | null;
+  voice_buffer: string | null;
+  summary_json: string | null;
+  processing_time: number | null;
+  created_at: string;
+  updated_at: string;
+  is_deleted: number; // 0 or 1
+}
+
+/**
+ * 報告書作成用データ
+ */
+export interface CreateReportInput {
+  case_id: number;
+  title: string;
+  content?: string;
+  voice_buffer?: string;
+  summary_json?: string;
+  processing_time?: number;
+}
+
+/**
+ * 報告書更新用データ
+ */
+export interface UpdateReportInput {
+  title?: string;
+  content?: string;
+  voice_buffer?: string;
+  summary_json?: string;
+  processing_time?: number;
+}

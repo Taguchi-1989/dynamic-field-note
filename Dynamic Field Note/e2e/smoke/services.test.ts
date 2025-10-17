@@ -18,21 +18,23 @@ describe('Smoke Test: Core Services', () => {
     expect(markdownGenerator.finalSummaryToMarkdown).toBeDefined();
   });
 
-  it('should handle markdown generation with test data', () => {
-    const markdownGenerator = require('../../src/utils/markdownGenerator');
+  it('should handle markdown generation with test data', async () => {
+    const markdownGenerator = await import('../../src/utils/markdownGenerator');
     const testData = {
-      title: 'Test Meeting',
-      date: '2025-10-18',
-      summary: 'Test summary',
-      key_points: ['Point 1', 'Point 2'],
-      action_items: ['Action 1'],
+      decisions: ['決定事項1'],
+      todos: ['ToDo1'],
+      issues: ['課題1'],
+      raw_text: 'Test raw text',
+      sections: [],
+      prioritized_decisions: [],
+      scheduled_todos: [],
     };
 
     const markdown = markdownGenerator.finalSummaryToMarkdown(testData);
 
     // Verify markdown structure
     expect(markdown).toContain('現場報告');
-    expect(markdown).toContain('2025年10月18日');
+    expect(markdown).toContain('決定事項');
     expect(markdown).toContain('Dynamic Field Note');
     expect(typeof markdown).toBe('string');
     expect(markdown.length).toBeGreaterThan(0);
