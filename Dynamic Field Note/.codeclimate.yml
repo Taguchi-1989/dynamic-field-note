@@ -1,0 +1,128 @@
+# CodeClimate 設定
+# 技術的負債の追跡とコード品質の継続的監視
+
+version: "2"
+
+# チェック対象のプラグイン
+plugins:
+  # TypeScript/JavaScript 解析
+  eslint:
+    enabled: true
+    channel: "eslint-9"
+    config:
+      config: eslint.config.mjs
+
+  # TypeScript 型チェック
+  tslint:
+    enabled: false  # ESLint + TypeScript ESLint を使用
+
+  # セキュリティ脆弱性検出
+  fixme:
+    enabled: true
+    config:
+      strings:
+        - "FIXME"
+        - "TODO"
+        - "HACK"
+        - "XXX"
+        - "BUG"
+
+  # 重複コード検出
+  duplication:
+    enabled: true
+    config:
+      languages:
+        - typescript
+        - javascript
+
+# 除外するパス
+exclude_patterns:
+  - "node_modules/"
+  - ".expo/"
+  - "android/"
+  - "ios/"
+  - "coverage/"
+  - "dist/"
+  - ".expo-shared/"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "tests/"
+  - "__tests__/"
+  - "*.config.js"
+  - "*.config.mjs"
+  - "*.config.ts"
+
+# チェック設定
+checks:
+  # 引数の数
+  argument-count:
+    enabled: true
+    config:
+      threshold: 4
+
+  # 複雑度
+  complex-logic:
+    enabled: true
+    config:
+      threshold: 10
+
+  # ファイルの行数
+  file-lines:
+    enabled: true
+    config:
+      threshold: 500
+
+  # メソッドの複雑度
+  method-complexity:
+    enabled: true
+    config:
+      threshold: 15
+
+  # メソッドの行数
+  method-lines:
+    enabled: true
+    config:
+      threshold: 50
+
+  # ネストの深さ
+  nested-control-flow:
+    enabled: true
+    config:
+      threshold: 4
+
+  # return 文の数
+  return-statements:
+    enabled: true
+    config:
+      threshold: 4
+
+  # 類似コードブロック
+  similar-code:
+    enabled: true
+    config:
+      threshold: 50
+
+  # 同一コードブロック
+  identical-code:
+    enabled: true
+    config:
+      threshold: 25
+
+# テストカバレッジ
+test_coverage:
+  enabled: false  # Phase 3 でテストを追加後に有効化
+
+# 品質しきい値
+ratings:
+  paths:
+    - "src/**/*.ts"
+    - "src/**/*.tsx"
+    - "App.tsx"
+
+# 自動コメント設定（GitHub PR）
+github:
+  auto_merge_enabled: false
+  issues_enabled: true
+  pull_requests_enabled: true

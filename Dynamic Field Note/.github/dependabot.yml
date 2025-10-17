@@ -1,0 +1,68 @@
+# GitHub Dependabot 設定
+# パッケージ脆弱性の自動監視と更新PR作成
+
+version: 2
+updates:
+  # npm パッケージの監視
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "Taguchi-1989"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    # 脆弱性のある依存関係を優先的に更新
+    allow:
+      - dependency-type: "all"
+    # バージョニング戦略
+    versioning-strategy: increase-if-necessary
+    # グループ化設定
+    groups:
+      # 開発依存関係をグループ化
+      development-dependencies:
+        patterns:
+          - "@typescript-eslint/*"
+          - "eslint*"
+          - "prettier"
+          - "@types/*"
+        update-types:
+          - "minor"
+          - "patch"
+      # React Native関連をグループ化
+      react-native-dependencies:
+        patterns:
+          - "react-native*"
+          - "@react-navigation/*"
+          - "expo*"
+        update-types:
+          - "minor"
+          - "patch"
+      # セキュリティアップデートは常に個別PR
+      security-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "security"
+
+  # GitHub Actions の監視
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    reviewers:
+      - "Taguchi-1989"
+    labels:
+      - "dependencies"
+      - "github-actions"
