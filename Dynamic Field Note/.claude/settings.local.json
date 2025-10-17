@@ -14,7 +14,8 @@
       "Bash(code --version)",
       "Bash(npx create-expo-app:*)",
       "Bash(npm install:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
