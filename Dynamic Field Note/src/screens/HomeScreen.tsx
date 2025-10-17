@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
-import { TextInput, Button, Appbar, Snackbar, Text } from 'react-native-paper';
+import { TextInput, Button, Snackbar, Text } from 'react-native-paper';
 import { useVoiceBuffer } from '../hooks/useVoiceBuffer';
 import { useSummarize } from '../hooks/useSummarize';
 import { MarkdownPreview } from '../components/MarkdownPreview';
@@ -111,11 +111,6 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* ヘッダー */}
-      <Appbar.Header>
-        <Appbar.Content title="Dynamic Field Note" subtitle="PoC デモ" />
-      </Appbar.Header>
-
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.content}
