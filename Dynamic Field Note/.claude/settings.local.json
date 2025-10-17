@@ -15,7 +15,13 @@
       "Bash(npx create-expo-app:*)",
       "Bash(npm install:*)",
       "Bash(cat:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npx tsc:*)",
+      "Bash(dir node_modulestypescriptbin)",
+      "Bash(npm run format)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint:*)"
     ],
     "deny": [],
     "ask": []

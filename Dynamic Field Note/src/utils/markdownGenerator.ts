@@ -82,10 +82,7 @@ const generateSeparator = (): string => {
  * });
  * ```
  */
-export const jsonToMarkdown = (
-  summary: SummaryJSON,
-  options: MarkdownOptions = {}
-): string => {
+export const jsonToMarkdown = (summary: SummaryJSON, options: MarkdownOptions = {}): string => {
   const {
     title = '現場報告',
     subtitle,
@@ -115,7 +112,7 @@ export const jsonToMarkdown = (
   // 決定事項
   if (summary.decisions && summary.decisions.length > 0) {
     markdown += generateHeading('✅ 決定事項', headingLevel);
-    summary.decisions.forEach(decision => {
+    summary.decisions.forEach((decision) => {
       markdown += generateListItem(decision);
     });
     markdown += '\n';
@@ -127,7 +124,7 @@ export const jsonToMarkdown = (
   // ToDo
   if (summary.todos && summary.todos.length > 0) {
     markdown += generateHeading('📋 ToDo', headingLevel);
-    summary.todos.forEach(todo => {
+    summary.todos.forEach((todo) => {
       markdown += generateListItem(todo);
     });
     markdown += '\n';
@@ -139,7 +136,7 @@ export const jsonToMarkdown = (
   // 課題
   if (summary.issues && summary.issues.length > 0) {
     markdown += generateHeading('⚠️ 課題', headingLevel);
-    summary.issues.forEach(issue => {
+    summary.issues.forEach((issue) => {
       markdown += generateListItem(issue);
     });
     markdown += '\n';
@@ -185,7 +182,7 @@ export const finalSummaryToMarkdown = (
 
     summary.sections
       .sort((a, b) => a.order - b.order)
-      .forEach(section => {
+      .forEach((section) => {
         markdown += generateHeading(section.title, headingLevel + 1);
         markdown += `${section.content}\n\n`;
       });
@@ -195,25 +192,25 @@ export const finalSummaryToMarkdown = (
   if (summary.prioritized_decisions && summary.prioritized_decisions.length > 0) {
     markdown += generateHeading('🎯 優先度別決定事項', headingLevel);
 
-    const high = summary.prioritized_decisions.filter(d => d.priority === 1);
-    const medium = summary.prioritized_decisions.filter(d => d.priority === 2);
-    const low = summary.prioritized_decisions.filter(d => d.priority === 3);
+    const high = summary.prioritized_decisions.filter((d) => d.priority === 1);
+    const medium = summary.prioritized_decisions.filter((d) => d.priority === 2);
+    const low = summary.prioritized_decisions.filter((d) => d.priority === 3);
 
     if (high.length > 0) {
       markdown += '**高優先度** 🔴\n';
-      high.forEach(item => markdown += generateListItem(item.content));
+      high.forEach((item) => (markdown += generateListItem(item.content)));
       markdown += '\n';
     }
 
     if (medium.length > 0) {
       markdown += '**中優先度** 🟡\n';
-      medium.forEach(item => markdown += generateListItem(item.content));
+      medium.forEach((item) => (markdown += generateListItem(item.content)));
       markdown += '\n';
     }
 
     if (low.length > 0) {
       markdown += '**低優先度** 🟢\n';
-      low.forEach(item => markdown += generateListItem(item.content));
+      low.forEach((item) => (markdown += generateListItem(item.content)));
       markdown += '\n';
     }
   }
@@ -222,7 +219,7 @@ export const finalSummaryToMarkdown = (
   if (summary.scheduled_todos && summary.scheduled_todos.length > 0) {
     markdown += generateHeading('📅 スケジュール', headingLevel);
 
-    summary.scheduled_todos.forEach(todo => {
+    summary.scheduled_todos.forEach((todo) => {
       const deadline = todo.estimated_deadline
         ? ` (期限: ${formatDate(new Date(todo.estimated_deadline))})`
         : '';

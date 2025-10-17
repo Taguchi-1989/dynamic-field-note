@@ -16,7 +16,7 @@ import type { SummaryJSON, SummarizeRequest, SummarizeResponse, APIError } from 
  */
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const MODEL_NAME = 'gemini-2.0-flash-exp';
-const API_TIMEOUT = parseInt(process.env.EXPO_PUBLIC_API_TIMEOUT || '30000', 10);
+// const API_TIMEOUT = parseInt(process.env.EXPO_PUBLIC_API_TIMEOUT || '30000', 10); // Future use
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1秒
 
@@ -30,7 +30,9 @@ let genAI: GoogleGenerativeAI | null = null;
  */
 const initializeGemini = (): GoogleGenerativeAI => {
   if (!GEMINI_API_KEY) {
-    throw new Error('EXPO_PUBLIC_GEMINI_API_KEY が設定されていません。.env.local を確認してください。');
+    throw new Error(
+      'EXPO_PUBLIC_GEMINI_API_KEY が設定されていません。.env.local を確認してください。'
+    );
   }
 
   if (!genAI) {
@@ -104,7 +106,10 @@ ${text}
 const parseJSONResponse = (text: string): SummaryJSON => {
   try {
     // コードブロックを除去
-    const jsonText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const jsonText = text
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
     const parsed = JSON.parse(jsonText);
 
     // 必須フィールドの検証
@@ -137,7 +142,9 @@ const callWithRetry = async <T>(
   } catch (error) {
     if (retries > 0) {
       console.warn(`API call failed, retrying... (${MAX_RETRIES - retries + 1}/${MAX_RETRIES})`);
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (MAX_RETRIES - retries + 1)));
+      await new Promise((resolve) =>
+        setTimeout(resolve, RETRY_DELAY * (MAX_RETRIES - retries + 1))
+      );
       return callWithRetry(fn, retries - 1);
     }
     throw error;
@@ -160,9 +167,7 @@ const callWithRetry = async <T>(
  * console.log(response.summary.decisions);
  * ```
  */
-export const summarizeText = async (
-  request: SummarizeRequest
-): Promise<SummarizeResponse> => {
+export const summarizeText = async (request: SummarizeRequest): Promise<SummarizeResponse> => {
   const startTime = Date.now();
 
   try {

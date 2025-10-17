@@ -24,17 +24,18 @@ interface VoiceBufferConfig {
 
 /**
  * バッファ状態
+ * (内部使用のみ - 現在は未使用)
  */
-interface VoiceBufferState {
-  /** 現在のバッファ内容 */
-  buffer: string[];
-  /** 最後の入力からの経過時間 */
-  timeSinceLastInput: number;
-  /** 送信準備完了フラグ */
-  isReadyToSend: boolean;
-  /** 送信理由 */
-  sendReason: 'auto' | 'silence' | 'manual' | null;
-}
+// interface VoiceBufferState {
+//   /** 現在のバッファ内容 */
+//   buffer: string[];
+//   /** 最後の入力からの経過時間 */
+//   timeSinceLastInput: number;
+//   /** 送信準備完了フラグ */
+//   isReadyToSend: boolean;
+//   /** 送信理由 */
+//   sendReason: 'auto' | 'silence' | 'manual' | null;
+// }
 
 /**
  * フックの戻り値
@@ -97,8 +98,8 @@ export const useVoiceBuffer = (
   const [sendReason, setSendReason] = useState<'auto' | 'silence' | 'manual' | null>(null);
 
   // Refs
-  const lastInputTime = useRef<number>(Date.now());
-  const bufferStartTime = useRef<number>(Date.now());
+  const lastInputTime = useRef<number>(0);
+  const bufferStartTime = useRef<number>(0);
   const bufferTimerRef = useRef<NodeJS.Timeout | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const autoSendTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -106,25 +107,28 @@ export const useVoiceBuffer = (
   /**
    * テキストをバッファに追加
    */
-  const addText = useCallback((text: string) => {
-    if (!text || text.trim() === '') return;
+  const addText = useCallback(
+    (text: string) => {
+      if (!text || text.trim() === '') return;
 
-    setCurrentText(text);
-    lastInputTime.current = Date.now();
-    setTimeSinceLastInput(0);
+      setCurrentText(text);
+      lastInputTime.current = Date.now();
+      setTimeSinceLastInput(0);
 
-    // 無音タイマーをリセット
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current);
-    }
+      // 無音タイマーをリセット
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
 
-    // 新しい無音タイマーを開始
-    silenceTimerRef.current = setTimeout(() => {
-      // 無音30秒で送信トリガー
-      setSendReason('silence');
-      setIsReadyToSend(true);
-    }, silenceThreshold);
-  }, [silenceThreshold]);
+      // 新しい無音タイマーを開始
+      silenceTimerRef.current = setTimeout(() => {
+        // 無音30秒で送信トリガー
+        setSendReason('silence');
+        setIsReadyToSend(true);
+      }, silenceThreshold);
+    },
+    [silenceThreshold]
+  );
 
   /**
    * バッファをクリア
@@ -160,7 +164,7 @@ export const useVoiceBuffer = (
   useEffect(() => {
     bufferTimerRef.current = setInterval(() => {
       if (currentText.trim() !== '') {
-        setBuffer(prev => [...prev, currentText.trim()]);
+        setBuffer((prev) => [...prev, currentText.trim()]);
         setCurrentText('');
       }
     }, bufferInterval);
@@ -207,7 +211,7 @@ export const useVoiceBuffer = (
    */
   useEffect(() => {
     if (isReadyToSend && sendReason && onSendReady) {
-      const fullText = [...buffer, currentText].filter(t => t.trim() !== '').join(' ');
+      const fullText = [...buffer, currentText].filter((t) => t.trim() !== '').join(' ');
       if (fullText.trim() !== '') {
         onSendReady(fullText, sendReason);
       }
@@ -217,7 +221,7 @@ export const useVoiceBuffer = (
   /**
    * 全テキストを取得
    */
-  const fullText = [...buffer, currentText].filter(t => t.trim() !== '').join(' ');
+  const fullText = [...buffer, currentText].filter((t) => t.trim() !== '').join(' ');
 
   return {
     buffer,

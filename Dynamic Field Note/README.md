@@ -12,13 +12,13 @@
 
 ## 🎯 プロジェクト概要
 
-| 項目 | 内容 |
-|------|------|
-| **プロジェクト名** | Dynamic Field Note（動的現場ノート） |
-| **開発目的** | 現場での音声・写真・メモを動的に構造化し、報告書作成を自動化 |
-| **主要プラットフォーム** | Azure (Functions / Blob Storage / Graph API) |
-| **使用モデル** | Gemini 2.5 Pro および GPT-5（Fast→Quality 二段要約） |
-| **開発方針** | OSS優先（MIT／Apache 2.0）、商用利用可、再販可設計 |
+| 項目                     | 内容                                                         |
+| ------------------------ | ------------------------------------------------------------ |
+| **プロジェクト名**       | Dynamic Field Note（動的現場ノート）                         |
+| **開発目的**             | 現場での音声・写真・メモを動的に構造化し、報告書作成を自動化 |
+| **主要プラットフォーム** | Azure (Functions / Blob Storage / Graph API)                 |
+| **使用モデル**           | Gemini 2.5 Pro および GPT-5（Fast→Quality 二段要約）         |
+| **開発方針**             | OSS優先（MIT／Apache 2.0）、商用利用可、再販可設計           |
 
 ## ✨ 主な機能
 
@@ -67,15 +67,15 @@ dynamic-field-note/
 
 ## 📋 開発ロードマップ
 
-| フェーズ | 期間 | 目的 | 主タスク |
-|---------|------|------|---------|
-| **P0 環境構築** | 1週 | 開発基盤整備 | Expo環境構築／iPhone 12ビルド |
-| **P1 PoC** | 2週 | 音声→要約→Markdown | 標準音声入力／Gemini接続 |
-| **P2 UI/UX整備** | 2週 | プレビュー中心UI | 中間/最終要約ボタン／メニュー |
-| **P3 ローカル保存** | 3週 | 写真+注釈+ZIP | SQLite/JSZip導入 |
-| **P4 Azure連携** | 3週 | Blob Storage連携 | HTTPS通信・TLSピンニング |
-| **P5 α版統合** | 2週 | 総合統合／脆弱性試験 | GPT-5統合・PDF出力 |
-| **P6 β・運用化** | 継続 | 導入展開・MDM | Intune登録／VPN化 |
+| フェーズ            | 期間 | 目的                 | 主タスク                      |
+| ------------------- | ---- | -------------------- | ----------------------------- |
+| **P0 環境構築**     | 1週  | 開発基盤整備         | Expo環境構築／iPhone 12ビルド |
+| **P1 PoC**          | 2週  | 音声→要約→Markdown   | 標準音声入力／Gemini接続      |
+| **P2 UI/UX整備**    | 2週  | プレビュー中心UI     | 中間/最終要約ボタン／メニュー |
+| **P3 ローカル保存** | 3週  | 写真+注釈+ZIP        | SQLite/JSZip導入              |
+| **P4 Azure連携**    | 3週  | Blob Storage連携     | HTTPS通信・TLSピンニング      |
+| **P5 α版統合**      | 2週  | 総合統合／脆弱性試験 | GPT-5統合・PDF出力            |
+| **P6 β・運用化**    | 継続 | 導入展開・MDM        | Intune登録／VPN化             |
 
 詳細は [ROADMAP.md](docs/ROADMAP.md) を参照してください。
 
@@ -110,6 +110,7 @@ flowchart LR
 ## 🔧 技術スタック
 
 ### フロントエンド
+
 - React Native (Expo)
 - TypeScript
 - React Native Paper
@@ -117,11 +118,13 @@ flowchart LR
 - JSZip
 
 ### バックエンド
+
 - Azure Functions (TypeScript)
 - Azure Blob Storage
 - Azure Key Vault
 
 ### AI/ML
+
 - Google Gemini 2.5 Pro
 - OpenAI GPT-5
 

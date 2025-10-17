@@ -29,9 +29,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, style
       <View style={[styles.container, style]}>
         <Card style={styles.emptyCard}>
           <Card.Content>
-            <Text style={styles.emptyText}>
-              まだ要約がありません
-            </Text>
+            <Text style={styles.emptyText}>まだ要約がありません</Text>
             <Text style={styles.emptySubtext}>
               テキストを入力して「要約実行」ボタンをタップしてください
             </Text>
@@ -45,9 +43,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, style
     <ScrollView style={[styles.container, style]} showsVerticalScrollIndicator={true}>
       <Card style={styles.card}>
         <Card.Content>
-          <Markdown style={markdownStyles}>
-            {content}
-          </Markdown>
+          <Markdown style={markdownStyles}>{content}</Markdown>
         </Card.Content>
       </Card>
     </ScrollView>

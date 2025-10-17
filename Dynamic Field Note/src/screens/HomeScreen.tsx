@@ -18,39 +18,6 @@ export const HomeScreen: React.FC = () => {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  // 音声バッファ管理
-  const {
-    buffer,
-    fullText,
-    addText,
-    clearBuffer,
-    triggerSend,
-    isReadyToSend,
-    sendReason,
-    timeSinceLastInput,
-  } = useVoiceBuffer(
-    {
-      bufferInterval: 5000, // 5秒
-      autoSendInterval: 300000, // 5分
-      silenceThreshold: 30000, // 30秒
-    },
-    (text, reason) => {
-      console.log('送信準備完了:', reason);
-      showSnackbar(`${reason === 'auto' ? '5分経過' : reason === 'silence' ? '無音検知' : '手動'}で送信準備完了`);
-    }
-  );
-
-  // 要約実行
-  const {
-    isLoading,
-    error,
-    markdown,
-    processingTime,
-    executeSummarize,
-    clearSummary,
-    retry,
-  } = useSummarize();
-
   /**
    * スナックバー表示
    */
@@ -58,6 +25,26 @@ export const HomeScreen: React.FC = () => {
     setSnackbarMessage(message);
     setSnackbarVisible(true);
   };
+
+  // 音声バッファ管理
+  const { buffer, fullText, addText, clearBuffer, isReadyToSend, sendReason, timeSinceLastInput } =
+    useVoiceBuffer(
+      {
+        bufferInterval: 5000, // 5秒
+        autoSendInterval: 300000, // 5分
+        silenceThreshold: 30000, // 30秒
+      },
+      (_text, reason) => {
+        console.log('送信準備完了:', reason);
+        showSnackbar(
+          `${reason === 'auto' ? '5分経過' : reason === 'silence' ? '無音検知' : '手動'}で送信準備完了`
+        );
+      }
+    );
+
+  // 要約実行
+  const { isLoading, error, markdown, processingTime, executeSummarize, clearSummary, retry } =
+    useSummarize();
 
   /**
    * テキスト入力変更
@@ -98,6 +85,7 @@ export const HomeScreen: React.FC = () => {
       // 自動的に要約を実行（オプション）
       // handleSummarize();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReadyToSend]);
 
   return (
@@ -130,11 +118,7 @@ export const HomeScreen: React.FC = () => {
             <Text style={styles.bufferText}>
               バッファ: {buffer.length}件 | 最終入力: {timeSinceLastInput}秒前
             </Text>
-            {isReadyToSend && (
-              <Text style={styles.readyText}>
-                ✅ 送信準備完了 ({sendReason})
-              </Text>
-            )}
+            {isReadyToSend && <Text style={styles.readyText}>✅ 送信準備完了 ({sendReason})</Text>}
           </View>
 
           {/* ボタン */}

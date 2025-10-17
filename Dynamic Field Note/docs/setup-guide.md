@@ -18,6 +18,7 @@
 **必須バージョン**: Node.js v20以上
 
 #### Windows
+
 1. [Node.js公式サイト](https://nodejs.org/)から LTS版をダウンロード
 2. インストーラーを実行
 3. コマンドプロンプトで確認:
@@ -27,6 +28,7 @@
    ```
 
 #### macOS
+
 ```bash
 # Homebrewを使用
 brew install node@20
@@ -37,6 +39,7 @@ brew install node@20
 ### 2. Git のインストール
 
 #### Windows
+
 1. [Git公式サイト](https://git-scm.com/)からダウンロード
 2. インストーラーを実行
 3. 確認:
@@ -45,6 +48,7 @@ brew install node@20
    ```
 
 #### macOS
+
 ```bash
 # Xcodeコマンドラインツール
 xcode-select --install
@@ -66,6 +70,7 @@ xcode-select --install
 VS Codeを開き、以下の拡張機能をインストールしてください:
 
 ### 必須拡張機能
+
 1. **ESLint** (`dbaeumer.vscode-eslint`)
    - JavaScriptとTypeScriptのリンター
 2. **Prettier - Code formatter** (`esbenp.prettier-vscode`)
@@ -76,6 +81,7 @@ VS Codeを開き、以下の拡張機能をインストールしてください:
    - TypeScript言語サポート
 
 ### 推奨拡張機能
+
 - **GitLens** (`eamodio.gitlens`) - Git統合強化
 - **Path Intellisense** (`christian-kohler.path-intellisense`) - パス補完
 - **Auto Rename Tag** (`formulahendry.auto-rename-tag`) - HTMLタグの自動リネーム

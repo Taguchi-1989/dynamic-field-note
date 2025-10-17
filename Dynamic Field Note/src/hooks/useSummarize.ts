@@ -73,7 +73,7 @@ export const useSummarize = (): UseSummarizeReturn => {
    */
   const executeSummarize = useCallback(async (text: string) => {
     if (!text || text.trim() === '') {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         error: 'テキストが空です',
       }));
@@ -81,7 +81,7 @@ export const useSummarize = (): UseSummarizeReturn => {
     }
 
     setLastText(text);
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isLoading: true,
       error: null,
@@ -110,7 +110,7 @@ export const useSummarize = (): UseSummarizeReturn => {
       });
     } catch (error) {
       console.error('要約エラー:', error);
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: false,
         error: error instanceof Error ? error.message : '要約に失敗しました',
