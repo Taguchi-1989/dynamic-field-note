@@ -20,6 +20,7 @@ export const HomeScreen: React.FC = () => {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [aiStatus, setAiStatus] = useState<AIStatus>('idle');
+  const [aiProgress, setAiProgress] = useState<number>(0);
 
   /**
    * スナックバー表示
@@ -47,7 +48,11 @@ export const HomeScreen: React.FC = () => {
 
   // 要約実行
   const { isLoading, error, markdown, processingTime, executeSummarize, clearSummary, retry } =
-    useSummarize();
+    useSummarize({
+      onProgress: (p) => {
+        setAiProgress(p);
+      },
+    });
 
   /**
    * テキスト入力変更
@@ -186,7 +191,14 @@ export const HomeScreen: React.FC = () => {
         </View>
 
         {/* AI状態インジケーター */}
-        <AIStatusIndicator status={aiStatus} errorMessage={error || undefined} />
+        <AIStatusIndicator
+          status={aiStatus}
+          errorMessage={error || undefined}
+          progress={aiStatus === 'processing' ? aiProgress : undefined}
+          message={
+            aiStatus === 'processing' ? `AI処理中... ${Math.round(aiProgress * 100)}%` : undefined
+          }
+        />
 
         {/* プレビューエリア */}
         <View style={styles.previewContainer}>

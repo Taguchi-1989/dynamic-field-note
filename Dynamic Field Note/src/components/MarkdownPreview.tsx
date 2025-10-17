@@ -1,12 +1,13 @@
 /**
  * Markdownプレビューコンポーネント（完全版）
- * Phase 2: react-native-markdown-display を使用した高品質プレビュー
+ * Phase 2: react-native-markdown-display + アクセシビリティ対応
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Text, Card } from 'react-native-paper';
 import Markdown from 'react-native-markdown-display';
+import { useAccessibility } from '../contexts/AccessibilityContext';
 
 interface MarkdownPreviewProps {
   /** Markdown形式の内容 */
@@ -24,13 +25,21 @@ interface MarkdownPreviewProps {
  * - Material Design準拠のスタイリング
  */
 export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, style }) => {
+  const { getFontScale } = useAccessibility();
+  const fontScale = getFontScale();
+
+  // フォントサイズをスケールしたMarkdownスタイルを生成
+  const scaledMarkdownStyles = useMemo(() => getScaledMarkdownStyles(fontScale), [fontScale]);
+
   if (!content || content.trim() === '') {
     return (
       <View style={[styles.container, style]}>
         <Card style={styles.emptyCard}>
           <Card.Content>
-            <Text style={styles.emptyText}>まだ要約がありません</Text>
-            <Text style={styles.emptySubtext}>
+            <Text style={[styles.emptyText, { fontSize: 16 * fontScale }]}>
+              まだ要約がありません
+            </Text>
+            <Text style={[styles.emptySubtext, { fontSize: 14 * fontScale }]}>
               テキストを入力して「要約実行」ボタンをタップしてください
             </Text>
           </Card.Content>
@@ -43,7 +52,7 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, style
     <ScrollView style={[styles.container, style]} showsVerticalScrollIndicator={true}>
       <Card style={styles.card}>
         <Card.Content>
-          <Markdown style={markdownStyles}>{content}</Markdown>
+          <Markdown style={scaledMarkdownStyles}>{content}</Markdown>
         </Card.Content>
       </Card>
     </ScrollView>
@@ -261,3 +270,82 @@ const markdownStyles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
 });
+
+/**
+ * フォントスケールを適用したMarkdownスタイルを生成
+ * @param scale - フォントスケール（0.85 ~ 1.2）
+ * @returns スケール済みのMarkdownスタイル
+ */
+const getScaledMarkdownStyles = (scale: number) => {
+  return StyleSheet.create({
+    body: {
+      ...markdownStyles.body,
+      fontSize: 16 * scale,
+      lineHeight: 24 * scale,
+    },
+    heading1: {
+      ...markdownStyles.heading1,
+      fontSize: 28 * scale,
+    },
+    heading2: {
+      ...markdownStyles.heading2,
+      fontSize: 24 * scale,
+    },
+    heading3: {
+      ...markdownStyles.heading3,
+      fontSize: 20 * scale,
+    },
+    heading4: {
+      ...markdownStyles.heading4,
+      fontSize: 18 * scale,
+    },
+    heading5: {
+      ...markdownStyles.heading5,
+      fontSize: 16 * scale,
+    },
+    heading6: {
+      ...markdownStyles.heading6,
+      fontSize: 14 * scale,
+    },
+    paragraph: {
+      ...markdownStyles.paragraph,
+      lineHeight: 24 * scale,
+    },
+    strong: markdownStyles.strong,
+    em: markdownStyles.em,
+    bullet_list: markdownStyles.bullet_list,
+    ordered_list: markdownStyles.ordered_list,
+    list_item: markdownStyles.list_item,
+    bullet_list_icon: {
+      ...markdownStyles.bullet_list_icon,
+      fontSize: 16 * scale,
+      lineHeight: 24 * scale,
+    },
+    ordered_list_icon: {
+      ...markdownStyles.ordered_list_icon,
+      fontSize: 16 * scale,
+      lineHeight: 24 * scale,
+    },
+    code_inline: {
+      ...markdownStyles.code_inline,
+      fontSize: 14 * scale,
+    },
+    code_block: {
+      ...markdownStyles.code_block,
+      fontSize: 14 * scale,
+    },
+    fence: {
+      ...markdownStyles.fence,
+      fontSize: 14 * scale,
+    },
+    blockquote: markdownStyles.blockquote,
+    hr: markdownStyles.hr,
+    link: markdownStyles.link,
+    table: markdownStyles.table,
+    thead: markdownStyles.thead,
+    tbody: markdownStyles.tbody,
+    th: markdownStyles.th,
+    tr: markdownStyles.tr,
+    td: markdownStyles.td,
+  });
+};

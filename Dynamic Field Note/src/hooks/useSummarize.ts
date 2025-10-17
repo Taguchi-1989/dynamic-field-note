@@ -27,6 +27,14 @@ interface SummarizeState {
 }
 
 /**
+ * フックオプション
+ */
+interface UseSummarizeOptions {
+  /** 進捗コールバック（0-1の値） */
+  onProgress?: (progress: number) => void;
+}
+
+/**
  * フックの戻り値
  */
 interface UseSummarizeReturn extends SummarizeState {
@@ -36,11 +44,14 @@ interface UseSummarizeReturn extends SummarizeState {
   clearSummary: () => void;
   /** 再試行 */
   retry: () => Promise<void>;
+  /** 進捗率（0-1） */
+  progress: number;
 }
 
 /**
  * 要約実行フック
  *
+ * @param options - フックオプション
  * @returns 要約実行機能と状態
  *
  * @example
@@ -49,15 +60,18 @@ interface UseSummarizeReturn extends SummarizeState {
  *   isLoading,
  *   error,
  *   markdown,
+ *   progress,
  *   executeSummarize
- * } = useSummarize();
+ * } = useSummarize({
+ *   onProgress: (p) => console.log(`進捗: ${p * 100}%`)
+ * });
  *
  * const handleSummarize = async () => {
  *   await executeSummarize(fullText);
  * };
  * ```
  */
-export const useSummarize = (): UseSummarizeReturn => {
+export const useSummarize = (options?: UseSummarizeOptions): UseSummarizeReturn => {
   const [state, setState] = useState<SummarizeState>({
     isLoading: false,
     error: null,
@@ -67,56 +81,78 @@ export const useSummarize = (): UseSummarizeReturn => {
   });
 
   const [lastText, setLastText] = useState<string>('');
+  const [progress, setProgress] = useState<number>(0);
 
   /**
    * 要約を実行
    */
-  const executeSummarize = useCallback(async (text: string) => {
-    if (!text || text.trim() === '') {
+  const executeSummarize = useCallback(
+    async (text: string) => {
+      if (!text || text.trim() === '') {
+        setState((prev) => ({
+          ...prev,
+          error: 'テキストが空です',
+        }));
+        return;
+      }
+
+      setLastText(text);
+      setProgress(0);
       setState((prev) => ({
         ...prev,
-        error: 'テキストが空です',
-      }));
-      return;
-    }
-
-    setLastText(text);
-    setState((prev) => ({
-      ...prev,
-      isLoading: true,
-      error: null,
-    }));
-
-    try {
-      // Gemini API で要約
-      const response = await summarizeText({
-        text,
-        language: 'ja',
-      });
-
-      // Markdown に変換
-      const markdown = jsonToMarkdown(response.summary, {
-        title: '現場報告',
-        includeDate: true,
-        includeRawText: false,
-      });
-
-      setState({
-        isLoading: false,
+        isLoading: true,
         error: null,
-        summary: response.summary,
-        markdown,
-        processingTime: response.processing_time,
-      });
-    } catch (error) {
-      console.error('要約エラー:', error);
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error.message : '要約に失敗しました',
       }));
-    }
-  }, []);
+
+      try {
+        // 進捗シミュレーション: API呼び出し準備
+        setProgress(0.1);
+        options?.onProgress?.(0.1);
+
+        // 進捗: API呼び出し中
+        setProgress(0.3);
+        options?.onProgress?.(0.3);
+
+        // Gemini API で要約
+        const response = await summarizeText({
+          text,
+          language: 'ja',
+        });
+
+        // 進捗: レスポンス受信完了
+        setProgress(0.7);
+        options?.onProgress?.(0.7);
+
+        // Markdown に変換
+        const markdown = jsonToMarkdown(response.summary, {
+          title: '現場報告',
+          includeDate: true,
+          includeRawText: false,
+        });
+
+        // 進捗: 完了
+        setProgress(1.0);
+        options?.onProgress?.(1.0);
+
+        setState({
+          isLoading: false,
+          error: null,
+          summary: response.summary,
+          markdown,
+          processingTime: response.processing_time,
+        });
+      } catch (error) {
+        console.error('要約エラー:', error);
+        setProgress(0);
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: error instanceof Error ? error.message : '要約に失敗しました',
+        }));
+      }
+    },
+    [options]
+  );
 
   /**
    * 状態をクリア
@@ -146,5 +182,6 @@ export const useSummarize = (): UseSummarizeReturn => {
     executeSummarize,
     clearSummary,
     retry,
+    progress,
   };
 };
