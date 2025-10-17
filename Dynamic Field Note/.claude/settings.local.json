@@ -13,7 +13,8 @@
       "Bash(git --version)",
       "Bash(code --version)",
       "Bash(npx create-expo-app:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
