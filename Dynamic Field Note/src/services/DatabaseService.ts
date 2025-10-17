@@ -237,6 +237,52 @@ const migrations: Migration[] = [
       console.log('[Migration v1] Tables and indexes created successfully');
     },
   },
+  {
+    version: 2,
+    up: async (db: SQLite.SQLiteDatabase) => {
+      // photos テーブル作成
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS photos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          case_id INTEGER NOT NULL,
+          report_id INTEGER,
+          file_path TEXT NOT NULL,
+          thumbnail_path TEXT,
+          caption TEXT,
+          exif_data TEXT,
+          annotation_data TEXT,
+          width INTEGER,
+          height INTEGER,
+          file_size INTEGER,
+          created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+          is_deleted INTEGER NOT NULL DEFAULT 0,
+
+          FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE,
+          FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE SET NULL,
+          CHECK (is_deleted IN (0, 1))
+        );
+      `);
+
+      // インデックス作成
+      await db.execAsync(`
+        CREATE INDEX IF NOT EXISTS idx_photos_case_id ON photos(case_id);
+      `);
+
+      await db.execAsync(`
+        CREATE INDEX IF NOT EXISTS idx_photos_report_id ON photos(report_id);
+      `);
+
+      await db.execAsync(`
+        CREATE INDEX IF NOT EXISTS idx_photos_created_at ON photos(created_at DESC);
+      `);
+
+      await db.execAsync(`
+        CREATE INDEX IF NOT EXISTS idx_photos_is_deleted ON photos(is_deleted);
+      `);
+
+      console.log('[Migration v2] Photos table and indexes created successfully');
+    },
+  },
 ];
 
 /**

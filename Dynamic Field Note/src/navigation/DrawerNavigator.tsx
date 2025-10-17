@@ -7,6 +7,7 @@ import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { HomeScreen } from '../screens/HomeScreen';
 import { CaseListScreen } from '../screens/CaseListScreen';
+import { CameraScreen } from '../screens/CameraScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { SyncHistoryScreen } from '../screens/SyncHistoryScreen';
 
@@ -62,6 +63,19 @@ export const DrawerNavigator: React.FC = () => {
           drawerIcon: ({ color, size }) => (
             <React.Fragment>
               <span style={{ fontSize: size, color }}>📂</span>
+            </React.Fragment>
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Camera"
+        component={CameraScreen}
+        options={{
+          drawerLabel: '写真撮影',
+          title: '写真撮影',
+          drawerIcon: ({ color, size }) => (
+            <React.Fragment>
+              <span style={{ fontSize: size, color }}>📷</span>
             </React.Fragment>
           ),
         }}

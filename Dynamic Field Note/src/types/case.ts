@@ -84,3 +84,46 @@ export interface UpdateReportInput {
   summary_json?: string;
   processing_time?: number;
 }
+
+/**
+ * 写真エンティティ
+ */
+export interface Photo {
+  id: number;
+  case_id: number;
+  report_id: number | null;
+  file_path: string;
+  thumbnail_path: string | null;
+  caption: string | null;
+  exif_data: string | null; // JSON
+  annotation_data: string | null; // JSON
+  width: number | null;
+  height: number | null;
+  file_size: number | null;
+  created_at: string;
+  is_deleted: number; // 0 or 1
+}
+
+/**
+ * 写真作成用データ
+ */
+export interface CreatePhotoInput {
+  case_id: number;
+  report_id?: number;
+  file_path: string;
+  thumbnail_path?: string;
+  caption?: string;
+  exif_data?: string;
+  annotation_data?: string;
+  width?: number;
+  height?: number;
+  file_size?: number;
+}
+
+/**
+ * 写真更新用データ
+ */
+export interface UpdatePhotoInput {
+  caption?: string;
+  annotation_data?: string;
+}
