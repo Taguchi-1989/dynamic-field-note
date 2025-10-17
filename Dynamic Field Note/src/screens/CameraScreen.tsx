@@ -10,6 +10,7 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { Text, IconButton, Button } from 'react-native-paper';
 import { Paths, Directory } from 'expo-file-system';
 import { useNavigation } from '@react-navigation/native';
+import { PhotoAnnotator } from '../components/PhotoAnnotator';
 
 interface CameraScreenProps {
   caseId?: number;
@@ -18,6 +19,8 @@ interface CameraScreenProps {
 export const CameraScreen: React.FC<CameraScreenProps> = ({ caseId }) => {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
+  const [isAnnotating, setIsAnnotating] = useState(false);
+  const [currentPhotoUri, setCurrentPhotoUri] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
   const navigation = useNavigation();
 
@@ -101,9 +104,8 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({ caseId }) => {
           {
             text: '注釈を追加',
             onPress: () => {
-              // TODO: 注釈画面に遷移
-              console.log('[CameraScreen] Navigate to annotation screen:', savedUri);
-              Alert.alert('準備中', '注釈機能は次のフェーズで実装されます');
+              setCurrentPhotoUri(savedUri);
+              setIsAnnotating(true);
             },
           },
           {
@@ -121,6 +123,38 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({ caseId }) => {
       console.error('[CameraScreen] Failed to take picture:', error);
       Alert.alert('エラー', '写真の撮影に失敗しました');
     }
+  }
+
+  /**
+   * 注釈保存ハンドラー
+   */
+  const handleAnnotationSave = (annotations: unknown[]) => {
+    console.log('[CameraScreen] Annotations saved:', annotations);
+    // TODO: PhotoDAOに保存（annotation_dataとしてJSON保存）
+    const annotationData = JSON.stringify(annotations);
+    console.log('[CameraScreen] Annotation data:', annotationData);
+    Alert.alert('成功', '注釈付き写真を保存しました');
+    setIsAnnotating(false);
+    setCurrentPhotoUri(null);
+  };
+
+  /**
+   * 注釈キャンセルハンドラー
+   */
+  const handleAnnotationCancel = () => {
+    setIsAnnotating(false);
+    setCurrentPhotoUri(null);
+  };
+
+  // 注釈モード
+  if (isAnnotating && currentPhotoUri) {
+    return (
+      <PhotoAnnotator
+        photoUri={currentPhotoUri}
+        onSave={handleAnnotationSave}
+        onCancel={handleAnnotationCancel}
+      />
+    );
   }
 
   return (
