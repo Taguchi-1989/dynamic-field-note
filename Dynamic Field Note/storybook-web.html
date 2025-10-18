@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Field Note - Storybook</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-header h1 {
+            font-size: 20px;
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-header p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .story-group {
+            padding: 16px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .story-group-title {
+            padding: 8px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            text-transform: uppercase;
+        }
+
+        .story-item {
+            padding: 12px 20px 12px 36px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: background 0.2s;
+        }
+
+        .story-item:hover {
+            background: #f5f5f5;
+        }
+
+        .story-item.active {
+            background: #e3f2fd;
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+        }
+
+        .story-header {
+            margin-bottom: 32px;
+        }
+
+        .story-header h2 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .story-header .description {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .preview-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .preview-card h3 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #1976d2;
+        }
+
+        .preview-content {
+            margin-top: 24px;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 16px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+
+        .props-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .props-table th,
+        .props-table td {
+            text-align: left;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .props-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-idle { background: #e0e0e0; color: #666; }
+        .badge-processing { background: #fff3e0; color: #f57c00; }
+        .badge-success { background: #e8f5e9; color: #388e3c; }
+        .badge-error { background: #ffebee; color: #d32f2f; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>📚 Storybook</h1>
+                <p>Dynamic Field Note</p>
+            </div>
+
+            <div class="story-group">
+                <div class="story-group-title">Components</div>
+                <div class="story-item active" onclick="showStory('ai-status')">AIStatusIndicator</div>
+                <div class="story-item" onclick="showStory('loading')">LoadingIndicator</div>
+                <div class="story-item" onclick="showStory('photo-grid')">PhotoThumbnailGrid</div>
+                <div class="story-item" onclick="showStory('photo-viewer')">PhotoViewerModal</div>
+                <div class="story-item" onclick="showStory('report-card')">ReportCard</div>
+            </div>
+        </div>
+
+        <div class="main-content" id="main-content">
+            <!-- コンテンツはJavaScriptで動的に生成 -->
+        </div>
+    </div>
+
+    <script>
+        const stories = {
+            'ai-status': {
+                title: 'AIStatusIndicator',
+                description: 'AI処理の状態を表示するインジケーターコンポーネント',
+                stories: [
+                    {
+                        name: 'Idle',
+                        description: 'アイドル状態 - AI処理が実行されていない状態',
+                        props: { status: 'idle' }
+                    },
+                    {
+                        name: 'Processing',
+                        description: '処理中状態 - AI処理が実行中で進捗が50%',
+                        props: { status: 'processing', progress: 0.5, message: 'AI処理中... 50%' }
+                    },
+                    {
+                        name: 'Success',
+                        description: '成功状態 - AI処理が正常に完了',
+                        props: { status: 'success', message: '要約完了' }
+                    },
+                    {
+                        name: 'Error',
+                        description: 'エラー状態 - API エラーが発生',
+                        props: { status: 'error', errorMessage: 'APIエラーが発生しました' }
+                    }
+                ]
+            },
+            'loading': {
+                title: 'LoadingIndicator',
+                description: 'ローディング状態を表示するインジケーター',
+                stories: [
+                    {
+                        name: 'Default',
+                        description: 'デフォルトメッセージ表示',
+                        props: {}
+                    },
+                    {
+                        name: 'CustomMessage',
+                        description: 'カスタムメッセージ付き',
+                        props: { message: 'データを読み込み中...' }
+                    },
+                    {
+                        name: 'AIProcessing',
+                        description: 'AI処理中メッセージ',
+                        props: { message: 'Gemini AIで要約中...' }
+                    }
+                ]
+            },
+            'photo-grid': {
+                title: 'PhotoThumbnailGrid',
+                description: '写真サムネイルをグリッド表示するコンポーネント (最大10枚)',
+                stories: [
+                    {
+                        name: 'Empty',
+                        description: '写真が0枚の状態',
+                        props: { photos: [], maxPhotos: 10 }
+                    },
+                    {
+                        name: 'OnePhoto',
+                        description: '写真が1枚の状態',
+                        props: { photos: ['photo1'], maxPhotos: 10 }
+                    },
+                    {
+                        name: 'ThreePhotos',
+                        description: '写真が3枚の状態',
+                        props: { photos: ['photo1', 'photo2', 'photo3'], maxPhotos: 10 }
+                    },
+                    {
+                        name: 'LimitReached',
+                        description: '上限到達 (10枚)',
+                        props: { photos: Array(10).fill('photo'), maxPhotos: 10 }
+                    }
+                ]
+            },
+            'photo-viewer': {
+                title: 'PhotoViewerModal',
+                description: '写真を全画面で表示するモーダル',
+                stories: [
+                    {
+                        name: 'WithCaption',
+                        description: 'キャプション付きで表示',
+                        props: { photo: { caption: '現場の状況確認' }, visible: true }
+                    },
+                    {
+                        name: 'WithoutCaption',
+                        description: 'キャプションなしで表示',
+                        props: { photo: { caption: null }, visible: true }
+                    }
+                ]
+            },
+            'report-card': {
+                title: 'ReportCard',
+                description: '報告書をカード形式で表示するコンポーネント',
+                stories: [
+                    {
+                        name: 'Default',
+                        description: '標準的な報告書カード',
+                        props: { report: { title: '現場調査報告書', content: '概要...' } }
+                    },
+                    {
+                        name: 'LongTitle',
+                        description: '長いタイトルの報告書',
+                        props: { report: { title: '非常に長いタイトルの報告書でテキストが折り返されることを確認するためのサンプル', content: '概要...' } }
+                    }
+                ]
+            }
+        };
+
+        function showStory(storyId) {
+            // サイドバーのアクティブ状態を更新
+            document.querySelectorAll('.story-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const story = stories[storyId];
+            const content = document.getElementById('main-content');
+
+            let html = `
+                <div class="story-header">
+                    <h2>${story.title}</h2>
+                    <p class="description">${story.description}</p>
+                </div>
+            `;
+
+            story.stories.forEach(s => {
+                html += `
+                    <div class="preview-card">
+                        <h3>${s.name}</h3>
+                        <p>${s.description}</p>
+                        <div class="code-block">
+                            <strong>Props:</strong><br>
+                            ${JSON.stringify(s.props, null, 2)}
+                        </div>
+                    </div>
+                `;
+            });
+
+            content.innerHTML = html;
+        }
+
+        // 初期表示
+        showStory('ai-status');
+    </script>
+</body>
+</html>
