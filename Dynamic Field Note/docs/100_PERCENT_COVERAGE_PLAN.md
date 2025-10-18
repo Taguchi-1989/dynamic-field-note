@@ -18,6 +18,7 @@ DatabaseService.node.ts: 88.31%
 ### テスト失敗の原因
 
 **5個のテスト失敗**: ORDER BY created_at DESCの順序問題
+
 - ReportDAO: 3個
 - PhotoDAO: 2個
 
@@ -30,6 +31,7 @@ DatabaseService.node.ts: 88.31%
 ### 1. 未カバー行の分析
 
 #### CaseDAO.ts
+
 - **Line 79**: `throw new Error('Failed to retrieve created case');`
   - create()メソッドのエラーハンドリング
   - カバー方法: モックでfindByIdをnull返却させる
@@ -39,6 +41,7 @@ DatabaseService.node.ts: 88.31%
   - カバー方法: モックでfindByIdをnull返却させる
 
 #### ReportDAO.ts
+
 - **Line 79**: `throw new Error('Failed to retrieve created report');`
   - create()メソッドのエラーハンドリング
 
@@ -46,6 +49,7 @@ DatabaseService.node.ts: 88.31%
   - update()メソッドのエラーハンドリング
 
 #### PhotoDAO.ts
+
 - **Line 93**: `throw new Error('Failed to retrieve created photo');`
   - create()メソッドのエラーハンドリング
 
@@ -53,6 +57,7 @@ DatabaseService.node.ts: 88.31%
   - update()メソッドのエラーハンドリング
 
 #### DatabaseService.node.ts
+
 - **Line 80**: エラーハンドリング分岐
 - **Line 128-129**: 初期化済みチェック
 - **Line 138, 148**: エラーハンドリング
@@ -71,13 +76,14 @@ DatabaseService.node.ts: 88.31%
 expect(reports[0].title).toBe('報告書C'); // 順序を厳密にチェック
 
 // 修正後
-expect(reports.map(r => r.title)).toContain('報告書A');
-expect(reports.map(r => r.title)).toContain('報告書B');
-expect(reports.map(r => r.title)).toContain('報告書C');
+expect(reports.map((r) => r.title)).toContain('報告書A');
+expect(reports.map((r) => r.title)).toContain('報告書B');
+expect(reports.map((r) => r.title)).toContain('報告書C');
 // または、IDで明示的にソート
 ```
 
 **対象テスト**:
+
 - ReportDAO.test.ts: 3箇所
 - PhotoDAO.test.ts: 2箇所
 
@@ -99,6 +105,7 @@ describe('Error Handling', () => {
 ```
 
 **実装方法**:
+
 1. スパイを使ってfindByIdをモック
 2. または、データベース破損状態をシミュレート
 3. エラーがthrowされることを確認
@@ -124,19 +131,23 @@ describe('Edge Cases', () => {
 ## 📋 実装計画
 
 ### Step 1: 順序問題の修正 (5分)
+
 - ReportDAO.test.ts: 3箇所修正
 - PhotoDAO.test.ts: 2箇所修正
 
 ### Step 2: DAO層エラーハンドリングテスト追加 (15分)
+
 - CaseDAO.test.ts: 2テスト追加
 - ReportDAO.test.ts: 2テスト追加
 - PhotoDAO.test.ts: 2テスト追加
 
 ### Step 3: DatabaseService.node.tsカバレッジ向上 (10分)
+
 - エッジケーステスト追加
 - エラーハンドリングテスト追加
 
 ### Step 4: 検証 (5分)
+
 - カバレッジ100%確認
 - 全テストパス確認
 
@@ -166,11 +177,13 @@ DatabaseService.node.ts: 88.31% → 95%+
 ## 📝 まとめ
 
 ### 修正が必要な箇所
+
 1. ✅ テスト順序のアサーション修正 (5箇所)
 2. ✅ DAOエラーハンドリングテスト追加 (6テスト)
 3. ✅ DatabaseServiceエッジケーステスト追加 (2-3テスト)
 
 ### 目標
+
 - **DAO層カバレッジ**: 100%
 - **全テストパス**: 148+個
 - **総合カバレッジ**: 23-24%

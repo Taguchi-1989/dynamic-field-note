@@ -69,9 +69,7 @@ class BetterSqliteAdapter implements SQLiteDatabaseNode {
   async withTransactionAsync<T>(task: () => Promise<T>): Promise<T> {
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction(() => {
-        task()
-          .then(resolve)
-          .catch(reject);
+        task().then(resolve).catch(reject);
       });
 
       try {
@@ -181,9 +179,7 @@ class NodeDatabaseService {
       throw new Error('Database not initialized');
     }
 
-    const result = await this.db.getFirstAsync<{ user_version: number }>(
-      'PRAGMA user_version'
-    );
+    const result = await this.db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
 
     return result?.user_version ?? 0;
   }
