@@ -24,7 +24,30 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "lang": "ja",
+      "name": "Dynamic Field Note - 現場調査アプリ",
+      "shortName": "FieldNote",
+      "description": "音声メモをAIで自動要約する現場調査・点検アプリケーション。現場での作業効率を大幅に向上させます。",
+      "themeColor": "#6200ee",
+      "backgroundColor": "#ffffff",
+      "orientation": "portrait",
+      "display": "standalone",
+      "startUrl": "/",
+      "scope": "/",
+      "dir": "ltr",
+      "meta": {
+        "viewport": "width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no",
+        "description": "音声メモをAIで自動要約する現場調査・点検アプリケーション。現場での作業効率を大幅に向上させます。",
+        "keywords": "現場調査,点検,音声メモ,AI要約,React Native,Expo,Gemini,フィールドワーク",
+        "author": "Dynamic Field Note Team",
+        "apple-mobile-web-app-capable": "yes",
+        "apple-mobile-web-app-status-bar-style": "default",
+        "apple-mobile-web-app-title": "FieldNote",
+        "mobile-web-app-capable": "yes"
+      }
     }
   }
 }
