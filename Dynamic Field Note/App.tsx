@@ -10,7 +10,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { DrawerNavigator } from './src/navigation/DrawerNavigator';
+import { RootNavigator } from './src/navigation/RootNavigator';
 import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
 import { databaseService } from './src/services/DatabaseService';
 
@@ -57,7 +57,7 @@ export default function App() {
       <AccessibilityProvider>
         <PaperProvider>
           <NavigationContainer>
-            <DrawerNavigator />
+            <RootNavigator />
           </NavigationContainer>
           <StatusBar style="auto" />
         </PaperProvider>

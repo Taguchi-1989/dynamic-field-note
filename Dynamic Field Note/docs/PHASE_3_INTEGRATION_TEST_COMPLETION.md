@@ -24,33 +24,34 @@ Phase 3 (ローカル保存機能) の品質保証のため、統合テスト環
 
 #### 実装したテストスイート
 
-| テストファイル | テスト数 | 内容 |
-|---------------|----------|------|
-| DatabaseService.test.ts | 21 tests | DB初期化、マイグレーション、制約検証 |
-| CaseDAO.test.ts | 38 tests | 案件CRUD、検索、ステータス管理 |
-| ReportDAO.test.ts | 44 tests | 報告書CRUD、検索、外部キー制約 |
-| PhotoDAO.test.ts | 35 tests | 写真CRUD、CASCADE/SET NULL動作 |
-| **合計** | **138 tests** | **134 passed, 4 skipped** |
+| テストファイル          | テスト数      | 内容                                 |
+| ----------------------- | ------------- | ------------------------------------ |
+| DatabaseService.test.ts | 21 tests      | DB初期化、マイグレーション、制約検証 |
+| CaseDAO.test.ts         | 38 tests      | 案件CRUD、検索、ステータス管理       |
+| ReportDAO.test.ts       | 44 tests      | 報告書CRUD、検索、外部キー制約       |
+| PhotoDAO.test.ts        | 35 tests      | 写真CRUD、CASCADE/SET NULL動作       |
+| **合計**                | **138 tests** | **134 passed, 4 skipped**            |
 
 ### 3. カバレッジ成果
 
 #### 改善前後の比較
 
-| カテゴリ | 改善前 | 改善後 | 改善率 |
-|---------|--------|--------|--------|
-| **総合カバレッジ** | 2.44% | **22.02%** | **9倍** |
-| **DAO層** | 0% | **97.22%** | **新規達成** |
+| カテゴリ           | 改善前 | 改善後     | 改善率       |
+| ------------------ | ------ | ---------- | ------------ |
+| **総合カバレッジ** | 2.44%  | **22.02%** | **9倍**      |
+| **DAO層**          | 0%     | **97.22%** | **新規達成** |
 
 #### 詳細カバレッジ
 
-| ファイル | Statements | Branch | Functions | Lines | 未カバー |
-|---------|-----------|--------|-----------|-------|----------|
-| CaseDAO.ts | 97.22% | 87.5% | 100% | 97.22% | 79, 138 |
-| ReportDAO.ts | 97.33% | 84.37% | 100% | 97.33% | 79, 138 |
-| PhotoDAO.ts | 97.10% | 86.84% | 100% | 97.10% | 93, 139 |
-| DatabaseService.node.ts | 88.31% | 63.63% | 100% | 88.15% | エラーパス |
+| ファイル                | Statements | Branch | Functions | Lines  | 未カバー   |
+| ----------------------- | ---------- | ------ | --------- | ------ | ---------- |
+| CaseDAO.ts              | 97.22%     | 87.5%  | 100%      | 97.22% | 79, 138    |
+| ReportDAO.ts            | 97.33%     | 84.37% | 100%      | 97.33% | 79, 138    |
+| PhotoDAO.ts             | 97.10%     | 86.84% | 100%      | 97.10% | 93, 139    |
+| DatabaseService.node.ts | 88.31%     | 63.63% | 100%      | 88.15% | エラーパス |
 
 **未カバー行の分析**:
+
 - 79, 138行 (各DAO): `create`/`update`失敗時のエラーハンドリング
 - これらは正常系では到達しないエッジケース
 
@@ -60,15 +61,15 @@ Phase 3 (ローカル保存機能) の品質保証のため、統合テスト環
 
 #### 検証項目
 
-| 項目 | 結果 | 詳細 |
-|------|------|------|
-| **TypeScript型チェック** | ✅ PASS | エラー0件 |
-| **ESLint静的解析** | ✅ PASS | エラー0件、警告0件 |
-| **Prettier** | ✅ PASS | 全ファイル準拠 |
-| **統合テスト** | ✅ PASS | 134 passed, 4 skipped |
-| **E2E Comprehensive** | ✅ PASS | 8 passed |
-| **E2E Smoke** | ✅ PASS | 4 passed |
-| **合計** | ✅ **150 tests** | **146 passed, 4 skipped** |
+| 項目                     | 結果             | 詳細                      |
+| ------------------------ | ---------------- | ------------------------- |
+| **TypeScript型チェック** | ✅ PASS          | エラー0件                 |
+| **ESLint静的解析**       | ✅ PASS          | エラー0件、警告0件        |
+| **Prettier**             | ✅ PASS          | 全ファイル準拠            |
+| **統合テスト**           | ✅ PASS          | 134 passed, 4 skipped     |
+| **E2E Comprehensive**    | ✅ PASS          | 8 passed                  |
+| **E2E Smoke**            | ✅ PASS          | 4 passed                  |
+| **合計**                 | ✅ **150 tests** | **146 passed, 4 skipped** |
 
 #### 実行時間
 
@@ -105,7 +106,7 @@ Phase 3 (ローカル保存機能) の品質保証のため、統合テスト環
    - PhotoDAO.test.ts
    - DatabaseService.test.ts
 
-3. **__mocks__/expo-sqlite.ts**
+3. \***\*mocks**/expo-sqlite.ts\*\*
    - Jestモックファイル
 
 ## 技術的課題と解決
@@ -116,9 +117,9 @@ Phase 3 (ローカル保存機能) の品質保証のため、統合テスト環
 
 ```typescript
 class BetterSqliteAdapter implements SQLiteDatabaseNode {
-  async runAsync(source: string, params: SQLiteBindValue[]): Promise<RunResult>
-  async getFirstAsync<T>(source: string, params: SQLiteBindValue[]): Promise<T | null>
-  async getAllAsync<T>(source: string, params: SQLiteBindValue[]): Promise<T[]>
+  async runAsync(source: string, params: SQLiteBindValue[]): Promise<RunResult>;
+  async getFirstAsync<T>(source: string, params: SQLiteBindValue[]): Promise<T | null>;
+  async getAllAsync<T>(source: string, params: SQLiteBindValue[]): Promise<T[]>;
 }
 ```
 
@@ -134,7 +135,7 @@ expect(cases[0].title).toBe('案件C');
 expect(cases[1].title).toBe('案件B');
 
 // After (安定)
-const titles = cases.map(c => c.title);
+const titles = cases.map((c) => c.title);
 expect(titles).toContain('案件A');
 expect(titles).toContain('案件B');
 expect(titles).toContain('案件C');
@@ -166,6 +167,7 @@ it.skip('should enforce foreign key constraints', async () => {
 ### CI/CD準備
 
 `npm run validate` で全検証を一括実行可能:
+
 ```bash
 npm run type-check && npm run lint && npm run format:check
 ```
@@ -181,6 +183,7 @@ npm run test -- tests/integration --coverage
 ### Phase 3.4: 報告書作成・編集機能
 
 **予定タスク**:
+
 1. 報告書作成画面実装 (`ReportFormScreen.tsx`)
 2. 報告書編集機能
 3. 報告書と案件の紐付け
@@ -189,6 +192,7 @@ npm run test -- tests/integration --coverage
 ### Phase 3.5: ZIP生成・署名機能
 
 **予定タスク**:
+
 1. `jszip` によるアーカイブ生成
 2. デジタル署名 (HMAC-SHA256)
 3. エクスポート機能UI
@@ -222,12 +226,12 @@ npm run test -- tests/integration --coverage
 
 ### KPI達成状況
 
-| KPI | 目標 | 実績 | ステータス |
-|-----|------|------|-----------|
-| DAO層カバレッジ | > 90% | 97.22% | ✅ 達成 |
-| テスト成功率 | > 95% | 97.3% (146/150) | ✅ 達成 |
-| 型安全性 | エラー0件 | 0件 | ✅ 達成 |
-| コード品質 | Lint/Prettier準拠 | 100%準拠 | ✅ 達成 |
+| KPI             | 目標              | 実績            | ステータス |
+| --------------- | ----------------- | --------------- | ---------- |
+| DAO層カバレッジ | > 90%             | 97.22%          | ✅ 達成    |
+| テスト成功率    | > 95%             | 97.3% (146/150) | ✅ 達成    |
+| 型安全性        | エラー0件         | 0件             | ✅ 達成    |
+| コード品質      | Lint/Prettier準拠 | 100%準拠        | ✅ 達成    |
 
 ### プロジェクトへの影響
 

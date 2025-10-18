@@ -15,12 +15,20 @@ import {
   Divider,
   ActivityIndicator,
 } from 'react-native-paper';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { caseDAO } from '../dao/CaseDAO';
 import type { Case, CaseStatus, CreateCaseInput, UpdateCaseInput } from '../types/case';
 import { CaseFormModal } from './CaseFormModal';
 
+type RootStackParamList = {
+  ReportList: { caseId: number };
+};
+
+type CaseListScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
 export const CaseListScreen: React.FC = () => {
+  const navigation = useNavigation<CaseListScreenNavigationProp>();
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -243,7 +251,11 @@ export const CaseListScreen: React.FC = () => {
           </Card>
         ) : (
           cases.map((caseItem) => (
-            <Card key={caseItem.id} style={styles.caseCard}>
+            <Card
+              key={caseItem.id}
+              style={styles.caseCard}
+              onPress={() => navigation.navigate('ReportList', { caseId: caseItem.id })}
+            >
               <Card.Title
                 title={caseItem.title}
                 subtitle={caseItem.client_name || '顧客名なし'}
