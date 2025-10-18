@@ -44,8 +44,9 @@ const initializeGemini = (): GoogleGenerativeAI => {
 
 /**
  * 要約プロンプトを生成
+ * Phase C1 Refactoring: テスト可能にするためexport
  */
-const createSummarizePrompt = (text: string, language: 'ja' | 'en' = 'ja'): string => {
+export const createSummarizePrompt = (text: string, language: 'ja' | 'en' = 'ja'): string => {
   const prompts = {
     ja: `
 以下の現場メモを要約してください。
@@ -102,8 +103,9 @@ ${text}
 
 /**
  * JSONレスポンスをパース
+ * Phase C1 Refactoring: テスト可能にするためexport
  */
-const parseJSONResponse = (text: string): SummaryJSON => {
+export const parseJSONResponse = (text: string): SummaryJSON => {
   try {
     // コードブロックを除去
     const jsonText = text
