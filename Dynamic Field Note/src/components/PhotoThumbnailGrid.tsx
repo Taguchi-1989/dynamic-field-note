@@ -4,9 +4,9 @@
  * Phase 3.5.2: 写真サムネイル基盤
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { Text, IconButton } from 'react-native-paper';
+import { Text, IconButton, Dialog, Portal, Paragraph, Button } from 'react-native-paper';
 import { Photo } from '../types/case';
 
 interface PhotoThumbnailGridProps {
@@ -29,7 +29,36 @@ export const PhotoThumbnailGrid: React.FC<PhotoThumbnailGridProps> = ({
   onAddPress,
   disabled = false,
 }) => {
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState<Photo | null>(null);
   const isPhotoLimitReached = photos.length >= maxPhotos;
+
+  /**
+   * 削除確認ダイアログを表示
+   */
+  const handleDeletePress = (photo: Photo) => {
+    setPhotoToDelete(photo);
+    setDeleteDialogVisible(true);
+  };
+
+  /**
+   * 削除キャンセル
+   */
+  const handleDeleteCancel = () => {
+    setDeleteDialogVisible(false);
+    setPhotoToDelete(null);
+  };
+
+  /**
+   * 削除実行
+   */
+  const handleDeleteConfirm = () => {
+    if (photoToDelete) {
+      onDeletePress(photoToDelete);
+    }
+    setDeleteDialogVisible(false);
+    setPhotoToDelete(null);
+  };
 
   return (
     <View style={styles.container}>
@@ -63,7 +92,7 @@ export const PhotoThumbnailGrid: React.FC<PhotoThumbnailGridProps> = ({
               size={24}
               iconColor="#d32f2f"
               style={styles.deleteButton}
-              onPress={() => onDeletePress(photo)}
+              onPress={() => handleDeletePress(photo)}
               disabled={disabled}
             />
           </View>
@@ -86,6 +115,22 @@ export const PhotoThumbnailGrid: React.FC<PhotoThumbnailGridProps> = ({
       {isPhotoLimitReached && (
         <Text style={styles.limitText}>写真の上限（{maxPhotos}枚）に達しました</Text>
       )}
+
+      {/* 削除確認ダイアログ */}
+      <Portal>
+        <Dialog visible={deleteDialogVisible} onDismiss={handleDeleteCancel}>
+          <Dialog.Title>写真を削除</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>この写真を削除しますか？{'\n'}この操作は取り消せません。</Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={handleDeleteCancel}>いいえ</Button>
+            <Button onPress={handleDeleteConfirm} textColor="#d32f2f">
+              はい
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 };
