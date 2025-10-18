@@ -53,6 +53,8 @@
 - **フォーマット**: Prettier 3.6.2
 - **テスト**: Jest 30.2.0
 - **型チェック**: TypeScript（noEmit mode）
+- **Storybook**: @storybook/react-native 9.1.4（UIコンポーネントカタログ）
+- **Storybook**: @storybook/react-native 9.1.4（UIコンポーネントカタログ）
 
 ---
 
@@ -116,6 +118,9 @@ npm run android
 npm run ios
 
 # Web版
+# Storybook (UIコンポーネントカタログ)
+npm run storybook
+
 npm run web
 ```
 
@@ -209,7 +214,7 @@ chore: 依存関係更新
 
 ```typescript
 // ❌ NG: ハードコード
-const API_KEY = "AIzaSyBxxx...";
+const API_KEY = 'AIzaSyBxxx...';
 
 // ✅ OK: 環境変数
 const API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
@@ -223,6 +228,58 @@ await AsyncStorage.setItem('settings', JSON.stringify(data));
 
 // 機密情報 → SecureStore
 await SecureStore.setItemAsync('apiKey', key);
+```
+
+---
+
+## 🌐 Web互換性とベストプラクティス
+
+### プラットフォーム別UI実装
+
+**React Native Webの基本原則**:
+
+- Web版とネイティブ版で異なるUIパターンを採用することはベストプラクティス
+- 各プラットフォームのガイドラインに準拠することが重要
+
+### FABボタンの取り扱い
+
+**現在の実装** ([SummaryButtons.tsx](src/components/SummaryButtons.tsx)):
+
+- **ネイティブ版 (iOS/Android)**: FAB.Group使用（Material Design準拠）
+- **Web版**: 非表示（通常ボタンレイアウトで代替）
+
+**理由**:
+
+- FAB.GroupはHTML仕様違反のボタンネスト構造を生成
+- Web標準準拠のため、プラットフォーム別実装を採用
+- 詳細: [Web互換性分析](docs/WEB_COMPATIBILITY_ANALYSIS.md)
+
+### スタイリングのベストプラクティス
+
+```typescript
+// ✅ 正しい: Platform.selectで分岐
+const styles = StyleSheet.create({
+  box: {
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+      },
+    }),
+  },
+});
+
+// ❌ 非推奨: Web版でshadow*プロパティ使用
+const styles = StyleSheet.create({
+  box: {
+    shadowColor: '#000', // Web版では動作しない
+  },
+});
 ```
 
 ---
@@ -254,11 +311,13 @@ await SecureStore.setItemAsync('apiKey', key);
 ### DO（やるべきこと）
 
 1. **コミット前にガードレール実行**
+
    ```bash
    npm run guardrails
    ```
 
 2. **型チェックを常に通す**
+
    ```bash
    npm run type-check
    ```
@@ -275,12 +334,14 @@ await SecureStore.setItemAsync('apiKey', key);
 ### DON'T（避けるべきこと）
 
 1. **ガードレールのスキップ**
+
    ```bash
    # ❌ 絶対にやらない
    git commit --no-verify
    ```
 
 2. **大規模な一括変更**
+
    ```bash
    # ❌ 危険
    "全ファイルをリファクタリング"
@@ -336,9 +397,7 @@ await SecureStore.setItemAsync('apiKey', key);
 
 ```typescript
 // expo-camera 統合
-- 現場写真の撮影
-- 案件への添付
-- サムネイル生成
+-現場写真の撮影 - 案件への添付 - サムネイル生成;
 ```
 
 ### 4. ファイルエクスポート
