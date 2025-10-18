@@ -296,13 +296,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inputContainer: {
+    flex: 1,
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
   input: {
+    flex: 1,
+    minHeight: 200,
+    maxHeight: 400,
     backgroundColor: '#fff',
     marginBottom: 8,
+    textAlignVertical: 'top',
   },
   bufferInfo: {
     flexDirection: 'row',
