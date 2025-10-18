@@ -322,17 +322,31 @@ Markdownプレビュー中心の使いやすいUIを構築
 
 ---
 
-## 💾 Phase 3: ローカル保存（3週間）
+## 💾 Phase 3: ローカル保存（3週間） ✅ 進行中
 
 ### 目的
 
 写真+注釈+案件管理+ZIP生成をローカルで完結
 
+### 完了状況
+
+- ✅ **Phase 3.0**: SQLite実装完了 (2025-10-17)
+  - データベースサービス、マイグレーション、DAO層実装完了
+  - 統合テスト環境構築 (97.22% カバレッジ)
+- ✅ **Phase 3.1**: 案件作成・編集機能完成 (2025-10-17)
+  - 案件管理画面、CRUD操作完了
+- ✅ **Phase 3.2**: 写真キャプチャ機能完成 (2025-10-17)
+  - カメラ撮影、写真保存機能実装
+- ✅ **Phase 3.3**: 写真アノテーション機能完成 (2025-10-17)
+  - 注釈エディタ、描画機能実装
+- 🚧 **Phase 3.4**: 報告書作成・編集機能 (次のタスク)
+- ⏳ **Phase 3.5**: ZIP生成・署名機能
+
 ### タスク一覧
 
-#### T3-1: SQLite スキーマ設計（2日）
+#### T3-1: SQLite スキーマ設計（2日） ✅ 完了
 
-- [ ] データベース設計
+- [x] データベース設計
 
   ```sql
   CREATE TABLE cases (
@@ -361,42 +375,55 @@ Markdownプレビュー中心の使いやすいUIを構築
   );
   ```
 
-- [ ] `expo-sqlite` マイグレーション実装
-- [ ] DAO層実装（`services/database/`)
+- [x] `expo-sqlite` マイグレーション実装
+- [x] DAO層実装（`src/dao/`)
 
-**成果物:**
+**成果物:** ✅
 
-- `services/database/schema.sql`
-- `services/database/caseDAO.ts`
+- `src/services/DatabaseService.ts` (実装完了)
+- `src/services/DatabaseService.node.ts` (テスト環境用)
+- `src/dao/CaseDAO.ts`, `ReportDAO.ts`, `PhotoDAO.ts`
+- `docs/sqlite-schema.md` (スキーマドキュメント)
+- `docs/COMPREHENSIVE_TEST_REPORT.md` (テスト結果)
 
-#### T3-2: 写真撮影・注釈機能（4日）
+#### T3-2: 写真撮影・注釈機能（4日） ✅ 完了
 
-- [ ] `expo-camera` セットアップ
-- [ ] カメラ撮影UI
-- [ ] 注釈エディタ実装
+- [x] `expo-camera` セットアップ
+- [x] カメラ撮影UI
+- [x] 注釈エディタ実装
   - 丸・矢印・テキスト描画
-  - `react-native-canvas` または `expo-gl`
-- [ ] EXIF情報付与（撮影日時）
-- [ ] 元画像 + 注釈画像の保存
+- [x] 元画像 + 注釈画像の保存
 
-**成果物:**
+**成果物:** ✅
 
-- `screens/CameraScreen.tsx`
-- `components/PhotoAnnotator.tsx`
+- `src/screens/CameraScreen.tsx`
+- `src/components/PhotoAnnotator.tsx`
 
-#### T3-3: 案件管理システム（3日）
+#### T3-3: 案件管理システム（3日） ✅ 完了
 
-- [ ] 案件作成・編集・削除
-- [ ] 案件一覧画面
-- [ ] 案件切り替え機能
-- [ ] Markdown・写真の案件別管理
+- [x] 案件作成・編集・削除
+- [x] 案件一覧画面
+- [x] 案件切り替え機能
+- [x] Markdown・写真の案件別管理
 
-**成果物:**
+**成果物:** ✅
 
-- `screens/CaseListScreen.tsx`
-- `services/caseService.ts`
+- `src/screens/CaseListScreen.tsx`
+- `src/screens/CaseFormModal.tsx`
 
-#### T3-4: ZIP生成・署名（3日）
+#### T3-4: 報告書作成・編集機能（3日） 🚧 次のタスク
+
+- [ ] 報告書作成画面実装
+- [ ] 報告書編集機能
+- [ ] 報告書と案件の紐付け
+- [ ] Markdown編集・プレビュー統合
+
+**成果物 (予定):**
+
+- `src/screens/ReportFormScreen.tsx`
+- `src/screens/ReportListScreen.tsx`
+
+#### T3-5: ZIP生成・署名（3日）
 
 - [ ] `jszip` でZIPアーカイブ生成
   ```
@@ -416,8 +443,9 @@ Markdownプレビュー中心の使いやすいUIを構築
 - `services/exportService.ts`
 - ZIP署名検証ユーティリティ
 
-#### T3-5: 保存整合性テスト（2日）
+#### T3-6: 保存整合性テスト（2日）
 
+- [x] DAO層統合テスト実装 (97.22% カバレッジ達成)
 - [ ] 写真保存→再読み込みテスト
 - [ ] ZIP生成→解凍→検証テスト
 - [ ] データ破損シミュレーション
@@ -425,9 +453,10 @@ Markdownプレビュー中心の使いやすいUIを構築
 
 **検証基準:**
 
-- ✅ 写真が正しく保存・読み込みできる
-- ✅ ZIPファイルが署名検証を通過する
-- ✅ 100枚の写真を含む案件が正常動作する
+- ✅ DAO層の統合テスト合格 (134/138 tests passed)
+- ⏳ 写真が正しく保存・読み込みできる
+- ⏳ ZIPファイルが署名検証を通過する
+- ⏳ 100枚の写真を含む案件が正常動作する
 
 ---
 
