@@ -1,10 +1,16 @@
 /**
  * 要約実行ボタンコンポーネント
  * Phase 2: FABボタンによる中間・最終まとめ実行
+ *
+ * プラットフォーム別実装:
+ * - ネイティブ (iOS/Android): FAB.Group使用（Material Design準拠）
+ * - Web: 非表示（通常ボタンで代替 - ネストエラー回避）
+ *
+ * 参照: docs/WEB_COMPATIBILITY_ANALYSIS.md
  */
 
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { FAB, Portal, Text } from 'react-native-paper';
 
 interface SummaryButtonsProps {
@@ -40,6 +46,23 @@ export const SummaryButtons: React.FC<SummaryButtonsProps> = ({
   const onStateChange = ({ open }: { open: boolean }) => setOpen(open);
 
   const isDisabled = isLoading || isEmpty;
+
+  /**
+   * Web版ではFABを非表示
+   *
+   * 理由:
+   * - FAB.Groupは内部的にボタンをネストする構造
+   * - HTMLでは<button>内に<button>を配置できない（仕様違反）
+   * - Web版ではホーム画面の通常ボタンレイアウトを使用
+   *
+   * ベストプラクティス:
+   * - プラットフォーム別に最適なUIパターンを採用
+   * - Web: 標準HTML仕様に準拠
+   * - Native: Material Designガイドライン準拠
+   */
+  if (Platform.OS === 'web') {
+    return null;
+  }
 
   return (
     <Portal>
@@ -118,10 +141,18 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 8,
     elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    // Web用のboxShadowとネイティブ用のshadow*を両方サポート
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+      },
+    }),
   },
   loadingText: {
     fontSize: 16,

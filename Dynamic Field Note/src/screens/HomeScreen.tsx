@@ -7,7 +7,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
-import { TextInput, Button, Snackbar, Text } from 'react-native-paper';
+import { TextInput, Button, Snackbar, Text, Dialog, Portal, Paragraph } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import { useVoiceBuffer } from '../hooks/useVoiceBuffer';
 import { useSummarize } from '../hooks/useSummarize';
 import { MarkdownPreview } from '../components/MarkdownPreview';
@@ -15,12 +17,22 @@ import { LoadingIndicator } from '../components/LoadingIndicator';
 import { SummaryButtons } from '../components/SummaryButtons';
 import { AIStatusIndicator, AIStatus } from '../components/AIStatusIndicator';
 
+type DrawerParamList = {
+  Home: undefined;
+  Camera: undefined;
+  CaseList: undefined;
+  Settings: undefined;
+  SyncHistory: undefined;
+};
+
 export const HomeScreen: React.FC = () => {
+  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
   const [inputText, setInputText] = useState<string>('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [aiStatus, setAiStatus] = useState<AIStatus>('idle');
   const [aiProgress, setAiProgress] = useState<number>(0);
+  const [clearDialogVisible, setClearDialogVisible] = useState(false);
 
   /**
    * スナックバー表示
@@ -110,12 +122,30 @@ export const HomeScreen: React.FC = () => {
   };
 
   /**
-   * クリア
+   * クリア（確認ダイアログ付き）
    */
   const handleClear = () => {
+    // 入力が空の場合は確認なしでクリア
+    if (!inputText && !markdown) {
+      setInputText('');
+      clearBuffer();
+      clearSummary();
+      showSnackbar('クリアしました');
+      return;
+    }
+
+    // 入力または要約結果がある場合は確認ダイアログを表示
+    setClearDialogVisible(true);
+  };
+
+  /**
+   * クリア実行
+   */
+  const executeClear = () => {
     setInputText('');
     clearBuffer();
     clearSummary();
+    setClearDialogVisible(false);
     showSnackbar('クリアしました');
   };
 
@@ -170,6 +200,15 @@ export const HomeScreen: React.FC = () => {
               要約実行
             </Button>
             <Button
+              mode="contained-tonal"
+              onPress={() => navigation.navigate('Camera')}
+              disabled={isLoading}
+              style={styles.button}
+              icon="camera"
+            >
+              写真
+            </Button>
+            <Button
               mode="outlined"
               onPress={handleClear}
               disabled={isLoading}
@@ -218,6 +257,24 @@ export const HomeScreen: React.FC = () => {
       >
         {snackbarMessage}
       </Snackbar>
+
+      {/* クリア確認ダイアログ */}
+      <Portal>
+        <Dialog visible={clearDialogVisible} onDismiss={() => setClearDialogVisible(false)}>
+          <Dialog.Title>確認</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>
+              入力内容と要約結果をクリアしますか？{'\n'}この操作は取り消せません。
+            </Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setClearDialogVisible(false)}>キャンセル</Button>
+            <Button onPress={executeClear} textColor="#d32f2f">
+              クリア
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
       {/* FAB要約ボタン */}
       <SummaryButtons

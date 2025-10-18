@@ -37,9 +37,14 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({ caseId }) => {
     return (
       <View style={styles.container}>
         <Text style={styles.message}>カメラへのアクセス権限が必要です</Text>
-        <Button mode="contained" onPress={requestPermission} style={styles.permissionButton}>
-          権限を許可
-        </Button>
+        <View style={styles.permissionButtonContainer}>
+          <Button mode="outlined" onPress={() => navigation.goBack()} style={styles.backButton}>
+            戻る
+          </Button>
+          <Button mode="contained" onPress={requestPermission} style={styles.permissionButton}>
+            権限を許可
+          </Button>
+        </View>
       </View>
     );
   }
@@ -272,7 +277,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     paddingHorizontal: 20,
   },
-  permissionButton: {
+  permissionButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
     marginTop: 20,
+  },
+  backButton: {
+    minWidth: 100,
+  },
+  permissionButton: {
+    minWidth: 120,
   },
 });
