@@ -1,6 +1,7 @@
 /**
  * Markdown生成ユーティリティ
  * Phase 1: PoC で使用
+ * Phase A1 Refactoring: dateFormatter utility使用
  *
  * 機能:
  * - JSON形式の要約データをMarkdownに変換
@@ -9,6 +10,7 @@
  */
 
 import type { SummaryJSON, FinalSummary } from '../types/summary';
+import { formatDateTime } from './dateFormatter';
 
 /**
  * Markdown生成オプション
@@ -25,19 +27,6 @@ interface MarkdownOptions {
   /** 見出しレベル（1-6） */
   headingLevel?: number;
 }
-
-/**
- * 日付をフォーマット
- */
-const formatDate = (date: Date = new Date()): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-
-  return `${year}年${month}月${day}日 ${hours}:${minutes}`;
-};
 
 /**
  * 見出しを生成
@@ -103,7 +92,9 @@ export const jsonToMarkdown = (summary: SummaryJSON, options: MarkdownOptions = 
 
   // 日付
   if (includeDate) {
-    const dateStr = summary.created_at ? formatDate(new Date(summary.created_at)) : formatDate();
+    const dateStr = summary.created_at
+      ? formatDateTime(summary.created_at)
+      : formatDateTime(new Date().toISOString());
     markdown += `📅 **作成日時**: ${dateStr}\n\n`;
   }
 
@@ -221,7 +212,7 @@ export const finalSummaryToMarkdown = (
 
     summary.scheduled_todos.forEach((todo) => {
       const deadline = todo.estimated_deadline
-        ? ` (期限: ${formatDate(new Date(todo.estimated_deadline))})`
+        ? ` (期限: ${formatDateTime(todo.estimated_deadline)})`
         : '';
       const assignee = todo.assignee ? ` [担当: ${todo.assignee}]` : '';
       markdown += generateListItem(`${todo.content}${deadline}${assignee}`);
