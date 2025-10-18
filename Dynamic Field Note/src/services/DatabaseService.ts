@@ -124,6 +124,13 @@ export class DatabaseService {
   }
 
   /**
+   * マイグレーションバージョンを取得（公開API）
+   */
+  async getMigrationVersion(): Promise<number> {
+    return this.getCurrentVersion();
+  }
+
+  /**
    * データベースバージョンを設定
    */
   private async setCurrentVersion(version: number): Promise<void> {

@@ -24,8 +24,43 @@ class InMemoryDatabase implements SQLiteDatabase {
   private tables: Map<string, Map<number, Record<string, unknown>>> = new Map();
   private autoIncrements: Map<string, number> = new Map();
   private userVersion = 0;
+  private transactionActive = false;
+  private transactionSnapshot: Map<string, Map<number, Record<string, unknown>>> | null = null;
 
   async execAsync(source: string): Promise<void> {
+    // トランザクション開始
+    if (source.match(/BEGIN TRANSACTION/i)) {
+      this.transactionActive = true;
+      // 現在の状態をスナップショット
+      this.transactionSnapshot = new Map();
+      for (const [tableName, tableData] of this.tables.entries()) {
+        const snapshotTable = new Map<number, Record<string, unknown>>();
+        for (const [id, row] of tableData.entries()) {
+          snapshotTable.set(id, { ...row });
+        }
+        this.transactionSnapshot.set(tableName, snapshotTable);
+      }
+      return;
+    }
+
+    // トランザクションコミット
+    if (source.match(/COMMIT/i)) {
+      this.transactionActive = false;
+      this.transactionSnapshot = null;
+      return;
+    }
+
+    // トランザクションロールバック
+    if (source.match(/ROLLBACK/i)) {
+      if (this.transactionSnapshot) {
+        // スナップショットから復元
+        this.tables = this.transactionSnapshot;
+        this.transactionSnapshot = null;
+      }
+      this.transactionActive = false;
+      return;
+    }
+
     // CREATE TABLE文のパース
     const createTableMatch = source.match(/CREATE TABLE (?:IF NOT EXISTS )?(\w+)/i);
     if (createTableMatch) {
@@ -41,9 +76,19 @@ class InMemoryDatabase implements SQLiteDatabase {
     if (versionMatch) {
       this.userVersion = parseInt(versionMatch[1], 10);
     }
+
+    // INVALID SQL - エラーを投げる
+    if (source.match(/INVALID SQL/i)) {
+      throw new Error('Syntax error: INVALID SQL');
+    }
   }
 
   async runAsync(source: string, params: SQLiteBindValue[] = []): Promise<RunResult> {
+    // INVALID SQL - エラーを投げる
+    if (source.match(/INVALID SQL/i)) {
+      throw new Error('Syntax error: INVALID SQL');
+    }
+
     // INSERT文
     const insertMatch = source.match(/INSERT INTO (\w+)/i);
     if (insertMatch) {
