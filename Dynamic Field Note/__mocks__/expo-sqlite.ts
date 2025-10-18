@@ -246,6 +246,15 @@ class InMemoryDatabase implements SQLiteDatabase {
         });
       }
 
+      // ORDER BY updated_at DESC
+      if (source.includes('ORDER BY updated_at DESC')) {
+        rows.sort((a, b) => {
+          const aTime = a.updated_at as string;
+          const bTime = b.updated_at as string;
+          return bTime.localeCompare(aTime);
+        });
+      }
+
       return rows as T[];
     }
 
