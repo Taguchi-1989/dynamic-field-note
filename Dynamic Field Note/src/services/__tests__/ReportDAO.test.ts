@@ -262,6 +262,8 @@ describe('ReportDAO', () => {
         title: '更新後',
         content: '更新後コンテンツ',
         voice_buffer: '音声追加',
+        summary_json: '{"summary": "要約データ"}',
+        processing_time: 1500,
       });
 
       const updated = await reportDAO.findById(created.id);
@@ -270,6 +272,8 @@ describe('ReportDAO', () => {
       expect(updated!.title).toBe('更新後');
       expect(updated!.content).toBe('更新後コンテンツ');
       expect(updated!.voice_buffer).toBe('音声追加');
+      expect(updated!.summary_json).toBe('{"summary": "要約データ"}');
+      expect(updated!.processing_time).toBe(1500);
       expect(updated!.updated_at > originalUpdatedAt).toBe(true); // 更新日時が変わっている
     });
 

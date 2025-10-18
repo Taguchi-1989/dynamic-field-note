@@ -186,6 +186,8 @@ describe('CaseDAO', () => {
       const created = await caseDAO.create({
         title: '更新前',
         client_name: '旧クライアント',
+        location: '旧住所',
+        description: '旧説明',
       });
 
       const originalUpdatedAt = created.updated_at;
@@ -194,6 +196,8 @@ describe('CaseDAO', () => {
       await caseDAO.update(created.id, {
         title: '更新後',
         client_name: '新クライアント',
+        location: '新住所',
+        description: '新説明',
         status: 'completed',
       });
 
