@@ -5,11 +5,12 @@
 
 import React, { useState, useCallback } from 'react';
 import { StyleSheet, View, ScrollView, RefreshControl, Alert } from 'react-native';
-import { Text, Card, FAB, IconButton, Menu, Divider, ActivityIndicator } from 'react-native-paper';
+import { Text, FAB, ActivityIndicator } from 'react-native-paper';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { reportDAO } from '../dao/ReportDAO';
+import { ReportCard } from '../components/ReportCard';
 import type { Report } from '../types/case';
 
 type RootStackParamList = {
@@ -28,7 +29,6 @@ export const ReportListScreen: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [menuVisible, setMenuVisible] = useState<{ [key: number]: boolean }>({});
 
   /**
    * 報告書一覧を読み込み
@@ -93,18 +93,10 @@ export const ReportListScreen: React.FC = () => {
   );
 
   /**
-   * メニューの表示/非表示を切り替え
-   */
-  const toggleMenu = useCallback((id: number) => {
-    setMenuVisible((prev) => ({ ...prev, [id]: !prev[id] }));
-  }, []);
-
-  /**
    * 報告書編集画面へ遷移
    */
   const handleEdit = useCallback(
     (report: Report) => {
-      setMenuVisible({});
       navigation.navigate('ReportForm', { caseId, reportId: report.id });
     },
     [navigation, caseId]
@@ -116,20 +108,6 @@ export const ReportListScreen: React.FC = () => {
   const handleCreate = useCallback(() => {
     navigation.navigate('ReportForm', { caseId });
   }, [navigation, caseId]);
-
-  /**
-   * 日時フォーマット
-   */
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleString('ja-JP', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   if (loading) {
     return (
@@ -152,51 +130,14 @@ export const ReportListScreen: React.FC = () => {
           </View>
         ) : (
           reports.map((report) => (
-            <Card
+            <ReportCard
               key={report.id}
-              style={styles.card}
+              report={report}
               onPress={() => handleEdit(report)}
               onLongPress={() => handleDelete(report)}
-            >
-              <Card.Content>
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardTitleContainer}>
-                    <Text style={styles.cardTitle}>{report.title}</Text>
-                  </View>
-                  <Menu
-                    visible={menuVisible[report.id] || false}
-                    onDismiss={() => toggleMenu(report.id)}
-                    anchor={
-                      <IconButton
-                        icon="dots-vertical"
-                        size={20}
-                        onPress={() => toggleMenu(report.id)}
-                      />
-                    }
-                  >
-                    <Menu.Item
-                      leadingIcon="pencil"
-                      onPress={() => handleEdit(report)}
-                      title="編集"
-                    />
-                    <Divider />
-                    <Menu.Item
-                      leadingIcon="delete"
-                      onPress={() => handleDelete(report)}
-                      title="削除"
-                    />
-                  </Menu>
-                </View>
-                <Text style={styles.dateText}>作成: {formatDate(report.created_at)}</Text>
-                <Text style={styles.dateText}>更新: {formatDate(report.updated_at)}</Text>
-                {report.content && (
-                  <Text style={styles.contentPreview} numberOfLines={2}>
-                    {report.content.substring(0, 100)}
-                    {report.content.length > 100 ? '...' : ''}
-                  </Text>
-                )}
-              </Card.Content>
-            </Card>
+              onEdit={() => handleEdit(report)}
+              onDelete={() => handleDelete(report)}
+            />
           ))
         )}
       </ScrollView>
@@ -218,35 +159,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  card: {
-    margin: 8,
-    marginBottom: 4,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  cardTitleContainer: {
-    flex: 1,
-    marginRight: 8,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  dateText: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-  },
-  contentPreview: {
-    fontSize: 14,
-    color: '#444',
-    marginTop: 8,
-    fontStyle: 'italic',
   },
   emptyContainer: {
     flex: 1,

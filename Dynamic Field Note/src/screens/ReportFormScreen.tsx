@@ -3,7 +3,7 @@
  * Phase 3.4: 報告書管理機能実装
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -17,9 +17,9 @@ import { Appbar, SegmentedButtons, ActivityIndicator } from 'react-native-paper'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { reportDAO } from '../dao/ReportDAO';
 import { MarkdownPreview } from '../components/MarkdownPreview';
-import type { CreateReportInput, UpdateReportInput } from '../types/case';
+import { useReportForm } from '../hooks/useReportForm';
+import { useAutoSave } from '../hooks/useAutoSave';
 
 type RootStackParamList = {
   ReportForm: { caseId: number; reportId?: number };
@@ -33,146 +33,40 @@ export const ReportFormScreen: React.FC = () => {
   const navigation = useNavigation<ReportFormScreenNavigationProp>();
   const { caseId, reportId } = route.params;
 
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [isModified, setIsModified] = useState(false);
 
-  // 自動保存用のタイマー
-  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
+  // フォーム状態管理
+  const { title, setTitle, content, setContent, loading, saving, isModified, save } = useReportForm(
+    { caseId, reportId }
+  );
 
-  /**
-   * 既存報告書の読み込み (編集モード)
-   */
-  useEffect(() => {
-    if (reportId) {
-      loadReport(reportId);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reportId]);
-
-  const loadReport = async (id: number) => {
-    try {
-      setLoading(true);
-      const report = await reportDAO.findById(id);
-      if (report) {
-        setTitle(report.title);
-        setContent(report.content || '');
-      } else {
-        Alert.alert('エラー', '報告書が見つかりませんでした');
-        navigation.goBack();
-      }
-    } catch (error) {
-      console.error('[ReportFormScreen] Failed to load report:', error);
-      Alert.alert('エラー', '報告書の読み込みに失敗しました');
-      navigation.goBack();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * 変更検知
-   */
-  useEffect(() => {
-    setIsModified(true);
-  }, [title, content]);
-
-  /**
-   * 自動保存 (5秒後)
-   */
-  useEffect(() => {
-    if (!isModified || (!title && !content)) {
-      return;
-    }
-
-    // 既存のタイマーをクリア
-    if (autoSaveTimer) {
-      clearTimeout(autoSaveTimer);
-    }
-
-    // 新しいタイマーをセット
-    const timer = setTimeout(() => {
-      handleSave(true); // isDraft = true
-    }, 5000);
-
-    setAutoSaveTimer(timer);
-
-    return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, content, isModified]);
-
-  /**
-   * バリデーション
-   */
-  const validate = (): boolean => {
-    if (!title.trim()) {
-      Alert.alert('入力エラー', 'タイトルを入力してください');
-      return false;
-    }
-
-    if (title.length > 100) {
-      Alert.alert('入力エラー', 'タイトルは100文字以内で入力してください');
-      return false;
-    }
-
-    return true;
-  };
-
-  /**
-   * 保存処理
-   */
-  const handleSave = useCallback(
-    async (isDraft = false) => {
-      if (!validate()) {
-        return;
-      }
-
-      setSaving(true);
-
+  // 自動保存 (5秒後)
+  useAutoSave({
+    data: { title, content },
+    onSave: async () => {
       try {
-        if (reportId) {
-          // 更新
-          const updateData: UpdateReportInput = {
-            title: title.trim(),
-            content: content.trim() || undefined,
-          };
-          await reportDAO.update(reportId, updateData);
-        } else {
-          // 新規作成
-          const createData: CreateReportInput = {
-            case_id: caseId,
-            title: title.trim(),
-            content: content.trim() || undefined,
-          };
-          await reportDAO.create(createData);
-        }
-
-        setIsModified(false);
-
-        if (!isDraft) {
-          // 手動保存の場合は画面を閉じる
-          navigation.goBack();
-        }
-      } catch (error) {
-        console.error('[ReportFormScreen] Failed to save report:', error);
-        if (!isDraft) {
-          // 手動保存の失敗のみアラート表示
-          Alert.alert('エラー', '報告書の保存に失敗しました');
-        }
-      } finally {
-        setSaving(false);
+        await save();
+      } catch (err) {
+        // 自動保存の失敗は silent (エラーログのみ)
+        console.error('[ReportFormScreen] Auto-save failed:', err);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [reportId, caseId, title, content, navigation]
-  );
+    delay: 5000,
+    enabled: isModified && (!!title || !!content),
+  });
+
+  /**
+   * 保存処理 (手動保存)
+   */
+  const handleSave = useCallback(async () => {
+    try {
+      await save();
+      navigation.goBack();
+    } catch (err) {
+      const error = err as Error;
+      Alert.alert('エラー', error.message || '報告書の保存に失敗しました');
+    }
+  }, [save, navigation]);
 
   /**
    * 戻るボタン処理
@@ -194,9 +88,7 @@ export const ReportFormScreen: React.FC = () => {
           },
           {
             text: '保存',
-            onPress: async () => {
-              await handleSave(false);
-            },
+            onPress: handleSave,
           },
         ],
         { cancelable: true }
@@ -204,8 +96,7 @@ export const ReportFormScreen: React.FC = () => {
     } else {
       navigation.goBack();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isModified, navigation]);
+  }, [isModified, navigation, handleSave]);
 
   if (loading) {
     return (
@@ -224,7 +115,7 @@ export const ReportFormScreen: React.FC = () => {
       <Appbar.Header>
         <Appbar.BackAction onPress={handleBack} />
         <Appbar.Content title={reportId ? '報告書編集' : '新規報告書'} />
-        <Appbar.Action icon="content-save" onPress={() => handleSave(false)} disabled={saving} />
+        <Appbar.Action icon="content-save" onPress={handleSave} disabled={saving} />
       </Appbar.Header>
 
       <View style={styles.content}>
