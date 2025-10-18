@@ -3,7 +3,7 @@
  * 写真サムネイルグリッドのStorybook
  */
 
-import type { Meta, StoryObj } from '@storybook/react-native';
+import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { View } from 'react-native';
 import { PhotoThumbnailGrid } from './PhotoThumbnailGrid';

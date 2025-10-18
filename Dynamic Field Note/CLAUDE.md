@@ -51,10 +51,9 @@
 
 - **リント**: ESLint 9.37.0（flat config）
 - **フォーマット**: Prettier 3.6.2
-- **テスト**: Jest 30.2.0
+- **テスト**: Jest 30.2.0 + Vitest（Storybook統合）
 - **型チェック**: TypeScript（noEmit mode）
-- **Storybook**: @storybook/react-native 9.1.4（UIコンポーネントカタログ）
-- **Storybook**: @storybook/react-native 9.1.4（UIコンポーネントカタログ）
+- **Storybook**: @storybook/react-native-web-vite 9.1.13（UIコンポーネントカタログ）
 
 ---
 
@@ -118,10 +117,10 @@ npm run android
 npm run ios
 
 # Web版
-# Storybook (UIコンポーネントカタログ)
-npm run storybook
-
 npm run web
+
+# Storybook (UIコンポーネントカタログ)
+npm run storybook  # http://localhost:6006 で起動
 ```
 
 ### 品質チェック
