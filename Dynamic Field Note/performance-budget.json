@@ -1,0 +1,26 @@
+{
+  "mobile": {
+    "flashlight": {
+      "performanceScore": 90,
+      "fps": 55,
+      "cpu": 30,
+      "ram": 150,
+      "bundleSize": 10240
+    }
+  },
+  "web": {
+    "lighthouse": {
+      "performance": 90,
+      "accessibility": 90,
+      "bestPractices": 90,
+      "seo": 90,
+      "pwa": 80
+    },
+    "metrics": {
+      "fcp": 2000,
+      "lcp": 2500,
+      "cls": 0.1,
+      "tbt": 300
+    }
+  }
+}
