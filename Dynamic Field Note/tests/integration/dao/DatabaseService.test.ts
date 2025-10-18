@@ -234,7 +234,7 @@ describe('DatabaseService Integration Tests', () => {
       expect(result?.foreign_keys).toBe(1);
     });
 
-    it.skip('should enforce foreign key constraints on reports table', async () => {
+    it('should enforce foreign key constraints on reports table', async () => {
       const db = nodeDatabaseService.getDatabase();
 
       // 存在しない case_id で報告書を作成しようとする
@@ -246,7 +246,7 @@ describe('DatabaseService Integration Tests', () => {
       ).rejects.toThrow();
     });
 
-    it.skip('should enforce foreign key constraints on photos table', async () => {
+    it('should enforce foreign key constraints on photos table', async () => {
       const db = nodeDatabaseService.getDatabase();
 
       // 存在しない case_id で写真を作成しようとする
@@ -261,7 +261,7 @@ describe('DatabaseService Integration Tests', () => {
   });
 
   describe('Check Constraints', () => {
-    it.skip('should enforce CHECK constraint on cases.status', async () => {
+    it('should enforce CHECK constraint on cases.status', async () => {
       const db = nodeDatabaseService.getDatabase();
 
       const now = new Date().toISOString();
@@ -294,7 +294,7 @@ describe('DatabaseService Integration Tests', () => {
       await db.runAsync('DELETE FROM cases WHERE title LIKE ?', ['Test Case %']);
     });
 
-    it.skip('should enforce CHECK constraint on is_deleted (0 or 1)', async () => {
+    it('should enforce CHECK constraint on is_deleted (0 or 1)', async () => {
       const db = nodeDatabaseService.getDatabase();
 
       const now = new Date().toISOString();
