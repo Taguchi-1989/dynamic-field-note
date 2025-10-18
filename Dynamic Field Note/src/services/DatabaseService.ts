@@ -8,6 +8,7 @@
  * - エラーハンドリング
  */
 
+import { Platform } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 
 /**
@@ -35,6 +36,15 @@ class DatabaseService {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
+      return;
+    }
+
+    // Web環境ではデータベースをスキップ（IndexedDBフォールバック未実装）
+    if (Platform.OS === 'web') {
+      console.warn(
+        '[DatabaseService] SQLite not supported on Web. Skipping database initialization.'
+      );
+      this.initialized = true;
       return;
     }
 

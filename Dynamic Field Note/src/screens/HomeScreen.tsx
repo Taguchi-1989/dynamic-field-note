@@ -8,17 +8,20 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { TextInput, Button, Snackbar, Text, Dialog, Portal, Paragraph } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
-import type { DrawerNavigationProp } from '@react-navigation/drawer';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { DrawerNavigationProp, DrawerScreenProps } from '@react-navigation/drawer';
 import { useVoiceBuffer } from '../hooks/useVoiceBuffer';
 import { useSummarize } from '../hooks/useSummarize';
+import { usePhotoManager } from '../hooks/usePhotoManager';
 import { MarkdownPreview } from '../components/MarkdownPreview';
 import { LoadingIndicator } from '../components/LoadingIndicator';
 import { SummaryButtons } from '../components/SummaryButtons';
 import { AIStatusIndicator, AIStatus } from '../components/AIStatusIndicator';
+import { PhotoThumbnailGrid } from '../components/PhotoThumbnailGrid';
+// import { Photo } from '../types/case'; // TODO: Issue #3.5.4 で使用
 
 type DrawerParamList = {
-  Home: undefined;
+  Home: { photoUri?: string } | undefined;
   Camera: undefined;
   CaseList: undefined;
   Settings: undefined;
@@ -27,12 +30,23 @@ type DrawerParamList = {
 
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
+  const route = useRoute<DrawerScreenProps<DrawerParamList, 'Home'>['route']>();
   const [inputText, setInputText] = useState<string>('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [aiStatus, setAiStatus] = useState<AIStatus>('idle');
   const [aiProgress, setAiProgress] = useState<number>(0);
   const [clearDialogVisible, setClearDialogVisible] = useState(false);
+  // const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null); // TODO: Issue #3.5.4 で使用
+
+  // 写真管理（仮の caseId: 1 を使用）
+  const {
+    photos,
+    addPhoto,
+    removePhoto,
+    isPhotoLimitReached,
+    isLoading: photoLoading,
+  } = usePhotoManager(10);
 
   /**
    * スナックバー表示
@@ -160,6 +174,24 @@ export const HomeScreen: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReadyToSend]);
 
+  /**
+   * CameraScreen からの写真受け取り
+   */
+  useEffect(() => {
+    const photoUri = route.params?.photoUri;
+    if (photoUri) {
+      // 仮の caseId: 1 を使用（将来的には案件選択機能で動的に）
+      addPhoto(photoUri, 1)
+        .then(() => {
+          showSnackbar('写真を追加しました');
+        })
+        .catch(() => {
+          showSnackbar('写真の追加に失敗しました');
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route.params?.photoUri]);
+
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView
@@ -237,6 +269,19 @@ export const HomeScreen: React.FC = () => {
           message={
             aiStatus === 'processing' ? `AI処理中... ${Math.round(aiProgress * 100)}%` : undefined
           }
+        />
+
+        {/* 写真サムネイルグリッド */}
+        <PhotoThumbnailGrid
+          photos={photos}
+          maxPhotos={10}
+          onPhotoPress={(_photo) => {
+            // TODO: Issue #3.5.4 で拡大表示モーダルを実装
+            // setSelectedPhoto(photo);
+          }}
+          onDeletePress={(photo) => removePhoto(photo.id)}
+          onAddPress={() => navigation.navigate('Camera')}
+          disabled={isLoading || photoLoading || isPhotoLimitReached()}
         />
 
         {/* プレビューエリア */}
