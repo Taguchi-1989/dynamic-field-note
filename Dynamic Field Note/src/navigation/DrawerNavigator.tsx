@@ -10,6 +10,7 @@ import { CaseListScreen } from '../screens/CaseListScreen';
 import { CameraScreen } from '../screens/CameraScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { SyncHistoryScreen } from '../screens/SyncHistoryScreen';
+import { ComponentShowcaseScreen } from '../screens/ComponentShowcaseScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -102,6 +103,19 @@ export const DrawerNavigator: React.FC = () => {
           drawerIcon: ({ color, size }) => (
             <React.Fragment>
               <span style={{ fontSize: size, color }}>🔄</span>
+            </React.Fragment>
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="ComponentShowcase"
+        component={ComponentShowcaseScreen}
+        options={{
+          drawerLabel: 'コンポーネント一覧',
+          title: 'Component Showcase',
+          drawerIcon: ({ color, size }) => (
+            <React.Fragment>
+              <span style={{ fontSize: size, color }}>🎨</span>
             </React.Fragment>
           ),
         }}
