@@ -1,0 +1,21 @@
+{
+  "extends": "stylelint-config-standard",
+  "rules": {
+    "indentation": 2,
+    "string-quotes": "single",
+    "color-hex-length": "short",
+    "declaration-block-trailing-semicolon": "always",
+    "no-descending-specificity": null,
+    "selector-class-pattern": null,
+    "custom-property-pattern": null
+  },
+  "ignoreFiles": [
+    "node_modules/**",
+    "dist/**",
+    ".expo/**",
+    "web-build/**",
+    "coverage/**",
+    "android/**",
+    "ios/**"
+  ]
+}

@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.expo/
+web-build/
+android/
+ios/
+
+# Test coverage
+coverage/
+
+# External projects
+claude-code/
+
+# Documentation reference files
+docs/files/
