@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Component Previews - Storybook</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 32px;
+        }
+
+        .component-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .component-section h2 {
+            font-size: 24px;
+            color: #1976d2;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #1976d2;
+        }
+
+        .story-item {
+            margin-bottom: 40px;
+            padding: 24px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #1976d2;
+        }
+
+        .story-item h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .story-description {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .preview-box {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 16px 0;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* AIStatusIndicator styles */
+        .status-indicator {
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-idle {
+            background: #f5f5f5;
+            color: #666;
+            border: 2px solid #e0e0e0;
+        }
+
+        .status-processing {
+            background: #fff3e0;
+            color: #f57c00;
+            border: 2px solid #ffb74d;
+        }
+
+        .status-success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border: 2px solid #81c784;
+        }
+
+        .status-error {
+            background: #ffebee;
+            color: #d32f2f;
+            border: 2px solid #e57373;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #1976d2;
+            transition: width 0.3s;
+        }
+
+        /* LoadingIndicator styles */
+        .loading-container {
+            text-align: center;
+            padding: 32px;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #1976d2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        .loading-message {
+            font-size: 16px;
+            color: #666;
+        }
+
+        /* PhotoThumbnailGrid styles */
+        .photo-grid {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 16px;
+        }
+
+        .photo-thumbnail {
+            width: 100px;
+            height: 100px;
+            background: #e0e0e0;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .photo-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-add-button {
+            width: 100px;
+            height: 100px;
+            background: #e3f2fd;
+            border: 2px dashed #1976d2;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .photo-add-button:hover {
+            background: #bbdefb;
+        }
+
+        .photo-add-icon {
+            font-size: 32px;
+            color: #1976d2;
+        }
+
+        .photo-count {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .limit-message {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        /* ReportCard styles */
+        .report-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            max-width: 600px;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+
+        .report-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .report-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .report-card-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .report-card-preview {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 16px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Component Previews</h1>
+        <p class="subtitle">各コンポーネントの実際の見た目を確認できます</p>
+
+        <!-- AIStatusIndicator -->
+        <div class="component-section">
+            <h2>AIStatusIndicator</h2>
+
+            <div class="story-item">
+                <h3>Idle - アイドル状態</h3>
+                <p class="story-description">AI処理が実行されていない状態</p>
+                <div class="preview-box">
+                    <div class="status-indicator status-idle">
+                        待機中
+                    </div>
+                </div>
+                <div class="code-block">status: 'idle'</div>
+            </div>
+
+            <div class="story-item">
+                <h3>Processing - 処理中</h3>
+                <p class="story-description">AI処理が実行中（進捗50%）</p>
+                <div class="preview-box">
+                    <div class="status-indicator status-processing">
+                        <div class="spinner"></div>
+                        AI処理中... 50%
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 50%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="code-block">status: 'processing', progress: 0.5, message: 'AI処理中... 50%'</div>
+            </div>
+
+            <div class="story-item">
+                <h3>Success - 成功</h3>
+                <p class="story-description">AI処理が正常に完了</p>
+                <div class="preview-box">
+                    <div class="status-indicator status-success">
+                        ✓ 要約完了
+                    </div>
+                </div>
+                <div class="code-block">status: 'success', message: '要約完了'</div>
+            </div>
+
+            <div class="story-item">
+                <h3>Error - エラー</h3>
+                <p class="story-description">APIエラーが発生した状態</p>
+                <div class="preview-box">
+                    <div class="status-indicator status-error">
+                        ❌ APIエラーが発生しました
+                    </div>
+                </div>
+                <div class="code-block">status: 'error', errorMessage: 'APIエラーが発生しました'</div>
+            </div>
+        </div>
+
+        <!-- LoadingIndicator -->
+        <div class="component-section">
+            <h2>LoadingIndicator</h2>
+
+            <div class="story-item">
+                <h3>Default - デフォルト</h3>
+                <p class="story-description">デフォルトのローディング表示</p>
+                <div class="preview-box">
+                    <div class="loading-container">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-message">読み込み中...</div>
+                    </div>
+                </div>
+                <div class="code-block">message: '読み込み中...'</div>
+            </div>
+
+            <div class="story-item">
+                <h3>AIProcessing - AI処理中</h3>
+                <p class="story-description">Gemini AIでの処理中</p>
+                <div class="preview-box">
+                    <div class="loading-container">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-message">Gemini AIで要約中...</div>
+                    </div>
+                </div>
+                <div class="code-block">message: 'Gemini AIで要約中...'</div>
+            </div>
+        </div>
+
+        <!-- PhotoThumbnailGrid -->
+        <div class="component-section">
+            <h2>PhotoThumbnailGrid</h2>
+
+            <div class="story-item">
+                <h3>Empty - 空の状態</h3>
+                <p class="story-description">写真が0枚の状態</p>
+                <div class="preview-box">
+                    <div>
+                        <div class="photo-count">写真 (0/10)</div>
+                        <div class="photo-grid">
+                            <div class="photo-add-button">
+                                <div class="photo-add-icon">📷+</div>
+                                <div style="font-size: 12px; color: #1976d2; margin-top: 4px;">写真を追加</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="code-block">photos: [], maxPhotos: 10</div>
+            </div>
+
+            <div class="story-item">
+                <h3>With Photos - 写真3枚</h3>
+                <p class="story-description">写真が3枚ある状態</p>
+                <div class="preview-box">
+                    <div>
+                        <div class="photo-count">写真 (3/10)</div>
+                        <div class="photo-grid">
+                            <div class="photo-thumbnail">
+                                <img src="https://picsum.photos/200/200?random=1" alt="写真1">
+                            </div>
+                            <div class="photo-thumbnail">
+                                <img src="https://picsum.photos/200/200?random=2" alt="写真2">
+                            </div>
+                            <div class="photo-thumbnail">
+                                <img src="https://picsum.photos/200/200?random=3" alt="写真3">
+                            </div>
+                            <div class="photo-add-button">
+                                <div class="photo-add-icon">📷+</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="code-block">photos: [3 items], maxPhotos: 10</div>
+            </div>
+
+            <div class="story-item">
+                <h3>Limit Reached - 上限到達</h3>
+                <p class="story-description">写真が10枚（上限）の状態</p>
+                <div class="preview-box">
+                    <div>
+                        <div class="photo-count">写真 (10/10)</div>
+                        <div class="photo-grid">
+                            <div class="photo-thumbnail"><img src="https://picsum.photos/200/200?random=10" alt="写真"></div>
+                            <div class="photo-thumbnail"><img src="https://picsum.photos/200/200?random=11" alt="写真"></div>
+                            <div class="photo-thumbnail"><img src="https://picsum.photos/200/200?random=12" alt="写真"></div>
+                            <div class="photo-thumbnail"><img src="https://picsum.photos/200/200?random=13" alt="写真"></div>
+                            <div class="photo-thumbnail"><img src="https://picsum.photos/200/200?random=14" alt="写真"></div>
+                        </div>
+                        <div class="limit-message">写真の上限（10枚）に達しました</div>
+                    </div>
+                </div>
+                <div class="code-block">photos: [10 items], maxPhotos: 10</div>
+            </div>
+        </div>
+
+        <!-- ReportCard -->
+        <div class="component-section">
+            <h2>ReportCard</h2>
+
+            <div class="story-item">
+                <h3>Default - 標準的な報告書</h3>
+                <p class="story-description">通常の報告書カード</p>
+                <div class="preview-box">
+                    <div class="report-card">
+                        <div class="report-card-title">現場調査報告書</div>
+                        <div class="report-card-meta">作成: 2025-01-18 10:00 | 更新: 2025-01-18 10:30</div>
+                        <div class="report-card-preview">
+                            # 現場調査報告書<br><br>
+                            ## 概要<br>
+                            本日の現場調査では、設備の劣化状況を確認しました...
+                        </div>
+                    </div>
+                </div>
+                <div class="code-block">report: { title: '現場調査報告書', ... }</div>
+            </div>
+
+            <div class="story-item">
+                <h3>Long Title - 長いタイトル</h3>
+                <p class="story-description">タイトルが長い報告書</p>
+                <div class="preview-box">
+                    <div class="report-card">
+                        <div class="report-card-title">非常に長いタイトルの報告書でテキストが折り返されることを確認するためのサンプル報告書タイトル</div>
+                        <div class="report-card-meta">作成: 2025-01-17 15:00 | 更新: 2025-01-17 15:30</div>
+                        <div class="report-card-preview">
+                            報告書の内容プレビュー...
+                        </div>
+                    </div>
+                </div>
+                <div class="code-block">report: { title: '非常に長いタイトルの...', ... }</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
