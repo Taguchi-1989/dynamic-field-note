@@ -18,7 +18,8 @@ import { LoadingIndicator } from '../components/LoadingIndicator';
 import { SummaryButtons } from '../components/SummaryButtons';
 import { AIStatusIndicator, AIStatus } from '../components/AIStatusIndicator';
 import { PhotoThumbnailGrid } from '../components/PhotoThumbnailGrid';
-// import { Photo } from '../types/case'; // TODO: Issue #3.5.4 で使用
+import { PhotoViewerModal } from '../components/PhotoViewerModal';
+import { Photo } from '../types/case';
 
 type DrawerParamList = {
   Home: { photoUri?: string } | undefined;
@@ -37,7 +38,7 @@ export const HomeScreen: React.FC = () => {
   const [aiStatus, setAiStatus] = useState<AIStatus>('idle');
   const [aiProgress, setAiProgress] = useState<number>(0);
   const [clearDialogVisible, setClearDialogVisible] = useState(false);
-  // const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null); // TODO: Issue #3.5.4 で使用
+  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
 
   // 写真管理（仮の caseId: 1 を使用）
   const {
@@ -275,10 +276,7 @@ export const HomeScreen: React.FC = () => {
         <PhotoThumbnailGrid
           photos={photos}
           maxPhotos={10}
-          onPhotoPress={(_photo) => {
-            // TODO: Issue #3.5.4 で拡大表示モーダルを実装
-            // setSelectedPhoto(photo);
-          }}
+          onPhotoPress={(photo) => setSelectedPhoto(photo)}
           onDeletePress={(photo) => removePhoto(photo.id)}
           onAddPress={() => navigation.navigate('Camera')}
           disabled={isLoading || photoLoading || isPhotoLimitReached()}
@@ -327,6 +325,13 @@ export const HomeScreen: React.FC = () => {
         isEmpty={!fullText || fullText.trim() === ''}
         onQuickSummary={handleQuickSummary}
         onFinalSummary={handleFinalSummary}
+      />
+
+      {/* 写真拡大表示モーダル */}
+      <PhotoViewerModal
+        photo={selectedPhoto}
+        visible={!!selectedPhoto}
+        onDismiss={() => setSelectedPhoto(null)}
       />
     </View>
   );
