@@ -7,7 +7,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "storybook": "start-storybook -p 7007",
+    "storybook": "storybook dev -p 6006",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
@@ -21,10 +21,15 @@
     "test:local": "jest e2e --coverage --verbose",
     "test:smoke": "jest e2e/smoke",
     "test:comprehensive": "jest e2e/comprehensive --coverage",
-    "precommit": "npm run validate && npm run test:smoke",
+    "test:e2e": "npm run test:smoke && npm run test:comprehensive",
+    "test:all": "npm run test:smoke && npm run test:comprehensive && npm run test -- src/",
+    "quality": "npm run format:check && npm run lint && npm run type-check",
+    "quality:fix": "npm run format && npm run lint:fix && npm run type-check",
+    "precommit": "npm run quality && npm run test:smoke",
     "prepare": "echo 'Skipping husky install'",
-    "guardrails": "npm run validate && npm run test:smoke",
-    "guardrails:full": "npm run validate && npm run test"
+    "guardrails": "npm run quality && npm run test:smoke",
+    "guardrails:full": "npm run quality && npm run test:e2e",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -52,11 +57,14 @@
     "react-native-web": "^0.21.0"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^4.1.1",
     "@eslint/js": "^9.38.0",
     "@react-native-async-storage/async-storage": "^2.2.0",
-    "@storybook/addon-ondevice-actions": "^9.1.4",
-    "@storybook/addon-ondevice-controls": "^9.1.4",
-    "@storybook/react-native": "^9.1.4",
+    "@storybook/addon-a11y": "^9.1.13",
+    "@storybook/addon-docs": "^9.1.13",
+    "@storybook/addon-onboarding": "^9.1.13",
+    "@storybook/addon-vitest": "^9.1.13",
+    "@storybook/react-native-web-vite": "^9.1.13",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.3.3",
     "@types/better-sqlite3": "^7.6.13",
@@ -64,6 +72,8 @@
     "@types/react": "~19.1.0",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
+    "@vitest/browser": "^3.2.4",
+    "@vitest/coverage-v8": "^3.2.4",
     "better-sqlite3": "^12.4.1",
     "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
@@ -71,11 +81,16 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-react-native": "^5.0.0",
+    "eslint-plugin-storybook": "^9.1.13",
     "jest": "~29.7.0",
+    "playwright": "^1.56.1",
     "prettier": "^3.6.2",
     "react-test-renderer": "^19.1.0",
+    "storybook": "^9.1.13",
     "ts-jest": "^29.4.5",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vite": "^7.1.10",
+    "vitest": "^3.2.4"
   },
   "private": true
 }
