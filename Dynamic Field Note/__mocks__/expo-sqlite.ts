@@ -60,7 +60,14 @@ class InMemoryDatabase implements SQLiteDatabase {
       const columnsMatch = source.match(/\(([^)]+)\)/);
       const columns = columnsMatch ? columnsMatch[1].split(',').map((c) => c.trim()) : [];
 
-      const row: Record<string, unknown> = { id };
+      const now = new Date().toISOString();
+      const row: Record<string, unknown> = {
+        id,
+        is_deleted: 0,
+        created_at: now,
+        updated_at: now,
+        synced_at: null,
+      };
       columns.forEach((col, index) => {
         row[col] = params[index] ?? null;
       });
@@ -85,13 +92,33 @@ class InMemoryDatabase implements SQLiteDatabase {
         const id = params[params.length - 1] as number;
         const row = table.get(id);
         if (row) {
+          // is_deleted フィルタをチェック
+          const isDeletedFilter = source.includes('is_deleted = 0');
+          if (isDeletedFilter && row.is_deleted !== 0) {
+            return { lastInsertRowId: 0, changes: 0 };
+          }
+
           // SET句から更新するフィールドを抽出
-          const setMatch = source.match(/SET (.+?) WHERE/i);
+          const setMatch = source.match(/SET (.+?) WHERE/is);
           if (setMatch) {
             const sets = setMatch[1].split(',').map((s) => s.trim());
-            sets.forEach((set, index) => {
-              const [field] = set.split('=').map((s) => s.trim());
-              row[field] = params[index] ?? null;
+            let paramIndex = 0;
+            sets.forEach((set) => {
+              const parts = set.split('=');
+              if (parts.length < 2) return;
+
+              const field = parts[0].trim();
+              const value = parts.slice(1).join('=').trim();
+
+              // datetime('now', 'localtime') を現在時刻に変換
+              if (value && value.includes("datetime('now'")) {
+                row[field] = new Date().toISOString();
+              } else if (value === '?') {
+                row[field] = params[paramIndex];
+                paramIndex++;
+              } else if (!isNaN(Number(value))) {
+                row[field] = Number(value);
+              }
             });
           }
         }
@@ -140,11 +167,22 @@ class InMemoryDatabase implements SQLiteDatabase {
         return null;
       }
 
+      // WHERE id = last_insert_rowid()
+      if (source.includes('last_insert_rowid()')) {
+        const lastId = this.autoIncrements.get(tableName) || 0;
+        const row = table.get(lastId);
+        return (row as T) ?? null;
+      }
+
       // WHERE id = ?
       const whereMatch = source.match(/WHERE id = \?/i);
       if (whereMatch && params.length > 0) {
         const id = params[0] as number;
         const row = table.get(id);
+        // is_deleted フィルタをチェック
+        if (row && source.includes('is_deleted = 0') && row.is_deleted !== 0) {
+          return null;
+        }
         return (row as T) ?? null;
       }
 
@@ -217,6 +255,20 @@ class InMemoryDatabase implements SQLiteDatabase {
   async withTransactionAsync<T>(task: () => Promise<T>): Promise<T> {
     return await task();
   }
+
+  async closeAsync(): Promise<void> {
+    // In-memory database cleanup
+    this.tables.clear();
+    this.autoIncrements.clear();
+    this.userVersion = 0;
+  }
+
+  closeSync(): void {
+    // In-memory database cleanup
+    this.tables.clear();
+    this.autoIncrements.clear();
+    this.userVersion = 0;
+  }
 }
 
 let dbInstance: InMemoryDatabase | null = null;
@@ -226,4 +278,11 @@ export async function openDatabaseAsync(_databaseName: string): Promise<SQLiteDa
     dbInstance = new InMemoryDatabase();
   }
   return dbInstance;
+}
+
+export async function deleteDatabaseAsync(_databaseName: string): Promise<void> {
+  if (dbInstance) {
+    await dbInstance.closeAsync();
+    dbInstance = null;
+  }
 }

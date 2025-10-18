@@ -4,11 +4,28 @@
  */
 
 // Mock React Native
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  RN.Platform.OS = 'ios';
-  return RN;
-});
+jest.mock('react-native', () => ({
+  Platform: {
+    OS: 'ios',
+    select: jest.fn((obj) => obj.ios || obj.default),
+  },
+  StyleSheet: {
+    create: jest.fn((styles) => styles),
+    flatten: jest.fn((style) => style),
+  },
+  View: 'View',
+  Text: 'Text',
+  TextInput: 'TextInput',
+  TouchableOpacity: 'TouchableOpacity',
+  ScrollView: 'ScrollView',
+  KeyboardAvoidingView: 'KeyboardAvoidingView',
+  Alert: {
+    alert: jest.fn(),
+  },
+  Dimensions: {
+    get: jest.fn(() => ({ width: 375, height: 667 })),
+  },
+}));
 
 // Mock expo modules
 jest.mock('expo-status-bar', () => ({
@@ -55,6 +72,9 @@ jest.mock('@react-navigation/drawer', () => ({
     Screen: jest.fn(() => null),
   })),
 }));
+
+// Mock expo-sqlite (auto-mocked from __mocks__/expo-sqlite.js)
+jest.mock('expo-sqlite');
 
 // Mock Gemini API
 jest.mock('./src/services/geminiService', () => ({

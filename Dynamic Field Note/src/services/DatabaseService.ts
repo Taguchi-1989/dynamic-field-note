@@ -27,7 +27,7 @@ interface Migration {
 /**
  * データベースサービスクラス
  */
-class DatabaseService {
+export class DatabaseService {
   private db: SQLite.SQLiteDatabase | null = null;
   private initialized = false;
 
@@ -149,6 +149,35 @@ class DatabaseService {
       await db.execAsync('ROLLBACK');
       throw error;
     }
+  }
+
+  /**
+   * SQL実行（結果なし）
+   */
+  async execute(sql: string, params?: (string | number | null)[]): Promise<void> {
+    const db = this.getDatabase();
+    await db.runAsync(sql, params ?? []);
+  }
+
+  /**
+   * SQL実行（結果あり）
+   */
+  async executeRaw<T = unknown>(sql: string, params?: (string | number | null)[]): Promise<T[]> {
+    const db = this.getDatabase();
+    const result = await db.getAllAsync<T>(sql, params ?? []);
+    return result;
+  }
+
+  /**
+   * 単一行取得
+   */
+  async executeOne<T = unknown>(
+    sql: string,
+    params?: (string | number | null)[]
+  ): Promise<T | null> {
+    const db = this.getDatabase();
+    const result = await db.getFirstAsync<T>(sql, params ?? []);
+    return result ?? null;
   }
 
   /**
