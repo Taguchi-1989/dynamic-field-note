@@ -124,6 +124,7 @@ export interface CreatePhotoInput {
  * 写真更新用データ
  */
 export interface UpdatePhotoInput {
+  report_id?: number;
   caption?: string;
   annotation_data?: string;
 }

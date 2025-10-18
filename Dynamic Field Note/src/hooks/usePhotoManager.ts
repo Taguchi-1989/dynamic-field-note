@@ -17,6 +17,7 @@ export interface UsePhotoManagerReturn {
   photos: Photo[];
   addPhoto: (uri: string, caseId: number, caption?: string) => Promise<void>;
   removePhoto: (photoId: number) => Promise<void>;
+  attachPhotosToReport: (reportId: number) => Promise<void>;
   getPhotoCount: () => number;
   isPhotoLimitReached: () => boolean;
   clearPhotos: () => void;
@@ -109,6 +110,38 @@ export const usePhotoManager = (maxPhotos = 10): UsePhotoManagerReturn => {
   }, [photos, maxPhotos]);
 
   /**
+   * 写真を報告書に紐付け
+   */
+  const attachPhotosToReport = useCallback(
+    async (reportId: number): Promise<void> => {
+      setIsLoading(true);
+
+      try {
+        // 全ての写真を報告書に紐付け
+        for (const photo of photos) {
+          await photoDAO.update(photo.id, { report_id: reportId });
+        }
+
+        // State 更新
+        setPhotos((prev) =>
+          prev.map((photo) => ({
+            ...photo,
+            report_id: reportId,
+          }))
+        );
+
+        console.log('[usePhotoManager] Attached photos to report:', reportId);
+      } catch (error) {
+        console.error('[usePhotoManager] Failed to attach photos:', error);
+        Alert.alert('エラー', '写真の報告書への紐付けに失敗しました');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [photos]
+  );
+
+  /**
    * 写真クリア（State のみ）
    */
   const clearPhotos = useCallback((): void => {
@@ -119,6 +152,7 @@ export const usePhotoManager = (maxPhotos = 10): UsePhotoManagerReturn => {
     photos,
     addPhoto,
     removePhoto,
+    attachPhotosToReport,
     getPhotoCount,
     isPhotoLimitReached,
     clearPhotos,
