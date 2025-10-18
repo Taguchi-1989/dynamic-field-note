@@ -79,6 +79,34 @@
             flex: 1;
             overflow-y: auto;
             padding: 40px;
+            position: relative;
+        }
+
+        .iframe-container {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+            margin-top: 24px;
+        }
+
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .live-preview-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 12px;
         }
 
         .story-header {
@@ -304,8 +332,19 @@
 
             let html = `
                 <div class="story-header">
-                    <h2>${story.title}</h2>
+                    <h2>${story.title}<span class="live-preview-badge">LIVE</span></h2>
                     <p class="description">${story.description}</p>
+                </div>
+
+                <div class="preview-card">
+                    <h3>🎨 実際のコンポーネント</h3>
+                    <p>下のプレビューでは、Expo Web上で動作する実際のコンポーネントを確認できます。</p>
+                    <div class="iframe-container">
+                        <iframe src="http://localhost:8081" title="${story.title} Preview"></iframe>
+                    </div>
+                    <p style="margin-top: 16px; font-size: 14px; color: #666;">
+                        💡 <strong>使い方:</strong> Expo Web画面でハンバーガーメニュー → 「コンポーネント一覧」を選択してください
+                    </p>
                 </div>
             `;
 
