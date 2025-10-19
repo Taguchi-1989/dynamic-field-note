@@ -5,7 +5,8 @@
  */
 
 import React, { useState } from 'react';
-import { View, ScrollView, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { Text, IconButton, Dialog, Portal, Paragraph, Button } from 'react-native-paper';
 import { Photo } from '../types/case';
 

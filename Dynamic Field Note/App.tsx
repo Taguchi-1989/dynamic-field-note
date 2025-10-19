@@ -1,6 +1,7 @@
 /**
  * Dynamic Field Note - メインアプリ
  * Phase 3: ローカル保存機能 + SQLite統合
+ * Phase 4: Performance最適化 + フォントプリロード
  */
 
 import 'react-native-gesture-handler';
@@ -10,9 +11,13 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
 import { databaseService } from './src/services/DatabaseService';
+
+// スプラッシュスクリーンを自動で隠さない
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [isDbReady, setIsDbReady] = useState(false);
@@ -26,6 +31,9 @@ export default function App() {
       } catch (error) {
         console.error('Failed to initialize database:', error);
         setDbError(error instanceof Error ? error.message : 'Unknown error');
+      } finally {
+        // データベース初期化完了後にスプラッシュスクリーンを隠す
+        await SplashScreen.hideAsync();
       }
     };
 

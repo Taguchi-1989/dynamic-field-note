@@ -5,15 +5,8 @@
  */
 
 import React from 'react';
-import {
-  Modal,
-  View,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-  Platform,
-} from 'react-native';
+import { Modal, View, StyleSheet, TouchableOpacity, Dimensions, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import { IconButton, Text } from 'react-native-paper';
 import { Photo } from '../types/case';
 

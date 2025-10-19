@@ -11,7 +11,8 @@
  */
 
 import React, { useState } from 'react';
-import { StyleSheet, View, Image, Dimensions, Alert, GestureResponderEvent } from 'react-native';
+import { StyleSheet, View, Dimensions, Alert, GestureResponderEvent } from 'react-native';
+import { Image } from 'expo-image';
 import { Button, IconButton, Text } from 'react-native-paper';
 import Svg, { Circle, Line, Text as SvgText, G } from 'react-native-svg';
 
