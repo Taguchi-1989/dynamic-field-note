@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no"
+    />
+
+    <!-- SEO Meta Tags -->
+    <title>Dynamic Field Note - 現場調査アプリ</title>
+    <meta
+      name="description"
+      content="音声メモをAIで自動要約する現場調査・点検アプリケーション。現場での作業効率を大幅に向上させます。"
+    />
+    <meta
+      name="keywords"
+      content="現場調査,点検,音声メモ,AI要約,React Native,Expo,Gemini,フィールドワーク"
+    />
+    <meta name="author" content="Dynamic Field Note Team" />
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#6200ee" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="FieldNote" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Dynamic Field Note - 現場調査アプリ" />
+    <meta
+      property="og:description"
+      content="音声メモをAIで自動要約する現場調査・点検アプリケーション"
+    />
+    <meta property="og:site_name" content="Dynamic Field Note" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Dynamic Field Note - 現場調査アプリ" />
+    <meta
+      name="twitter:description"
+      content="音声メモをAIで自動要約する現場調査・点検アプリケーション"
+    />
+
+    <!-- Font Optimization: Preconnect to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!--
+      Font Preload:
+      React Native Paper uses Roboto by default
+      Preload critical font weights for faster rendering
+    -->
+    <link
+      rel="preload"
+      href="https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <!--
+      System Font Stack with font-display: swap
+      Ensures text is visible during webfont load
+    -->
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+      /* Font fallback stack */
+      body {
+        font-family:
+          'Roboto',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          'Helvetica Neue',
+          Arial,
+          sans-serif,
+          'Apple Color Emoji',
+          'Segoe UI Emoji',
+          'Segoe UI Symbol';
+      }
+
+      /* Critical CSS for font optimization */
+      @font-face {
+        font-family: 'Roboto';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap; /* Ensures text visibility during load */
+        src:
+          local('Roboto'),
+          local('Roboto-Regular'),
+          url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2) format('woff2');
+      }
+
+      @font-face {
+        font-family: 'Roboto';
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src:
+          local('Roboto Medium'),
+          local('Roboto-Medium'),
+          url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fBBc4.woff2) format('woff2');
+      }
+
+      /* Expo Reset Styles */
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        overflow: hidden;
+      }
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript> You need to enable JavaScript to run this app. </noscript>
+    <div id="root"></div>
+  </body>
+</html>
