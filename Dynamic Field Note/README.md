@@ -30,6 +30,26 @@
 - 🔐 **セキュリティ**: TLSピンニング＋署名ZIP＋ログ監査
 - 📄 **出力**: Markdown / PDF / ZIP
 
+## 📊 品質指標
+
+### Lighthouse スコア（Expo Web）
+
+![Performance](https://img.shields.io/badge/Performance-78-green)
+![Accessibility](https://img.shields.io/badge/Accessibility-94-brightgreen)
+![Best Practices](https://img.shields.io/badge/Best%20Practices-100-brightgreen)
+![SEO](https://img.shields.io/badge/SEO-92-brightgreen)
+
+### Core Web Vitals
+
+![FCP](https://img.shields.io/badge/FCP-0.29s-brightgreen)
+![LCP](https://img.shields.io/badge/LCP-2.35s-green)
+![TBT](https://img.shields.io/badge/TBT-169ms-green)
+![CLS](https://img.shields.io/badge/CLS-0.006-brightgreen)
+
+**最終測定日**: 2025-10-19
+
+詳細レポート: [PERFORMANCE_FINAL_REPORT.md](docs/PERFORMANCE_FINAL_REPORT.md)
+
 ## 🚀 クイックスタート
 
 ```bash

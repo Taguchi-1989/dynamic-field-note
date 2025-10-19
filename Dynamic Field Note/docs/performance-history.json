@@ -1,0 +1,28 @@
+{
+  "measurements": [
+    {
+      "date": "2025-10-19",
+      "commit": "36f2ffe",
+      "phase": "Phase 4 - 初回最適化完了",
+      "scores": {
+        "performance": 78,
+        "accessibility": 94,
+        "bestPractices": 100,
+        "seo": 92
+      },
+      "metrics": {
+        "fcp": 0.29,
+        "lcp": 2.35,
+        "tbt": 169,
+        "cls": 0.006,
+        "speedIndex": 2.44
+      },
+      "optimizations": [
+        "SEO最適化（Meta情報追加）",
+        "React.lazy によるコード分割",
+        "expo-image 導入",
+        "expo-splash-screen 統合"
+      ]
+    }
+  ]
+}
