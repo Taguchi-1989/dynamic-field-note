@@ -2,6 +2,29 @@
   "measurements": [
     {
       "date": "2025-10-19",
+      "commit": "7ebb465",
+      "phase": "Phase 3+4 完了 - バンドルサイズ最適化",
+      "scores": {
+        "performance": 78,
+        "accessibility": 94,
+        "bestPractices": 100,
+        "seo": 92
+      },
+      "metrics": {
+        "fcp": 0.29,
+        "lcp": 2.35,
+        "tbt": 169,
+        "cls": 0.006,
+        "speedIndex": 2.44
+      },
+      "optimizations": [
+        "全Drawerスクリーンを遅延ロード化",
+        "withSuspense HOC実装",
+        "Code Splitting拡張"
+      ]
+    },
+    {
+      "date": "2025-10-19",
       "commit": "2a3bd59",
       "phase": "Phase 1 完了 - 画像最適化",
       "scores": {
