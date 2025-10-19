@@ -1,16 +1,67 @@
 /**
  * Drawerナビゲーション
  * Phase 2: ハンバーガーメニュー実装
+ * Phase 4: バンドルサイズ最適化 - 遅延ロード
  */
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { HomeScreen } from '../screens/HomeScreen';
-import { CaseListScreen } from '../screens/CaseListScreen';
-import { CameraScreen } from '../screens/CameraScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
-import { SyncHistoryScreen } from '../screens/SyncHistoryScreen';
-import { ComponentShowcaseScreen } from '../screens/ComponentShowcaseScreen';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+
+// Lazy load all drawer screens for bundle size optimization
+const HomeScreen = lazy(() =>
+  import('../screens/HomeScreen').then((module) => ({
+    default: module.HomeScreen,
+  }))
+);
+
+const CaseListScreen = lazy(() =>
+  import('../screens/CaseListScreen').then((module) => ({
+    default: module.CaseListScreen,
+  }))
+);
+
+const CameraScreen = lazy(() =>
+  import('../screens/CameraScreen').then((module) => ({
+    default: module.CameraScreen,
+  }))
+);
+
+const SettingsScreen = lazy(() =>
+  import('../screens/SettingsScreen').then((module) => ({
+    default: module.SettingsScreen,
+  }))
+);
+
+const SyncHistoryScreen = lazy(() =>
+  import('../screens/SyncHistoryScreen').then((module) => ({
+    default: module.SyncHistoryScreen,
+  }))
+);
+
+const ComponentShowcaseScreen = lazy(() =>
+  import('../screens/ComponentShowcaseScreen').then((module) => ({
+    default: module.ComponentShowcaseScreen,
+  }))
+);
+
+// Loading fallback for lazy-loaded screens
+const ScreenLoader: React.FC = () => (
+  <View style={styles.loaderContainer}>
+    <ActivityIndicator size="large" color="#1976d2" />
+  </View>
+);
+
+// Wrapper to add Suspense to each screen
+const withSuspense = (Component: React.LazyExoticComponent<React.FC>) => {
+  const SuspenseWrapper: React.FC = (props: object) => (
+    <Suspense fallback={<ScreenLoader />}>
+      <Component {...props} />
+    </Suspense>
+  );
+  SuspenseWrapper.displayName = `withSuspense(${Component.name || 'Component'})`;
+  return SuspenseWrapper;
+};
 
 const Drawer = createDrawerNavigator();
 
@@ -44,7 +95,7 @@ export const DrawerNavigator: React.FC = () => {
     >
       <Drawer.Screen
         name="Home"
-        component={HomeScreen}
+        component={withSuspense(HomeScreen)}
         options={{
           drawerLabel: 'ホーム',
           title: 'Dynamic Field Note',
@@ -57,7 +108,7 @@ export const DrawerNavigator: React.FC = () => {
       />
       <Drawer.Screen
         name="CaseList"
-        component={CaseListScreen}
+        component={withSuspense(CaseListScreen)}
         options={{
           drawerLabel: '案件一覧',
           title: '案件一覧',
@@ -70,7 +121,7 @@ export const DrawerNavigator: React.FC = () => {
       />
       <Drawer.Screen
         name="Camera"
-        component={CameraScreen}
+        component={withSuspense(CameraScreen)}
         options={{
           drawerLabel: '写真撮影',
           title: '写真撮影',
@@ -83,7 +134,7 @@ export const DrawerNavigator: React.FC = () => {
       />
       <Drawer.Screen
         name="Settings"
-        component={SettingsScreen}
+        component={withSuspense(SettingsScreen)}
         options={{
           drawerLabel: '設定',
           title: '設定',
@@ -96,7 +147,7 @@ export const DrawerNavigator: React.FC = () => {
       />
       <Drawer.Screen
         name="SyncHistory"
-        component={SyncHistoryScreen}
+        component={withSuspense(SyncHistoryScreen)}
         options={{
           drawerLabel: '同期履歴',
           title: '同期履歴',
@@ -109,7 +160,7 @@ export const DrawerNavigator: React.FC = () => {
       />
       <Drawer.Screen
         name="ComponentShowcase"
-        component={ComponentShowcaseScreen}
+        component={withSuspense(ComponentShowcaseScreen)}
         options={{
           drawerLabel: 'コンポーネント一覧',
           title: 'Component Showcase',
@@ -123,3 +174,12 @@ export const DrawerNavigator: React.FC = () => {
     </Drawer.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+});
