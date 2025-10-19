@@ -9,6 +9,7 @@ import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { Text, IconButton, Dialog, Portal, Paragraph, Button } from 'react-native-paper';
 import { Photo } from '../types/case';
+import { DEFAULT_BLURHASH, BLURHASH_CONFIG } from '../constants/blurhash';
 
 interface PhotoThumbnailGridProps {
   photos: Photo[];
@@ -82,8 +83,11 @@ export const PhotoThumbnailGrid: React.FC<PhotoThumbnailGridProps> = ({
             <TouchableOpacity onPress={() => onPhotoPress(photo)} disabled={disabled}>
               <Image
                 source={{ uri: photo.thumbnail_path || photo.file_path }}
+                placeholder={{ blurhash: DEFAULT_BLURHASH }}
+                transition={BLURHASH_CONFIG.transitionDuration}
+                cachePolicy={BLURHASH_CONFIG.cachePolicy}
+                contentFit="cover"
                 style={styles.thumbnail}
-                resizeMode="cover"
               />
             </TouchableOpacity>
 

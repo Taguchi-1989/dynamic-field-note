@@ -9,6 +9,7 @@ import { Modal, View, StyleSheet, TouchableOpacity, Dimensions, Platform } from 
 import { Image } from 'expo-image';
 import { IconButton, Text } from 'react-native-paper';
 import { Photo } from '../types/case';
+import { DEFAULT_BLURHASH, BLURHASH_CONFIG } from '../constants/blurhash';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -55,8 +56,11 @@ export const PhotoViewerModal: React.FC<PhotoViewerModalProps> = ({
           <View style={styles.imageContainer}>
             <Image
               source={{ uri: photo.file_path }}
+              placeholder={{ blurhash: DEFAULT_BLURHASH }}
+              transition={BLURHASH_CONFIG.transitionDuration}
+              cachePolicy={BLURHASH_CONFIG.cachePolicy}
+              contentFit="contain"
               style={styles.image}
-              resizeMode="contain"
               accessible
               accessibilityLabel={photo.caption || '写真'}
             />

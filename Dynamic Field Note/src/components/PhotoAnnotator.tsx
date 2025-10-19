@@ -15,6 +15,7 @@ import { StyleSheet, View, Dimensions, Alert, GestureResponderEvent } from 'reac
 import { Image } from 'expo-image';
 import { Button, IconButton, Text } from 'react-native-paper';
 import Svg, { Circle, Line, Text as SvgText, G } from 'react-native-svg';
+import { DEFAULT_BLURHASH, BLURHASH_CONFIG } from '../constants/blurhash';
 
 /**
  * 注釈ツール種別
@@ -170,7 +171,14 @@ export const PhotoAnnotator: React.FC<PhotoAnnotatorProps> = ({ photoUri, onSave
 
       {/* 写真 + SVGオーバーレイ */}
       <View style={styles.imageContainer} onTouchEnd={handlePress}>
-        <Image source={{ uri: photoUri }} style={styles.image} resizeMode="contain" />
+        <Image
+          source={{ uri: photoUri }}
+          placeholder={{ blurhash: DEFAULT_BLURHASH }}
+          transition={BLURHASH_CONFIG.transitionDuration}
+          cachePolicy={BLURHASH_CONFIG.cachePolicy}
+          contentFit="contain"
+          style={styles.image}
+        />
 
         {/* SVG注釈レイヤー */}
         <Svg style={styles.svgOverlay} width={SCREEN_WIDTH} height={SCREEN_HEIGHT - 200}>
