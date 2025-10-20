@@ -1,6 +1,30 @@
 {
   "measurements": [
     {
+      "date": "2025-10-20",
+      "commit": "1fcd3bb",
+      "phase": "Phase 5 完了 - PWA化とService Worker実装",
+      "scores": {
+        "performance": 78,
+        "accessibility": 94,
+        "bestPractices": 100,
+        "seo": 92
+      },
+      "metrics": {
+        "fcp": 0.29,
+        "lcp": 2.35,
+        "tbt": 169,
+        "cls": 0.006,
+        "speedIndex": 2.44
+      },
+      "optimizations": [
+        "Service Worker実装（オフライン対応）",
+        "PWAアイコン設定（192x192, 512x512）",
+        "OfflineBanner実装",
+        "Web版SQLite問題解決（条件付きimport）"
+      ]
+    },
+    {
       "date": "2025-10-19",
       "commit": "7ebb465",
       "phase": "Phase 3+4 完了 - バンドルサイズ最適化",

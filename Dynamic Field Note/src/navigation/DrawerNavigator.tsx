@@ -6,7 +6,14 @@
 
 import React, { Suspense, lazy } from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text, Platform } from 'react-native';
+
+// Dummy screen for Web (Phase 3 features require native SQLite)
+const DummyScreen: React.FC = () => (
+  <View style={styles.loaderContainer}>
+    <Text>この機能はネイティブアプリ専用です</Text>
+  </View>
+);
 
 // Lazy load all drawer screens for bundle size optimization
 const HomeScreen = lazy(() =>
@@ -15,11 +22,15 @@ const HomeScreen = lazy(() =>
   }))
 );
 
-const CaseListScreen = lazy(() =>
-  import('../screens/CaseListScreen').then((module) => ({
-    default: module.CaseListScreen,
-  }))
-);
+// Phase 3の画面はネイティブ専用（Web版ではexpo-sqliteのWASM問題があるため）
+const CaseListScreen =
+  Platform.OS === 'web'
+    ? DummyScreen
+    : lazy(() =>
+        import('../screens/CaseListScreen').then((module) => ({
+          default: module.CaseListScreen,
+        }))
+      );
 
 const CameraScreen = lazy(() =>
   import('../screens/CameraScreen').then((module) => ({
@@ -39,11 +50,14 @@ const SyncHistoryScreen = lazy(() =>
   }))
 );
 
-const ComponentShowcaseScreen = lazy(() =>
-  import('../screens/ComponentShowcaseScreen').then((module) => ({
-    default: module.ComponentShowcaseScreen,
-  }))
-);
+const ComponentShowcaseScreen =
+  Platform.OS === 'web'
+    ? DummyScreen
+    : lazy(() =>
+        import('../screens/ComponentShowcaseScreen').then((module) => ({
+          default: module.ComponentShowcaseScreen,
+        }))
+      );
 
 // Loading fallback for lazy-loaded screens
 const ScreenLoader: React.FC = () => (

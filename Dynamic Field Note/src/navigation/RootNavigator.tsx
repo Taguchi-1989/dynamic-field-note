@@ -6,7 +6,7 @@
 
 import React, { Suspense, lazy } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text, Platform } from 'react-native';
 
 // Lazy load components for code splitting
 const DrawerNavigator = lazy(() =>
@@ -15,17 +15,30 @@ const DrawerNavigator = lazy(() =>
   }))
 );
 
-const ReportListScreen = lazy(() =>
-  import('../screens/ReportListScreen').then((module) => ({
-    default: module.ReportListScreen,
-  }))
+// Phase 3の画面はネイティブ専用（Web版ではexpo-sqliteのWASM問題があるため）
+const DummyScreen: React.FC = () => (
+  <View style={styles.loadingContainer}>
+    <Text>この機能はネイティブアプリ専用です</Text>
+  </View>
 );
 
-const ReportFormScreen = lazy(() =>
-  import('../screens/ReportFormScreen').then((module) => ({
-    default: module.ReportFormScreen,
-  }))
-);
+const ReportListScreen =
+  Platform.OS === 'web'
+    ? DummyScreen
+    : lazy(() =>
+        import('../screens/ReportListScreen').then((module) => ({
+          default: module.ReportListScreen,
+        }))
+      );
+
+const ReportFormScreen =
+  Platform.OS === 'web'
+    ? DummyScreen
+    : lazy(() =>
+        import('../screens/ReportFormScreen').then((module) => ({
+          default: module.ReportFormScreen,
+        }))
+      );
 
 // Loading fallback component
 const LoadingFallback: React.FC = () => (

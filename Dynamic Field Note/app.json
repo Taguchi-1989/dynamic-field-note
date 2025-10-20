@@ -38,6 +38,8 @@
       "startUrl": "/",
       "scope": "/",
       "dir": "ltr",
+      "categories": ["productivity", "business", "utilities"],
+      "manifestIcon": "./assets/icon.png",
       "meta": {
         "viewport": "width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no",
         "description": "音声メモをAIで自動要約する現場調査・点検アプリケーション。現場での作業効率を大幅に向上させます。",
@@ -47,7 +49,21 @@
         "apple-mobile-web-app-status-bar-style": "default",
         "apple-mobile-web-app-title": "FieldNote",
         "mobile-web-app-capable": "yes"
-      }
+      },
+      "icons": [
+        {
+          "src": "./assets/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "./assets/icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }
+      ]
     }
   }
 }

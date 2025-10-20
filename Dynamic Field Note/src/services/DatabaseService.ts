@@ -9,7 +9,13 @@
  */
 
 import { Platform } from 'react-native';
-import * as SQLite from 'expo-sqlite';
+
+// Web版ではexpo-sqliteのWASM問題があるため、動的import
+let SQLite: typeof import('expo-sqlite') | null = null;
+if (Platform.OS !== 'web') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  SQLite = require('expo-sqlite');
+}
 
 /**
  * データベース名
@@ -17,18 +23,24 @@ import * as SQLite from 'expo-sqlite';
 const DB_NAME = 'dynamic_field_note.db';
 
 /**
+ * 型エイリアス（Web版でのnull対応）
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SQLiteDatabase = SQLite extends null ? any : import('expo-sqlite').SQLiteDatabase;
+
+/**
  * マイグレーション定義
  */
 interface Migration {
   version: number;
-  up: (db: SQLite.SQLiteDatabase) => Promise<void>;
+  up: (db: SQLiteDatabase) => Promise<void>;
 }
 
 /**
  * データベースサービスクラス
  */
 export class DatabaseService {
-  private db: SQLite.SQLiteDatabase | null = null;
+  private db: SQLiteDatabase | null = null;
   private initialized = false;
 
   /**
@@ -40,7 +52,7 @@ export class DatabaseService {
     }
 
     // Web環境ではデータベースをスキップ（IndexedDBフォールバック未実装）
-    if (Platform.OS === 'web') {
+    if (Platform.OS === 'web' || !SQLite) {
       console.warn(
         '[DatabaseService] SQLite not supported on Web. Skipping database initialization.'
       );
@@ -66,7 +78,7 @@ export class DatabaseService {
   /**
    * データベースインスタンスを取得
    */
-  getDatabase(): SQLite.SQLiteDatabase {
+  getDatabase(): SQLiteDatabase {
     if (!this.db) {
       throw new Error('Database not initialized. Call initialize() first.');
     }
@@ -144,7 +156,7 @@ export class DatabaseService {
   /**
    * トランザクション実行
    */
-  async transaction<T>(callback: (db: SQLite.SQLiteDatabase) => Promise<T>): Promise<T> {
+  async transaction<T>(callback: (db: SQLiteDatabase) => Promise<T>): Promise<T> {
     const db = this.getDatabase();
 
     try {
@@ -205,8 +217,10 @@ export class DatabaseService {
     if (this.db) {
       await this.close();
     }
-    await SQLite.deleteDatabaseAsync(DB_NAME);
-    console.log('[DatabaseService] Database dropped');
+    if (SQLite) {
+      await SQLite.deleteDatabaseAsync(DB_NAME);
+      console.log('[DatabaseService] Database dropped');
+    }
   }
 }
 
@@ -216,7 +230,7 @@ export class DatabaseService {
 const migrations: Migration[] = [
   {
     version: 1,
-    up: async (db: SQLite.SQLiteDatabase) => {
+    up: async (db: SQLiteDatabase) => {
       // cases テーブル作成
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS cases (
@@ -285,7 +299,7 @@ const migrations: Migration[] = [
   },
   {
     version: 2,
-    up: async (db: SQLite.SQLiteDatabase) => {
+    up: async (db: SQLiteDatabase) => {
       // photos テーブル作成
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS photos (

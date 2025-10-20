@@ -2,6 +2,7 @@
  * Dynamic Field Note - メインアプリ
  * Phase 3: ローカル保存機能 + SQLite統合
  * Phase 4: Performance最適化 + フォントプリロード
+ * Phase 5: PWA化 + Service Worker
  */
 
 import 'react-native-gesture-handler';
@@ -10,11 +11,64 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
-import { databaseService } from './src/services/DatabaseService';
+// Phase 3: DatabaseService (ネイティブ専用)
+// Web版ではexpo-sqliteのWASM問題があるため、条件付きimport
+let databaseService: { initialize: () => Promise<void> } | null = null;
+if (Platform.OS !== 'web') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  databaseService = require('./src/services/DatabaseService').databaseService;
+}
+import { Workbox } from 'workbox-window';
+import { OfflineBanner } from './src/components/OfflineBanner';
+
+// Web専用: フォント最適化のためのヘッド要素追加
+if (Platform.OS === 'web') {
+  // Preconnect to Google Fonts
+  const preconnectGoogleFonts = document.createElement('link');
+  preconnectGoogleFonts.rel = 'preconnect';
+  preconnectGoogleFonts.href = 'https://fonts.googleapis.com';
+  document.head.appendChild(preconnectGoogleFonts);
+
+  const preconnectGstatic = document.createElement('link');
+  preconnectGstatic.rel = 'preconnect';
+  preconnectGstatic.href = 'https://fonts.gstatic.com';
+  preconnectGstatic.crossOrigin = 'anonymous';
+  document.head.appendChild(preconnectGstatic);
+
+  // font-display: swap付きでRobotoを読み込み
+  const fontStyle = document.createElement('style');
+  fontStyle.textContent = `
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: local('Roboto'), local('Roboto-Regular'),
+        url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2) format('woff2');
+    }
+
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: local('Roboto Medium'), local('Roboto-Medium'),
+        url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fBBc4.woff2) format('woff2');
+    }
+
+    body {
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue',
+        Arial, sans-serif;
+    }
+  `;
+  document.head.appendChild(fontStyle);
+}
 
 // スプラッシュスクリーンを自動で隠さない
 SplashScreen.preventAutoHideAsync();
@@ -26,7 +80,10 @@ export default function App() {
   useEffect(() => {
     const initializeDatabase = async () => {
       try {
-        await databaseService.initialize();
+        // Web版ではDatabaseServiceをスキップ（Phase 3機能はネイティブ専用）
+        if (databaseService) {
+          await databaseService.initialize();
+        }
         setIsDbReady(true);
       } catch (error) {
         console.error('Failed to initialize database:', error);
@@ -38,6 +95,32 @@ export default function App() {
     };
 
     initializeDatabase();
+  }, []);
+
+  // Service Worker登録（Web専用）
+  useEffect(() => {
+    if (Platform.OS === 'web' && 'serviceWorker' in navigator) {
+      const wb = new Workbox('/service-worker.js');
+
+      // Service Worker更新通知
+      wb.addEventListener('waiting', () => {
+        console.log('[Service Worker] New version available! Reload to update.');
+        // ユーザーに更新を通知（オプション）
+        if (window.confirm('新しいバージョンが利用可能です。今すぐ更新しますか？')) {
+          wb.messageSkipWaiting();
+          window.location.reload();
+        }
+      });
+
+      // Service Worker登録
+      wb.register()
+        .then(() => {
+          console.log('[Service Worker] Registered successfully');
+        })
+        .catch((error) => {
+          console.error('[Service Worker] Registration failed:', error);
+        });
+    }
   }, []);
 
   // ローディング画面
@@ -64,6 +147,7 @@ export default function App() {
     <SafeAreaProvider>
       <AccessibilityProvider>
         <PaperProvider>
+          <OfflineBanner />
           <NavigationContainer>
             <RootNavigator />
           </NavigationContainer>

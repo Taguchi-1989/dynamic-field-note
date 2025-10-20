@@ -46,7 +46,7 @@
 ![TBT](https://img.shields.io/badge/TBT-169ms-green)
 ![CLS](https://img.shields.io/badge/CLS-0.006-brightgreen)
 
-**最終測定日**: 2025-10-19
+**最終測定日**: 2025-10-20
 
 詳細レポート: [PERFORMANCE_FINAL_REPORT.md](docs/PERFORMANCE_FINAL_REPORT.md)
 
