@@ -26,7 +26,7 @@ const DB_NAME = 'dynamic_field_note.db';
  * 型エイリアス（Web版でのnull対応）
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SQLiteDatabase = SQLite extends null ? any : import('expo-sqlite').SQLiteDatabase;
+type SQLiteDatabase = typeof SQLite extends null ? any : import('expo-sqlite').SQLiteDatabase;
 
 /**
  * マイグレーション定義

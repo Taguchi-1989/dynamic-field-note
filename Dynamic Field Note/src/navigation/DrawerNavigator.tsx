@@ -67,7 +67,7 @@ const ScreenLoader: React.FC = () => (
 );
 
 // Wrapper to add Suspense to each screen
-const withSuspense = (Component: React.LazyExoticComponent<React.FC>) => {
+const withSuspense = (Component: React.LazyExoticComponent<React.FC> | React.FC) => {
   const SuspenseWrapper: React.FC = (props: object) => (
     <Suspense fallback={<ScreenLoader />}>
       <Component {...props} />
