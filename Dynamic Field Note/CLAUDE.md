@@ -123,6 +123,21 @@ npm run web
 npm run storybook  # http://localhost:6006 で起動
 ```
 
+### Traefik統合環境（複数プロジェクト開発時）
+
+```bash
+# Traefik起動（初回のみ・全プロジェクト共通）
+cd /workspaces/ZBC-migration-kit/gijiroku-app-v2/traefik
+docker-compose up -d
+
+# アクセス
+# Metro Bundler: http://dynamic-field-note.localhost
+# Storybook: http://dynamic-field-note-storybook.localhost
+# Traefik Dashboard: http://traefik.localhost:8080
+
+# 詳細: docs/TRAEFIK_SETUP_GUIDE.md
+```
+
 ### 品質チェック
 
 ```bash

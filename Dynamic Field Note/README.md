@@ -52,6 +52,8 @@
 
 ## 🚀 クイックスタート
 
+### 通常の開発環境
+
 ```bash
 # 1. リポジトリのクローン
 git clone https://github.com/Taguchi-1989/dynamic-field-note.git
@@ -64,7 +66,28 @@ npm install
 npm start
 ```
 
-詳細は [開発環境構築ガイド](docs/setup-guide.md)（Phase 0で作成予定）を参照してください。
+### Traefik統合環境（推奨・複数プロジェクト開発時）
+
+Traefikリバースプロキシを使用すると、ポート競合なしで複数プロジェクトを同時開発できます。
+
+```bash
+# 1. Traefik起動（初回のみ・全プロジェクト共通）
+cd /workspaces/ZBC-migration-kit/gijiroku-app-v2/traefik
+docker-compose up -d
+
+# 2. Dev Containerでプロジェクトを開く
+# VSCode: "Dev Containers: Rebuild Container"
+
+# 3. アクセス
+# Metro Bundler: http://dynamic-field-note.localhost
+# Storybook: http://dynamic-field-note-storybook.localhost
+# Traefik Dashboard: http://traefik.localhost:8080
+```
+
+詳細は以下を参照してください：
+
+- [Traefik導入ガイド](docs/TRAEFIK_SETUP_GUIDE.md) - Traefik統合セットアップ
+- [開発環境構築ガイド](docs/setup-guide.md) - 通常の開発環境セットアップ
 
 ## 📂 プロジェクト構造
 

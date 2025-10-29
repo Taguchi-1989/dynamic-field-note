@@ -1,0 +1,72 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    user: node
+
+    volumes:
+      - ..:/workspaces/Dynamic Field Note:cached
+      - dynamic-field-note-node-modules:/workspaces/Dynamic Field Note/node_modules
+      - dynamic-field-note-cache:/home/node/.cache
+
+    # Overrides default command so things don't shut down after the process ends
+    command: sleep infinity
+
+    # Environment variables for Expo
+    environment:
+      - NODE_ENV=development
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - REACT_NATIVE_PACKAGER_HOSTNAME=dynamic-field-note.localhost
+      - EXPO_USE_FAST_RESOLVER=1
+
+    # Use init to properly handle signals
+    init: true
+
+    # Traefik統合設定
+    networks:
+      - default
+      - traefik-network
+
+    labels:
+      # Traefik有効化
+      - "traefik.enable=true"
+
+      # Metro Bundler（8081ポート）- メインの開発サーバー
+      - "traefik.http.routers.dynamic-field-note.rule=Host(`dynamic-field-note.localhost`)"
+      - "traefik.http.routers.dynamic-field-note.entrypoints=web"
+      - "traefik.http.routers.dynamic-field-note.service=dynamic-field-note"
+      - "traefik.http.services.dynamic-field-note.loadbalancer.server.port=8081"
+
+      # Expo Dev Server（19000ポート）
+      - "traefik.http.routers.dynamic-field-note-expo.rule=Host(`dynamic-field-note-expo.localhost`)"
+      - "traefik.http.routers.dynamic-field-note-expo.entrypoints=web"
+      - "traefik.http.routers.dynamic-field-note-expo.service=dynamic-field-note-expo"
+      - "traefik.http.services.dynamic-field-note-expo.loadbalancer.server.port=19000"
+
+      # Expo DevTools（19002ポート）
+      - "traefik.http.routers.dynamic-field-note-devtools.rule=Host(`dynamic-field-note-devtools.localhost`)"
+      - "traefik.http.routers.dynamic-field-note-devtools.entrypoints=web"
+      - "traefik.http.routers.dynamic-field-note-devtools.service=dynamic-field-note-devtools"
+      - "traefik.http.services.dynamic-field-note-devtools.loadbalancer.server.port=19002"
+
+      # Storybook（6006ポート）
+      - "traefik.http.routers.dynamic-field-note-storybook.rule=Host(`dynamic-field-note-storybook.localhost`)"
+      - "traefik.http.routers.dynamic-field-note-storybook.entrypoints=web"
+      - "traefik.http.routers.dynamic-field-note-storybook.service=dynamic-field-note-storybook"
+      - "traefik.http.services.dynamic-field-note-storybook.loadbalancer.server.port=6006"
+
+      # HMR/WebSocket対応ミドルウェア
+      - "traefik.http.routers.dynamic-field-note.middlewares=hmr-headers@file,dev-cors@file"
+      - "traefik.http.routers.dynamic-field-note-storybook.middlewares=hmr-headers@file,dev-cors@file"
+
+volumes:
+  dynamic-field-note-node-modules:
+  dynamic-field-note-cache:
+
+# Traefik外部ネットワークに接続
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network
