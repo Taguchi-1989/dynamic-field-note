@@ -6,8 +6,8 @@ name: dynamic-field-note
 # ログ回転設定（全サービス共通）
 x-logging: &logging
   options:
-    max-size: "10m"
-    max-file: "3"
+    max-size: '10m'
+    max-file: '3'
 
 services:
   # Traefik リバースプロキシ
@@ -20,16 +20,27 @@ services:
       - --providers.docker.exposedbydefault=false
       # エントリーポイント（HTTP）
       - --entrypoints.web.address=:80
+      # エントリーポイント（HTTPS）※HTTPSを有効化する場合はコメント解除
+      # - --entrypoints.websecure.address=:443
+      # 動的設定読み込み（HTTPS用）※HTTPSを有効化する場合はコメント解除
+      # - --providers.file.directory=/etc/traefik/dynamic
+      # - --providers.file.watch=true
       # ログ設定
       - --log.level=INFO
       # アクセスログ
       - --accesslog=true
     ports:
       # HTTPのみ（HTTPSは後で追加）
-      - "80:80"
+      - '80:80'
+      # HTTPS ※HTTPSを有効化する場合はコメント解除
+      # - "443:443"
     volumes:
       # Docker socket（コンテナ検出用）
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      # 動的設定（HTTPS用）※HTTPSを有効化する場合はコメント解除
+      # - ./dynamic:/etc/traefik/dynamic:ro
+      # TLS証明書（mkcertで生成）※HTTPSを有効化する場合はコメント解除
+      # - ./certs:/certs:ro
     networks:
       - edge
     logging: *logging
@@ -54,19 +65,19 @@ services:
       - /app/node_modules
     labels:
       # Traefik有効化
-      - "traefik.enable=true"
+      - 'traefik.enable=true'
 
       # Metro Bundler (8081)
-      - "traefik.http.routers.expo-metro.rule=Host(`expo.localhost`)"
-      - "traefik.http.routers.expo-metro.entrypoints=web"
-      - "traefik.http.routers.expo-metro.service=expo-metro"
-      - "traefik.http.services.expo-metro.loadbalancer.server.port=8081"
+      - 'traefik.http.routers.expo-metro.rule=Host(`expo.localhost`)'
+      - 'traefik.http.routers.expo-metro.entrypoints=web'
+      - 'traefik.http.routers.expo-metro.service=expo-metro'
+      - 'traefik.http.services.expo-metro.loadbalancer.server.port=8081'
 
       # Expo Dev Server (19000)
-      - "traefik.http.routers.expo-dev.rule=Host(`expo-dev.localhost`)"
-      - "traefik.http.routers.expo-dev.entrypoints=web"
-      - "traefik.http.routers.expo-dev.service=expo-dev"
-      - "traefik.http.services.expo-dev.loadbalancer.server.port=19000"
+      - 'traefik.http.routers.expo-dev.rule=Host(`expo-dev.localhost`)'
+      - 'traefik.http.routers.expo-dev.entrypoints=web'
+      - 'traefik.http.routers.expo-dev.service=expo-dev'
+      - 'traefik.http.services.expo-dev.loadbalancer.server.port=19000'
     networks:
       - edge
     logging: *logging
@@ -88,11 +99,11 @@ services:
       - /app/node_modules
     labels:
       # Traefik有効化
-      - "traefik.enable=true"
-      - "traefik.http.routers.storybook.rule=Host(`storybook.localhost`)"
-      - "traefik.http.routers.storybook.entrypoints=web"
-      - "traefik.http.routers.storybook.service=storybook"
-      - "traefik.http.services.storybook.loadbalancer.server.port=6006"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.storybook.rule=Host(`storybook.localhost`)'
+      - 'traefik.http.routers.storybook.entrypoints=web'
+      - 'traefik.http.routers.storybook.service=storybook'
+      - 'traefik.http.services.storybook.loadbalancer.server.port=6006'
     networks:
       - edge
     logging: *logging
