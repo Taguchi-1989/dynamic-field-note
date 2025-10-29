@@ -93,7 +93,9 @@ class PhotoDAO {
       throw new Error('Failed to retrieve created photo');
     }
 
-    console.log(`[PhotoDAO] Created photo #${insertedId}: ${input.file_path}`);
+    if (__DEV__) {
+      console.log(`[PhotoDAO] Created photo #${insertedId}: ${input.file_path}`);
+    }
     return created;
   }
 
@@ -139,7 +141,9 @@ class PhotoDAO {
       throw new Error('Failed to retrieve updated photo');
     }
 
-    console.log(`[PhotoDAO] Updated photo #${id}`);
+    if (__DEV__) {
+      console.log(`[PhotoDAO] Updated photo #${id}`);
+    }
     return updated;
   }
 
@@ -157,7 +161,9 @@ class PhotoDAO {
 
     await db.runAsync('UPDATE photos SET is_deleted = 1 WHERE id = ?', [id]);
 
-    console.log(`[PhotoDAO] Deleted photo #${id}`);
+    if (__DEV__) {
+      console.log(`[PhotoDAO] Deleted photo #${id}`);
+    }
   }
 
   /**
@@ -168,7 +174,9 @@ class PhotoDAO {
 
     await db.runAsync('DELETE FROM photos WHERE id = ?', [id]);
 
-    console.log(`[PhotoDAO] Hard deleted photo #${id}`);
+    if (__DEV__) {
+      console.log(`[PhotoDAO] Hard deleted photo #${id}`);
+    }
   }
 
   /**
@@ -220,7 +228,9 @@ class PhotoDAO {
 
     await db.runAsync('UPDATE photos SET is_deleted = 1 WHERE case_id = ?', [caseId]);
 
-    console.log(`[PhotoDAO] Deleted all photos for case #${caseId}`);
+    if (__DEV__) {
+      console.log(`[PhotoDAO] Deleted all photos for case #${caseId}`);
+    }
   }
 
   /**
@@ -231,7 +241,9 @@ class PhotoDAO {
 
     await db.runAsync('UPDATE photos SET is_deleted = 1 WHERE report_id = ?', [reportId]);
 
-    console.log(`[PhotoDAO] Deleted all photos for report #${reportId}`);
+    if (__DEV__) {
+      console.log(`[PhotoDAO] Deleted all photos for report #${reportId}`);
+    }
   }
 
   /**
@@ -240,7 +252,9 @@ class PhotoDAO {
   async truncate(): Promise<void> {
     const db = databaseService.getDatabase();
     await db.runAsync('DELETE FROM photos');
-    console.log('[PhotoDAO] Truncated photos table');
+    if (__DEV__) {
+      console.log('[PhotoDAO] Truncated photos table');
+    }
   }
 }
 

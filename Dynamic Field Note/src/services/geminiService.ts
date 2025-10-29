@@ -127,7 +127,9 @@ export const parseJSONResponse = (text: string): SummaryJSON => {
       created_at: parsed.created_at || new Date().toISOString(),
     };
   } catch (error) {
-    console.error('JSON parse error:', error);
+    if (__DEV__) {
+      console.error('JSON parse error:', error);
+    }
     throw new Error('Gemini APIのレスポンスをパースできませんでした');
   }
 };
@@ -143,7 +145,9 @@ const callWithRetry = async <T>(
     return await fn();
   } catch (error) {
     if (retries > 0) {
-      console.warn(`API call failed, retrying... (${MAX_RETRIES - retries + 1}/${MAX_RETRIES})`);
+      if (__DEV__) {
+        console.warn(`API call failed, retrying... (${MAX_RETRIES - retries + 1}/${MAX_RETRIES})`);
+      }
       await new Promise((resolve) =>
         setTimeout(resolve, RETRY_DELAY * (MAX_RETRIES - retries + 1))
       );
@@ -197,7 +201,9 @@ export const summarizeText = async (request: SummarizeRequest): Promise<Summariz
       model: 'gemini-2.5-pro',
     };
   } catch (error) {
-    console.error('Gemini API error:', error);
+    if (__DEV__) {
+      console.error('Gemini API error:', error);
+    }
 
     const apiError: APIError = {
       message: error instanceof Error ? error.message : 'Gemini API呼び出しに失敗しました',
@@ -227,7 +233,9 @@ export const testGeminiConnection = async (): Promise<boolean> => {
     });
     return response.summary !== null;
   } catch (error) {
-    console.error('Gemini connection test failed:', error);
+    if (__DEV__) {
+      console.error('Gemini connection test failed:', error);
+    }
     return false;
   }
 };

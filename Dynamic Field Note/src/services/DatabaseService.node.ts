@@ -121,9 +121,13 @@ class NodeDatabaseService {
       await this.runMigrations();
 
       this.initialized = true;
-      console.log('[NodeDatabaseService] Database initialized successfully');
+      if (__DEV__) {
+        console.log('[NodeDatabaseService] Database initialized successfully');
+      }
     } catch (error) {
-      console.error('[NodeDatabaseService] Failed to initialize database:', error);
+      if (__DEV__) {
+        console.error('[NodeDatabaseService] Failed to initialize database:', error);
+      }
       throw error;
     }
   }
@@ -149,26 +153,36 @@ class NodeDatabaseService {
     // 現在のバージョンを取得
     const currentVersion = await this.getCurrentVersion();
 
-    console.log(`[NodeDatabaseService] Current DB version: ${currentVersion}`);
+    if (__DEV__) {
+      console.log(`[NodeDatabaseService] Current DB version: ${currentVersion}`);
+    }
 
     // 実行すべきマイグレーションをフィルタ
     const pendingMigrations = migrations.filter((m) => m.version > currentVersion);
 
     if (pendingMigrations.length === 0) {
-      console.log('[NodeDatabaseService] No pending migrations');
+      if (__DEV__) {
+        console.log('[NodeDatabaseService] No pending migrations');
+      }
       return;
     }
 
-    console.log(`[NodeDatabaseService] Running ${pendingMigrations.length} migration(s)`);
+    if (__DEV__) {
+      console.log(`[NodeDatabaseService] Running ${pendingMigrations.length} migration(s)`);
+    }
 
     // マイグレーションを順次実行
     for (const migration of pendingMigrations) {
-      console.log(`[NodeDatabaseService] Applying migration v${migration.version}`);
+      if (__DEV__) {
+        console.log(`[NodeDatabaseService] Applying migration v${migration.version}`);
+      }
       await migration.up(this.db);
       await this.setCurrentVersion(migration.version);
     }
 
-    console.log('[NodeDatabaseService] All migrations completed');
+    if (__DEV__) {
+      console.log('[NodeDatabaseService] All migrations completed');
+    }
   }
 
   /**
@@ -274,7 +288,9 @@ const migrations: Migration[] = [
         CREATE INDEX IF NOT EXISTS idx_reports_is_deleted ON reports(is_deleted);
       `);
 
-      console.log('[Migration v1] Tables and indexes created successfully');
+      if (__DEV__) {
+        console.log('[Migration v1] Tables and indexes created successfully');
+      }
     },
   },
 
@@ -318,7 +334,9 @@ const migrations: Migration[] = [
         CREATE INDEX IF NOT EXISTS idx_photos_is_deleted ON photos(is_deleted);
       `);
 
-      console.log('[Migration v2] Photos table and indexes created successfully');
+      if (__DEV__) {
+        console.log('[Migration v2] Photos table and indexes created successfully');
+      }
     },
   },
 ];

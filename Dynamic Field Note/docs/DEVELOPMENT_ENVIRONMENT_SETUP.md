@@ -21,11 +21,13 @@
 ## 環境要件
 
 ### 必須
+
 - **Node.js**: 20.x以上
 - **npm**: 10.x以上
 - **Git**: 2.x以上
 
 ### 推奨
+
 - **VSCode**: 最新版
 - **VSCode拡張機能**:
   - ESLint
@@ -41,11 +43,13 @@
 
 **推奨度**: ⭐⭐⭐⭐⭐
 **メリット**:
+
 - ✅ 追加ツール不要
 - ✅ 高速な開発サイクル
 - ✅ ChromeDevToolsでデバッグ可能
 
 **デメリット**:
+
 - ❌ ネイティブ機能（カメラ、SQLite）は制限あり
 
 **用途**: UI開発、ロジック開発、基本動作確認
@@ -56,11 +60,13 @@
 
 **推奨度**: ⭐⭐⭐⭐
 **メリット**:
+
 - ✅ 実機で動作確認
 - ✅ ネイティブ機能の一部が利用可能
 - ✅ セットアップ簡単
 
 **デメリット**:
+
 - ❌ カスタムネイティブモジュールは不可
 - ❌ スマートフォンが必要
 
@@ -72,11 +78,13 @@
 
 **推奨度**: ⭐⭐⭐⭐⭐（macOS環境）
 **メリット**:
+
 - ✅ 完全なiOS環境
 - ✅ ネイティブ機能全て利用可能
 - ✅ 実機なしでテスト可能
 
 **必須**:
+
 - macOS
 - Xcode（App Storeから無料）
 
@@ -88,10 +96,12 @@
 
 **推奨度**: ⭐⭐⭐
 **メリット**:
+
 - ✅ Android環境で動作確認
 - ✅ WSL2でも利用可能
 
 **必須**:
+
 - Android Studio
 - 仮想デバイス（AVD）
 
@@ -137,6 +147,7 @@ npm run web
 ブラウザが自動で開き、`http://localhost:8081` でアプリが表示されます。
 
 **確認項目**:
+
 - [ ] ホーム画面が表示される
 - [ ] ナビゲーションが動作する
 - [ ] コンソールにエラーがない
@@ -152,6 +163,7 @@ npm run web
    - Android: Google Play
 
 2. **開発サーバー起動**
+
    ```bash
    npm start
    ```
@@ -161,11 +173,13 @@ npm run web
    - Android: Expo Goアプリでスキャン
 
 **確認項目**:
+
 - [ ] アプリが起動する
 - [ ] 基本的な画面遷移が動作する
 - [ ] タッチ操作が正常
 
 **注意**: WSL2の場合、トンネルモードが必要な場合があります：
+
 ```bash
 npx expo start --tunnel
 ```
@@ -175,6 +189,7 @@ npx expo start --tunnel
 #### 🍎 iOS Simulator（macOSのみ）
 
 **前提条件**:
+
 ```bash
 # Xcodeインストール確認
 xcode-select --version
@@ -186,6 +201,7 @@ xcode-select --version
 **手順**:
 
 1. **iOSシミュレータ起動**
+
    ```bash
    npm run ios
    ```
@@ -195,11 +211,13 @@ xcode-select --version
    - Metro Bundlerが起動
 
 **確認項目**:
+
 - [ ] シミュレータでアプリが起動
 - [ ] カメラ権限のアラート（許可する）
 - [ ] SQLiteデータベース動作確認
 
 **トラブルシューティング**:
+
 ```bash
 # キャッシュクリア
 npx expo start --clear
@@ -213,6 +231,7 @@ xcrun simctl erase all
 #### 🤖 Android Emulator（オプション）
 
 **前提条件**:
+
 ```bash
 # Android Studioインストール
 # https://developer.android.com/studio
@@ -231,6 +250,7 @@ xcrun simctl erase all
    ```
 
 **WSL2での注意**:
+
 ```bash
 # WSL2からWindows側のADBを使用
 export ANDROID_HOME=/mnt/c/Users/YOUR_USERNAME/AppData/Local/Android/Sdk
@@ -332,6 +352,7 @@ npm run validate
 ### 推奨手順
 
 1. **開発サーバー起動**
+
    ```bash
    npm run web
    # または
@@ -343,6 +364,7 @@ npm run validate
    - ホットリロードで即座に反映
 
 3. **定期的なバリデーション**
+
    ```bash
    npm run validate  # Lint + 型チェック
    npm run test:smoke  # Smokeテスト
@@ -362,6 +384,7 @@ npm run validate
 **症状**: `npm start` でエラー
 
 **解決策**:
+
 ```bash
 # キャッシュクリア
 npx expo start --clear
@@ -381,6 +404,7 @@ watchman watch-del-all
 **症状**: QRコードスキャン後に接続エラー
 
 **解決策**:
+
 ```bash
 # トンネルモード使用
 npx expo start --tunnel
@@ -401,6 +425,7 @@ npx expo start --lan
 **症状**: VSCodeでエラー表示が残る
 
 **解決策**:
+
 ```bash
 # TypeScriptサーバー再起動
 # VSCode: Cmd/Ctrl + Shift + P
@@ -417,6 +442,7 @@ npm run type-check
 **症状**: `npm test` でエラー
 
 **解決策**:
+
 ```bash
 # Jestキャッシュクリア
 npx jest --clearCache
@@ -445,6 +471,7 @@ processors=4
 ```
 
 **起動コマンド**:
+
 ```bash
 # Web開発
 npm run web
@@ -465,6 +492,7 @@ npm run ios
 ```
 
 **追加設定**:
+
 ```bash
 # Homebrew（パッケージマネージャ）
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"

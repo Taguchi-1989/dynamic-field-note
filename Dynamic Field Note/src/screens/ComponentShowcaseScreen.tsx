@@ -134,8 +134,16 @@ export const ComponentShowcaseScreen: React.FC = () => {
               photos={[]}
               maxPhotos={10}
               onPhotoPress={(photo) => setSelectedPhoto(photo)}
-              onDeletePress={() => console.log('Delete')}
-              onAddPress={() => console.log('Add')}
+              onDeletePress={() => {
+                if (__DEV__) {
+                  console.log('Delete');
+                }
+              }}
+              onAddPress={() => {
+                if (__DEV__) {
+                  console.log('Add');
+                }
+              }}
             />
           </View>
 
@@ -145,8 +153,16 @@ export const ComponentShowcaseScreen: React.FC = () => {
               photos={mockPhotos}
               maxPhotos={10}
               onPhotoPress={(photo) => setSelectedPhoto(photo)}
-              onDeletePress={() => console.log('Delete')}
-              onAddPress={() => console.log('Add')}
+              onDeletePress={() => {
+                if (__DEV__) {
+                  console.log('Delete');
+                }
+              }}
+              onAddPress={() => {
+                if (__DEV__) {
+                  console.log('Add');
+                }
+              }}
             />
           </View>
 
@@ -168,10 +184,26 @@ export const ComponentShowcaseScreen: React.FC = () => {
           <View style={styles.preview}>
             <ReportCard
               report={mockReport}
-              onPress={() => console.log('Press')}
-              onLongPress={() => console.log('Long Press')}
-              onEdit={() => console.log('Edit')}
-              onDelete={() => console.log('Delete')}
+              onPress={() => {
+                if (__DEV__) {
+                  console.log('Press');
+                }
+              }}
+              onLongPress={() => {
+                if (__DEV__) {
+                  console.log('Long Press');
+                }
+              }}
+              onEdit={() => {
+                if (__DEV__) {
+                  console.log('Edit');
+                }
+              }}
+              onDelete={() => {
+                if (__DEV__) {
+                  console.log('Delete');
+                }
+              }}
             />
           </View>
         </View>

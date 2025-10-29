@@ -53,9 +53,11 @@ export class DatabaseService {
 
     // Web環境ではデータベースをスキップ（IndexedDBフォールバック未実装）
     if (Platform.OS === 'web' || !SQLite) {
-      console.warn(
-        '[DatabaseService] SQLite not supported on Web. Skipping database initialization.'
-      );
+      if (__DEV__) {
+        console.warn(
+          '[DatabaseService] SQLite not supported on Web. Skipping database initialization.'
+        );
+      }
       this.initialized = true;
       return;
     }
@@ -68,9 +70,13 @@ export class DatabaseService {
       await this.runMigrations();
 
       this.initialized = true;
-      console.log('[DatabaseService] Database initialized successfully');
+      if (__DEV__) {
+        console.log('[DatabaseService] Database initialized successfully');
+      }
     } catch (error) {
-      console.error('[DatabaseService] Failed to initialize database:', error);
+      if (__DEV__) {
+        console.error('[DatabaseService] Failed to initialize database:', error);
+      }
       throw error;
     }
   }
@@ -96,26 +102,36 @@ export class DatabaseService {
     // 現在のバージョンを取得
     const currentVersion = await this.getCurrentVersion();
 
-    console.log(`[DatabaseService] Current DB version: ${currentVersion}`);
+    if (__DEV__) {
+      console.log(`[DatabaseService] Current DB version: ${currentVersion}`);
+    }
 
     // 実行すべきマイグレーションをフィルタ
     const pendingMigrations = migrations.filter((m) => m.version > currentVersion);
 
     if (pendingMigrations.length === 0) {
-      console.log('[DatabaseService] No pending migrations');
+      if (__DEV__) {
+        console.log('[DatabaseService] No pending migrations');
+      }
       return;
     }
 
-    console.log(`[DatabaseService] Running ${pendingMigrations.length} migration(s)`);
+    if (__DEV__) {
+      console.log(`[DatabaseService] Running ${pendingMigrations.length} migration(s)`);
+    }
 
     // マイグレーションを順次実行
     for (const migration of pendingMigrations) {
-      console.log(`[DatabaseService] Applying migration v${migration.version}`);
+      if (__DEV__) {
+        console.log(`[DatabaseService] Applying migration v${migration.version}`);
+      }
       await migration.up(this.db);
       await this.setCurrentVersion(migration.version);
     }
 
-    console.log('[DatabaseService] All migrations completed');
+    if (__DEV__) {
+      console.log('[DatabaseService] All migrations completed');
+    }
   }
 
   /**
@@ -130,7 +146,9 @@ export class DatabaseService {
       const result = await this.db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
       return result?.user_version ?? 0;
     } catch (error) {
-      console.error('[DatabaseService] Failed to get current version:', error);
+      if (__DEV__) {
+        console.error('[DatabaseService] Failed to get current version:', error);
+      }
       return 0;
     }
   }
@@ -219,7 +237,9 @@ export class DatabaseService {
     }
     if (SQLite) {
       await SQLite.deleteDatabaseAsync(DB_NAME);
-      console.log('[DatabaseService] Database dropped');
+      if (__DEV__) {
+        console.log('[DatabaseService] Database dropped');
+      }
     }
   }
 }
@@ -294,7 +314,9 @@ const migrations: Migration[] = [
         CREATE INDEX IF NOT EXISTS idx_reports_is_deleted ON reports(is_deleted);
       `);
 
-      console.log('[Migration v1] Tables and indexes created successfully');
+      if (__DEV__) {
+        console.log('[Migration v1] Tables and indexes created successfully');
+      }
     },
   },
   {
@@ -340,7 +362,9 @@ const migrations: Migration[] = [
         CREATE INDEX IF NOT EXISTS idx_photos_is_deleted ON photos(is_deleted);
       `);
 
-      console.log('[Migration v2] Photos table and indexes created successfully');
+      if (__DEV__) {
+        console.log('[Migration v2] Photos table and indexes created successfully');
+      }
     },
   },
 ];

@@ -142,7 +142,9 @@ export const useSummarize = (options?: UseSummarizeOptions): UseSummarizeReturn 
           processingTime: response.processing_time,
         });
       } catch (error) {
-        console.error('要約エラー:', error);
+        if (__DEV__) {
+          console.error('要約エラー:', error);
+        }
         setProgress(0);
         setState((prev) => ({
           ...prev,

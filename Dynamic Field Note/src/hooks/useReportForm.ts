@@ -66,7 +66,9 @@ export const useReportForm = ({ caseId, reportId }: UseReportFormOptions): UseRe
       const report = await reportDAO.findById(reportId);
 
       if (!report) {
-        throw new Error('Report not found');
+        const notFoundError = new Error('Report not found');
+        setError(notFoundError);
+        return;
       }
 
       setTitle(report.title);
@@ -74,9 +76,10 @@ export const useReportForm = ({ caseId, reportId }: UseReportFormOptions): UseRe
       setIsModified(false); // 読み込み直後は未変更
     } catch (err) {
       const error = err as Error;
-      console.error('[useReportForm] Failed to load report:', error);
+      if (__DEV__) {
+        console.error('[useReportForm] Failed to load report:', error);
+      }
       setError(error);
-      throw error;
     } finally {
       setLoading(false);
     }
@@ -91,7 +94,7 @@ export const useReportForm = ({ caseId, reportId }: UseReportFormOptions): UseRe
     if (!validationResult.isValid) {
       const error = new Error(validationResult.errors[0].message);
       setError(error);
-      throw error;
+      return; // エラーを throw せずに return
     }
 
     try {
@@ -116,9 +119,11 @@ export const useReportForm = ({ caseId, reportId }: UseReportFormOptions): UseRe
       setIsModified(false);
     } catch (err) {
       const error = err as Error;
-      console.error('[useReportForm] Failed to save report:', error);
+      if (__DEV__) {
+        console.error('[useReportForm] Failed to save report:', error);
+      }
       setError(error);
-      throw error;
+      // エラーを throw せずに状態のみ設定
     } finally {
       setSaving(false);
     }

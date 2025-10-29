@@ -79,7 +79,9 @@ class CaseDAO {
       throw new Error('Failed to retrieve created case');
     }
 
-    console.log(`[CaseDAO] Created case #${insertedId}: ${input.title}`);
+    if (__DEV__) {
+      console.log(`[CaseDAO] Created case #${insertedId}: ${input.title}`);
+    }
     return created;
   }
 
@@ -138,7 +140,9 @@ class CaseDAO {
       throw new Error('Failed to retrieve updated case');
     }
 
-    console.log(`[CaseDAO] Updated case #${id}`);
+    if (__DEV__) {
+      console.log(`[CaseDAO] Updated case #${id}`);
+    }
     return updated;
   }
 
@@ -156,7 +160,9 @@ class CaseDAO {
 
     await db.runAsync('UPDATE cases SET is_deleted = 1 WHERE id = ?', [id]);
 
-    console.log(`[CaseDAO] Deleted case #${id}`);
+    if (__DEV__) {
+      console.log(`[CaseDAO] Deleted case #${id}`);
+    }
   }
 
   /**
@@ -167,7 +173,9 @@ class CaseDAO {
 
     await db.runAsync('DELETE FROM cases WHERE id = ?', [id]);
 
-    console.log(`[CaseDAO] Hard deleted case #${id}`);
+    if (__DEV__) {
+      console.log(`[CaseDAO] Hard deleted case #${id}`);
+    }
   }
 
   /**
@@ -222,7 +230,9 @@ class CaseDAO {
   async truncate(): Promise<void> {
     const db = databaseService.getDatabase();
     await db.runAsync('DELETE FROM cases');
-    console.log('[CaseDAO] Truncated cases table');
+    if (__DEV__) {
+      console.log('[CaseDAO] Truncated cases table');
+    }
   }
 }
 

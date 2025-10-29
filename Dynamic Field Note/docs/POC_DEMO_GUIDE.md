@@ -22,6 +22,7 @@
 ### ✅ 実装済み機能（Phase 1完了）
 
 #### 1. 音声入力バッファ（P1-1）
+
 - **ファイル**: `src/hooks/useVoiceBuffer.ts`
 - **機能**:
   - 5秒間隔でテキストをバッファに蓄積
@@ -30,6 +31,7 @@
   - 手動送信・クリア機能
 
 #### 2. Gemini 2.5 Pro API 接続（P1-2）
+
 - **ファイル**: `src/services/geminiService.ts`
 - **機能**:
   - Google Generative AI（Gemini 2.5 Pro）との連携
@@ -37,6 +39,7 @@
   - JSON形式での構造化出力
 
 #### 3. JSON→Markdown 変換（P1-3）
+
 - **ファイル**: `src/utils/markdownGenerator.ts`
 - **機能**:
   - AI要約結果をMarkdown形式に変換
@@ -44,6 +47,7 @@
   - エクスポート用フォーマット
 
 #### 4. 基本要約フロー統合（P1-4）
+
 - **ファイル**: `src/hooks/useSummarize.ts`
 - **機能**:
   - 音声入力 → AI要約 → Markdown生成の完全フロー
@@ -51,6 +55,7 @@
   - リトライ機能
 
 #### 5. PoC デモUI（P1-5）
+
 - **ファイル**: `src/screens/HomeScreen.tsx`
 - **機能**:
   - テキスト入力フォーム
@@ -76,6 +81,7 @@
    - APIキーをコピー
 
 3. **環境変数に設定**
+
    ```bash
    # .env.local ファイルを作成
    cp .env.local.example .env.local
@@ -119,6 +125,7 @@ npm run web
 ```
 
 **確認項目**:
+
 - [ ] ホーム画面が表示される
 - [ ] テキスト入力フォームが表示される
 - [ ] 「中間まとめ」「最終まとめ」ボタンが表示される
@@ -137,6 +144,7 @@ npm start
 ```
 
 **スマートフォン側**:
+
 1. Expo Goアプリをインストール
 2. QRコードをスキャン
 3. アプリが起動
@@ -160,6 +168,7 @@ npm run ios
 **手順**:
 
 1. **アプリ起動**
+
    ```bash
    npm run web
    ```
@@ -208,6 +217,7 @@ npm run ios
    - 例: "中間まとめ完了 (3456ms)"
 
 **期待される結果**:
+
 - ✅ AI要約が正常に生成される
 - ✅ Markdown形式で表示される
 - ✅ 構造化された情報（日時、参加者、ToDoなど）
@@ -222,11 +232,13 @@ npm run ios
 **手順**:
 
 1. **無効なAPIキーを設定**
+
    ```env
    EXPO_PUBLIC_GEMINI_API_KEY=invalid-key
    ```
 
 2. **アプリ再起動**
+
    ```bash
    # Ctrl+C で停止
    npm run web
@@ -242,6 +254,7 @@ npm run ios
    - リトライボタンが表示される
 
 **期待される結果**:
+
 - ✅ エラーが適切に表示される
 - ✅ アプリがクラッシュしない
 - ✅ リトライ機能が使える
@@ -267,6 +280,7 @@ npm run ios
    - 「中間まとめ」ボタンをクリック
 
 **期待される結果**:
+
 - ✅ 30秒経過でスナックバー表示
 - ✅ バッファがクリアされない（手動送信まで保持）
 
@@ -291,6 +305,7 @@ npm run ios
    - より詳細な要約が生成されることを確認
 
 **期待される結果**:
+
 - ✅ 高精度な要約
 - ✅ 処理時間は長い（品質優先）
 - ✅ 構造化された詳細な出力
@@ -305,16 +320,17 @@ npm run ios
 
 ```typescript
 const {
-  buffer,          // バッファ配列
-  fullText,        // 全テキスト
-  addText,         // テキスト追加
-  clearBuffer,     // クリア
-  isReadyToSend,   // 送信準備完了フラグ
-  sendReason       // 送信理由（auto/silence/manual）
+  buffer, // バッファ配列
+  fullText, // 全テキスト
+  addText, // テキスト追加
+  clearBuffer, // クリア
+  isReadyToSend, // 送信準備完了フラグ
+  sendReason, // 送信理由（auto/silence/manual）
 } = useVoiceBuffer(config, callback);
 ```
 
 **設定**:
+
 - `bufferInterval: 5000` - 5秒間隔で更新
 - `autoSendInterval: 300000` - 5分で自動送信
 - `silenceThreshold: 30000` - 無音30秒で送信
@@ -327,17 +343,18 @@ const {
 
 ```typescript
 const {
-  isLoading,          // ローディング状態
-  error,              // エラー
-  markdown,           // Markdown結果
-  processingTime,     // 処理時間
-  executeSummarize,   // 実行
-  clearSummary,       // クリア
-  retry               // リトライ
+  isLoading, // ローディング状態
+  error, // エラー
+  markdown, // Markdown結果
+  processingTime, // 処理時間
+  executeSummarize, // 実行
+  clearSummary, // クリア
+  retry, // リトライ
 } = useSummarize({ onProgress });
 ```
 
 **フロー**:
+
 1. `executeSummarize(text)` 呼び出し
 2. Gemini APIにリクエスト
 3. JSON形式で要約取得
@@ -365,31 +382,38 @@ const exportText = formatMarkdownForExport(markdown, metadata);
 ```
 
 **出力形式**:
+
 ```markdown
 # 📝 議事録
 
 📅 **日時**: 2025-10-18 12:30
 
 ## 📋 概要
+
 [AI生成の概要]
 
 ## 👥 参加者
+
 - 山田部長
 - 佐藤さん
 - 鈴木さん
 
 ## 💬 議論内容
+
 [トピックごとの議論]
 
 ## ✅ 決定事項
+
 - [決定事項1]
 - [決定事項2]
 
 ## 📋 ToDo
+
 - [ ] 要件定義書ドラフト作成
 - [ ] ユーザーヒアリング実施
 
 ## 🔜 次回議題
+
 - [次回議題]
 ```
 
@@ -402,6 +426,7 @@ const exportText = formatMarkdownForExport(markdown, metadata);
 **症状**: "API key not valid" エラー
 
 **解決策**:
+
 ```bash
 # 1. APIキーを確認
 cat .env.local | grep GEMINI_API_KEY
@@ -420,6 +445,7 @@ npm run web
 **症状**: ボタンを押しても何も起こらない
 
 **確認項目**:
+
 1. **コンソールエラー確認**
    - ブラウザのDevTools → Console
    - エラーメッセージを確認
@@ -461,14 +487,17 @@ npm run web
 **症状**: 要約完了後、プレビューが空白
 
 **確認項目**:
+
 1. **markdown変数を確認**
    - React DevToolsでStateを確認
    - `markdown` が空でないか
 
 2. **MarkdownPreviewコンポーネント**
+
    ```tsx
    <MarkdownPreview markdown={markdown} />
    ```
+
    - propsが正しく渡されているか
 
 ---

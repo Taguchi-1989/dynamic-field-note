@@ -66,7 +66,9 @@ export const AccessibilityProvider: React.FC<{ children: ReactNode }> = ({ child
           setIsDarkMode(settings.isDarkMode);
         }
       } catch (error) {
-        console.error('アクセシビリティ設定の読み込みエラー:', error);
+        if (__DEV__) {
+          console.error('アクセシビリティ設定の読み込みエラー:', error);
+        }
       }
     };
     loadSettings();
@@ -79,7 +81,9 @@ export const AccessibilityProvider: React.FC<{ children: ReactNode }> = ({ child
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newSettings));
     } catch (error) {
-      console.error('アクセシビリティ設定の保存エラー:', error);
+      if (__DEV__) {
+        console.error('アクセシビリティ設定の保存エラー:', error);
+      }
     }
   };
 

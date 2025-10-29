@@ -72,7 +72,9 @@ export const useAutoSave = <T>({
         setLastSaved(new Date());
       } catch (err) {
         const error = err as Error;
-        console.error('[useAutoSave] Auto-save failed:', error);
+        if (__DEV__) {
+          console.error('[useAutoSave] Auto-save failed:', error);
+        }
         setError(error);
       } finally {
         setIsSaving(false);

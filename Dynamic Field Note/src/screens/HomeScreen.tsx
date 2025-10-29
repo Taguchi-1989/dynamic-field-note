@@ -66,7 +66,9 @@ export const HomeScreen: React.FC = () => {
         silenceThreshold: 30000, // 30秒
       },
       (_text, reason) => {
-        console.log('送信準備完了:', reason);
+        if (__DEV__) {
+          console.log('送信準備完了:', reason);
+        }
         showSnackbar(
           `${reason === 'auto' ? '5分経過' : reason === 'silence' ? '無音検知' : '手動'}で送信準備完了`
         );

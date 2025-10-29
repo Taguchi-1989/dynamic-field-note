@@ -11,6 +11,7 @@
 ### リファクタリング完了
 
 #### 1. 内部関数のエクスポート化
+
 テスト可能性を向上させるため、純粋関数をエクスポート：
 
 ```typescript
@@ -24,6 +25,7 @@ export const parseJSONResponse = (text: string): SummaryJSON => { ... }
 ```
 
 **効果**:
+
 - テスト可能な純粋関数として分離
 - 将来的に他のサービスから再利用可能
 - コードの責務が明確化
@@ -33,6 +35,7 @@ export const parseJSONResponse = (text: string): SummaryJSON => { ... }
 #### 採用したアプローチ: **E2Eテストでカバー**
 
 **理由**:
+
 1. **外部API依存**: Google Generative AI への実際の呼び出しが必要
 2. **モックの複雑性**: API レスポンスのモックが過度に複雑
 3. **実用性**: E2Eテストで実際の動作を保証する方が信頼性が高い
@@ -50,12 +53,12 @@ export const parseJSONResponse = (text: string): SummaryJSON => { ... }
 
 ### コード品質の向上
 
-| 項目 | Before | After | 改善 |
-|------|--------|-------|------|
-| エクスポート関数数 | 3 | 5 | +2 (テスタビリティ向上) |
-| 純粋関数の明示 | なし | 2関数 | ✅ |
-| テストカバレッジ方針 | 未定義 | E2E明記 | ✅ |
-| コード行数 | 232行 | 232行 | 変更なし |
+| 項目                 | Before | After   | 改善                    |
+| -------------------- | ------ | ------- | ----------------------- |
+| エクスポート関数数   | 3      | 5       | +2 (テスタビリティ向上) |
+| 純粋関数の明示       | なし   | 2関数   | ✅                      |
+| テストカバレッジ方針 | 未定義 | E2E明記 | ✅                      |
+| コード行数           | 232行  | 232行   | 変更なし                |
 
 ---
 
@@ -70,11 +73,13 @@ export const parseJSONResponse = (text: string): SummaryJSON => { ... }
 ### 学習と改善点
 
 **学習したこと**:
+
 - すべての関数が単体テスト可能である必要はない
 - 外部依存が強いコードは統合テスト/E2Eテストが適切
 - リファクタリング（export追加）だけでもテスタビリティは向上
 
 **今後の方針**:
+
 - 純粋関数・ビジネスロジック → 単体テスト
 - React Hooks → 統合テスト
 - 外部API依存 → E2Eテスト
@@ -84,15 +89,18 @@ export const parseJSONResponse = (text: string): SummaryJSON => { ... }
 ## 変更ファイル
 
 ### 修正されたファイル
+
 - `src/services/geminiService.ts`
   - `createSummarizePrompt` を export
   - `parseJSONResponse` を export
   - コメント追加（Phase C1 Refactoring）
 
 ### 削除されたファイル
+
 - なし
 
 ### 追加されたファイル
+
 - `docs/PHASE_C1_COMPLETION.md`（本ドキュメント）
 
 ---
@@ -100,6 +108,7 @@ export const parseJSONResponse = (text: string): SummaryJSON => { ... }
 ## 次のステップ
 
 ### Phase C1 完了チェックリスト
+
 - ✅ リファクタリング完了（export追加）
 - ✅ 既存テスト全合格（228 passed）
 - ✅ テスト戦略文書化（本ドキュメント）
@@ -109,14 +118,17 @@ export const parseJSONResponse = (text: string): SummaryJSON => { ... }
 ### 推奨される次のフェーズ
 
 **Option 1: Phase A2以降の Utils層**
+
 - より単体テスト可能な純粋関数
 - 時間対効果が高い
 
 **Option 2: Phase D - Components層**
+
 - UI コンポーネントのスナップショットテスト
 - React Testing Library で実装可能
 
 **Option 3: TDD計画の全体見直し**
+
 - 現実的にテスト可能なファイルのみに絞る
 - E2Eテストでカバーする範囲を明確化
 

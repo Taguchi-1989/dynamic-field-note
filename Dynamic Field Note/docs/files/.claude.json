@@ -1,0 +1,234 @@
+{
+  "$schema": "https://claude.ai/schemas/claude.json",
+  
+  "// GUARDRAIL CONFIGURATION": "バイパスモード前提のガードレール設定",
+  "// 重要": "既存プロジェクトに導入する際は、allowedToolsを段階的に追加してください",
+  
+  "allowedTools": [
+    "// === 読み取り系（常に安全）===",
+    "Read(*)",
+    "Grep(*)",
+    "List(*)",
+    "Search(*)",
+    "View(*)",
+    
+    "// === Git操作（読み取り）===",
+    "Bash(git status)",
+    "Bash(git log*)",
+    "Bash(git diff*)",
+    "Bash(git show*)",
+    "Bash(git branch)",
+    "Bash(git branch -a)",
+    "Bash(git remote -v)",
+    
+    "// === Git操作（書き込み - 慎重に）===",
+    "Bash(git add*)",
+    "Bash(git commit*)",
+    "Bash(git checkout -b*)",
+    "Bash(git stash*)",
+    "// ⚠️ push/pullは慎重に - 必要に応じてコメント解除",
+    "// Bash(git push*)",
+    "// Bash(git pull*)",
+    
+    "// === パッケージマネージャー ===",
+    "Bash(npm install*)",
+    "Bash(npm run*)",
+    "Bash(npm test*)",
+    "Bash(yarn install*)",
+    "Bash(yarn run*)",
+    "Bash(pnpm install*)",
+    "Bash(pnpm run*)",
+    "Bash(pip install*)",
+    
+    "// === ビルド・テストツール ===",
+    "Bash(node *)",
+    "Bash(python *)",
+    "Bash(python3 *)",
+    "Bash(pytest*)",
+    "Bash(jest*)",
+    "Bash(vitest*)",
+    "Bash(cargo build*)",
+    "Bash(cargo test*)",
+    "Bash(go build*)",
+    "Bash(go test*)",
+    
+    "// === リント・フォーマット ===",
+    "Bash(eslint*)",
+    "Bash(prettier*)",
+    "Bash(black*)",
+    "Bash(ruff*)",
+    
+    "// === Docker（読み取りのみ）===",
+    "Bash(docker ps*)",
+    "Bash(docker logs*)",
+    "Bash(docker images)",
+    "Bash(docker inspect*)",
+    "// ⚠️ docker run/stop/rmは危険 - 必要に応じてコメント解除",
+    "// Bash(docker run*)",
+    "// Bash(docker-compose up*)",
+    
+    "// === 基本的なシェルコマンド ===",
+    "Bash(echo *)",
+    "Bash(cat *)",
+    "Bash(ls *)",
+    "Bash(pwd)",
+    "Bash(find *)",
+    "Bash(grep *)",
+    "Bash(wc *)",
+    "Bash(head *)",
+    "Bash(tail *)",
+    "Bash(jq *)",
+    
+    "// === ファイル操作（慎重に）===",
+    "Edit(*)",
+    "Bash(mkdir *)",
+    "Bash(touch *)",
+    "Bash(cp * *)",
+    "Bash(mv * *)",
+    "// ⚠️ 削除コマンドは絶対に許可しない",
+    "// Bash(rm *)",
+    "// Bash(rm -rf*)",
+    
+    "// === プロジェクト固有のコマンドをここに追加 ===",
+    "// 例: Bash(make build)",
+    "// 例: Bash(./scripts/deploy.sh)"
+  ],
+  
+  "hooks": {
+    "// 注意": "hooksは--dangerously-skip-permissionsでも実行されます",
+    
+    "beforeEdit": [
+      {
+        "name": "Create Backup",
+        "command": "cp {file} {file}.backup-$(date +%s)",
+        "description": "編集前に自動バックアップを作成"
+      },
+      {
+        "name": "Format with Prettier",
+        "command": "npx prettier --write {file}",
+        "filePattern": "\\.(js|jsx|ts|tsx|json|css|scss|md)$",
+        "ignoreErrors": true
+      }
+    ],
+    
+    "afterEdit": [
+      {
+        "name": "Auto Lint Fix",
+        "command": "npx eslint {file} --fix",
+        "filePattern": "\\.(js|jsx|ts|tsx)$",
+        "ignoreErrors": true
+      },
+      {
+        "name": "Type Check",
+        "command": "npx tsc --noEmit --pretty",
+        "filePattern": "\\.(ts|tsx)$",
+        "ignoreErrors": true
+      },
+      {
+        "name": "Run Related Tests",
+        "command": "npm test -- --findRelatedTests {file} --passWithNoTests",
+        "filePattern": "\\.(js|jsx|ts|tsx)$",
+        "ignoreErrors": true,
+        "timeout": 30000
+      }
+    ],
+    
+    "beforeCommit": [
+      {
+        "name": "Full Test Suite",
+        "command": "npm test -- --coverage",
+        "continueOnError": false,
+        "timeout": 120000
+      },
+      {
+        "name": "Build Check",
+        "command": "npm run build",
+        "continueOnError": false,
+        "timeout": 180000
+      }
+    ],
+    
+    "// カスタムhooks - プロジェクトに応じて追加": "",
+    "onError": [
+      {
+        "name": "Create Error Log",
+        "command": "echo '[ERROR] {error}' >> .claude/error.log"
+      }
+    ]
+  },
+  
+  "mcp": {
+    "servers": {
+      "github": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_TOKEN}"
+        }
+      },
+      "filesystem": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "${workspaceFolder}"]
+      },
+      "// 追加のMCPサーバー": "プロジェクトに応じて追加",
+      "// brave-search": {
+      "//   command": "npx",
+      "//   args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "//   env": {"BRAVE_API_KEY": "${env:BRAVE_API_KEY}"}
+      "// }
+    }
+  },
+  
+  "// ガードレール設定": "",
+  "guardrails": {
+    "maxFileSizeEdit": "1MB",
+    "maxFilesPerEdit": 10,
+    "protectedPaths": [
+      ".env",
+      ".env.local",
+      ".env.production",
+      "*.pem",
+      "*.key",
+      ".git/",
+      "node_modules/",
+      ".claude/backups/"
+    ],
+    "requireConfirmation": [
+      "Bash(git push*)",
+      "Bash(npm publish*)",
+      "Bash(docker run*)",
+      "Bash(rm *)"
+    ]
+  },
+  
+  "// バックアップ設定": "",
+  "backup": {
+    "enabled": true,
+    "location": ".claude/backups/",
+    "retention": "7d",
+    "autoBackupBeforeEdit": true
+  },
+  
+  "defaultModel": "claude-sonnet-4-5-20250929",
+  
+  "contextWindow": {
+    "warningThreshold": 0.75,
+    "compactAutomatically": false,
+    "maxTokens": 200000
+  },
+  
+  "permissions": {
+    "mode": "bypass",
+    "rememberDecisions": true,
+    "// 注意": "bypassモードは--dangerously-skip-permissionsと同等"
+  },
+  
+  "ui": {
+    "theme": "auto",
+    "showTokenCount": true,
+    "enableSyntaxHighlighting": true,
+    "showDiffPreview": true
+  },
+  
+  "// プロジェクト固有の設定をここに追加": ""
+}

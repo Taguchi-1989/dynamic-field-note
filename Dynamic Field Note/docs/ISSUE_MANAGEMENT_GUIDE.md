@@ -20,24 +20,29 @@
 ## イシューの種類
 
 ### 🐛 Bug（バグ報告）
+
 - 予期しない動作や不具合
 - ラベル: `bug`
 - 優先度: `priority-high` または `priority-critical`
 
 ### ✨ Feature（新機能）
+
 - 新しい機能の提案・実装
 - ラベル: `enhancement`
 - フェーズラベル: `phase-0`, `phase-1`, etc.
 
 ### 📚 Documentation（ドキュメント）
+
 - ドキュメントの追加・更新
 - ラベル: `documentation`
 
 ### 🔧 Refactoring（リファクタリング）
+
 - コード品質改善、構造改善
 - ラベル: `refactor`
 
 ### 🧪 Testing（テスト）
+
 - テストの追加・改善
 - ラベル: `testing`
 
@@ -47,12 +52,12 @@
 
 ### 優先度ラベル
 
-| ラベル | 意味 | 対応期限 |
-|--------|------|----------|
+| ラベル                 | 意味         | 対応期限   |
+| ---------------------- | ------------ | ---------- |
 | `priority-critical` 🔴 | 緊急対応必須 | 24時間以内 |
-| `priority-high` 🟡 | 高優先度 | 1週間以内 |
-| `priority-medium` 🟢 | 中優先度 | 2週間以内 |
-| `priority-low` 🔵 | 低優先度 | 適宜対応 |
+| `priority-high` 🟡     | 高優先度     | 1週間以内  |
+| `priority-medium` 🟢   | 中優先度     | 2週間以内  |
+| `priority-low` 🔵      | 低優先度     | 適宜対応   |
 
 ### フェーズラベル
 
@@ -92,6 +97,7 @@
 **形式**: `[優先度] カテゴリ: 簡潔な説明`
 
 **例**:
+
 - `🔴 [CRITICAL] 案件削除時にアプリがクラッシュ`
 - `🟢 [MEDIUM] 未使用変数削除 - 約10箇所`
 - `🔵 [LOW] E2Eテスト整備（Playwright）`
@@ -103,17 +109,21 @@
 
 ```markdown
 ## 📝 Description
+
 [問題・要望の詳細説明]
 
 ## ✅ Acceptance Criteria
+
 - [ ] 基準1
 - [ ] 基準2
 - [ ] 基準3
 
 ## 🔍 Additional Context
+
 [スクリーンショット、エラーログ、関連情報など]
 
 ## ⏱️ Estimated Effort
+
 [見積もり工数: 例: 2-4 hours]
 ```
 
@@ -121,9 +131,11 @@
 
 ```markdown
 ## 📝 Description
+
 案件一覧画面で案件を削除すると、アプリがクラッシュします。
 
 **再現手順**:
+
 1. 案件一覧画面を開く
 2. 案件を長押しして削除オプションを選択
 3. 削除を確認
@@ -132,15 +144,19 @@
 **期待される動作**: 案件が削除され、一覧が更新される
 
 ## ✅ Acceptance Criteria
+
 - [ ] 案件削除時にクラッシュしない
 - [ ] 削除後に一覧が正しく更新される
 - [ ] 削除確認ダイアログが表示される
 
 ## 🔍 Additional Context
+
 エラーログ:
 ```
+
 Error: Cannot read property 'id' of undefined
-  at CaseDAO.delete (CaseDAO.ts:170)
+at CaseDAO.delete (CaseDAO.ts:170)
+
 ```
 
 ## ⏱️ Estimated Effort
@@ -222,28 +238,35 @@ Error: Cannot read property 'id' of undefined
 
 ```markdown
 ## 📝 Description
+
 [バグの詳細説明]
 
 ## 🔄 Steps to Reproduce
+
 1.
 2.
 3.
 
 ## ✅ Expected Behavior
+
 [期待される動作]
 
 ## ❌ Actual Behavior
+
 [実際の動作]
 
 ## 🔍 Environment
+
 - OS: [例: iOS 17.0]
 - Device: [例: iPhone 12]
 - App Version: [例: 1.0.0]
 
 ## 📸 Screenshots/Logs
+
 [スクリーンショットやログ]
 
 ## ⏱️ Estimated Effort
+
 [見積もり工数]
 ```
 
@@ -251,23 +274,29 @@ Error: Cannot read property 'id' of undefined
 
 ```markdown
 ## 📝 Description
+
 [機能の詳細説明]
 
 ## 🎯 Purpose
+
 [なぜこの機能が必要か]
 
 ## ✅ Acceptance Criteria
+
 - [ ]
 - [ ]
 - [ ]
 
 ## 🎨 Design/Mockup
+
 [デザインやモックアップ]
 
 ## 🔍 Technical Considerations
+
 [技術的な考慮事項]
 
 ## ⏱️ Estimated Effort
+
 [見積もり工数]
 ```
 
@@ -297,6 +326,7 @@ Error: Cannot read property 'id' of undefined
 ## GitHub CLIの活用
 
 ### イシュー一覧表示
+
 ```bash
 gh issue list
 gh issue list --label "bug"
@@ -304,16 +334,19 @@ gh issue list --assignee @me
 ```
 
 ### イシュー作成
+
 ```bash
 gh issue create --title "バグ: ..." --label "bug,priority-high"
 ```
 
 ### イシュー詳細表示
+
 ```bash
 gh issue view 25
 ```
 
 ### イシュークローズ
+
 ```bash
 gh issue close 25 --comment "修正完了しました"
 ```

@@ -62,9 +62,13 @@ export const usePhotoManager = (maxPhotos = 10): UsePhotoManagerReturn => {
         // State 更新
         setPhotos((prev) => [...prev, savedPhoto]);
 
-        console.log('[usePhotoManager] Photo added:', savedPhoto.id);
+        if (__DEV__) {
+          console.log('[usePhotoManager] Photo added:', savedPhoto.id);
+        }
       } catch (error) {
-        console.error('[usePhotoManager] Failed to add photo:', error);
+        if (__DEV__) {
+          console.error('[usePhotoManager] Failed to add photo:', error);
+        }
         Alert.alert('エラー', '写真の追加に失敗しました');
       } finally {
         setIsLoading(false);
@@ -86,9 +90,13 @@ export const usePhotoManager = (maxPhotos = 10): UsePhotoManagerReturn => {
       // State から削除
       setPhotos((prev) => prev.filter((photo) => photo.id !== photoId));
 
-      console.log('[usePhotoManager] Photo removed:', photoId);
+      if (__DEV__) {
+        console.log('[usePhotoManager] Photo removed:', photoId);
+      }
     } catch (error) {
-      console.error('[usePhotoManager] Failed to remove photo:', error);
+      if (__DEV__) {
+        console.error('[usePhotoManager] Failed to remove photo:', error);
+      }
       Alert.alert('エラー', '写真の削除に失敗しました');
     } finally {
       setIsLoading(false);
@@ -130,9 +138,13 @@ export const usePhotoManager = (maxPhotos = 10): UsePhotoManagerReturn => {
           }))
         );
 
-        console.log('[usePhotoManager] Attached photos to report:', reportId);
+        if (__DEV__) {
+          console.log('[usePhotoManager] Attached photos to report:', reportId);
+        }
       } catch (error) {
-        console.error('[usePhotoManager] Failed to attach photos:', error);
+        if (__DEV__) {
+          console.error('[usePhotoManager] Failed to attach photos:', error);
+        }
         Alert.alert('エラー', '写真の報告書への紐付けに失敗しました');
       } finally {
         setIsLoading(false);

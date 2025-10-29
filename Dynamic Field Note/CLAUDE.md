@@ -307,24 +307,50 @@ const styles = StyleSheet.create({
 
 ## 📝 開発時の注意事項
 
+### AIコーディング品質チェックリスト
+
+**重要**: AIツール（Claude Code等）でコードを生成した場合、必ず以下のチェックリストで検証してください。
+
+研究データによると：
+
+- **40%** のAI生成コードにセキュリティ脆弱性
+- **30%** が存在しないパッケージを含む可能性
+
+**チェックリスト**: [AI_CODING_QUALITY_CHECKLIST.md](docs/AI_CODING_QUALITY_CHECKLIST.md)
+
+**主要チェック項目**:
+
+- 🔴 セキュリティ & 依存関係（脆弱性スキャン、APIキー管理）
+- 🔴 React Native アンチパターン（コンポーネント内定義、useEffect依存配列）
+- 🔴 TypeScript 型安全性（`any`型禁止、null安全性）
+- 🟡 パフォーマンス問題（不要な再レンダリング、メモ化）
+- 🔵 Web互換性（Platform.select、FAB問題）
+
 ### DO（やるべきこと）
 
-1. **コミット前にガードレール実行**
+1. **AIコーディング品質チェックリストで検証**
+
+   ```bash
+   # チェックリストを参照しながら検証
+   cat docs/AI_CODING_QUALITY_CHECKLIST.md
+   ```
+
+2. **コミット前にガードレール実行**
 
    ```bash
    npm run guardrails
    ```
 
-2. **型チェックを常に通す**
+3. **型チェックを常に通す**
 
    ```bash
    npm run type-check
    ```
 
-3. **小さく段階的に実装**
+4. **小さく段階的に実装**
    - 1機能ずつ実装 → テスト → コミット
 
-4. **明確なタスク定義**
+5. **明確なタスク定義**
    ```bash
    ✅ "Button.tsx のESLintエラーを修正。ロジック変更なし"
    ❌ "コードを改善"
@@ -421,6 +447,7 @@ const styles = StyleSheet.create({
 
 ### プロジェクトドキュメント
 
+- [AIコーディング品質チェックリスト](docs/AI_CODING_QUALITY_CHECKLIST.md) ⭐ **重要**
 - [セキュリティ監視](docs/security-monitoring.md)
 - [静的解析レポート](docs/static-analysis-report.md)
 - [バイパス実行ガイド](docs/bypass-execution-guide.md)

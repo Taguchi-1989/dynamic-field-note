@@ -89,3 +89,6 @@ certificates/*.p12
 
 # Debug
 .expo/debug/
+
+*storybook.log
+storybook-static

@@ -15,6 +15,7 @@ import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-nativ
 import * as SplashScreen from 'expo-splash-screen';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AccessibilityProvider } from './src/contexts/AccessibilityContext';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 // Phase 3: DatabaseService (ネイティブ専用)
 // Web版ではexpo-sqliteのWASM問題があるため、条件付きimport
 let databaseService: { initialize: () => Promise<void> } | null = null;
@@ -144,17 +145,28 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <AccessibilityProvider>
-        <PaperProvider>
-          <OfflineBanner />
-          <NavigationContainer>
-            <RootNavigator />
-          </NavigationContainer>
-          <StatusBar style="auto" />
-        </PaperProvider>
-      </AccessibilityProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary
+      fallbackMessage="アプリケーションで予期しないエラーが発生しました。アプリを再起動してください。"
+      onError={(error, errorInfo) => {
+        // TODO: エラーレポートサービスに送信（Phase 4）
+        if (__DEV__) {
+          console.error('[App] ErrorBoundary caught error:', error);
+          console.error('[App] Component stack:', errorInfo.componentStack);
+        }
+      }}
+    >
+      <SafeAreaProvider>
+        <AccessibilityProvider>
+          <PaperProvider>
+            <OfflineBanner />
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+            <StatusBar style="auto" />
+          </PaperProvider>
+        </AccessibilityProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 

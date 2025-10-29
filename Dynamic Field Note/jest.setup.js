@@ -3,6 +3,9 @@
  * Global test configuration and mocks
  */
 
+// Define __DEV__ global variable for tests
+global.__DEV__ = true;
+
 // Mock React Native
 jest.mock('react-native', () => ({
   Platform: {
@@ -41,16 +44,59 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 }));
 
 // Mock react-native-paper
-jest.mock('react-native-paper', () => ({
-  Provider: jest.fn(({ children }) => children),
-  Portal: jest.fn(({ children }) => children),
-  Button: jest.fn(() => null),
-  FAB: jest.fn(() => null),
-  Card: jest.fn(() => null),
-  List: jest.fn(() => null),
-  Switch: jest.fn(() => null),
-  SegmentedButtons: jest.fn(() => null),
-}));
+jest.mock('react-native-paper', () => {
+  const React = require('react');
+  return {
+    Provider: jest.fn(({ children }) => children),
+    Portal: jest.fn(({ children }) => children),
+    Button: jest.fn(() => null),
+    FAB: jest.fn(() => null),
+    Card: Object.assign(
+      jest.fn(({ children, onPress, onLongPress, ...props }) =>
+        React.createElement(
+          'View',
+          { onPress, onLongPress, testID: 'card', ...props },
+          children
+        )
+      ),
+      {
+        Content: jest.fn(({ children }) => React.createElement('View', null, children)),
+      }
+    ),
+    List: jest.fn(() => null),
+    Switch: jest.fn(() => null),
+    SegmentedButtons: jest.fn(() => null),
+    ActivityIndicator: jest.fn(({ size, color }) =>
+      React.createElement('View', { testID: 'activity-indicator', size, color })
+    ),
+    Text: jest.fn(({ children, style, ...props }) =>
+      React.createElement('Text', { style, ...props }, children)
+    ),
+    Menu: Object.assign(
+      jest.fn(({ visible, onDismiss, anchor, children }) =>
+        visible ? React.createElement('View', null, anchor, children) : anchor
+      ),
+      {
+        Item: jest.fn(({ onPress, title, leadingIcon }) =>
+          React.createElement(
+            'Text',
+            { onPress, testID: `menu-item-${title}`, accessibilityLabel: leadingIcon },
+            title
+          )
+        ),
+      }
+    ),
+    IconButton: jest.fn(({ icon, onPress, size, ...props }) =>
+      React.createElement('Text', {
+        onPress,
+        testID: `icon-button-${icon}`,
+        accessibilityLabel: icon,
+        ...props,
+      })
+    ),
+    Divider: jest.fn(() => React.createElement('View', { testID: 'divider' })),
+  };
+});
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({

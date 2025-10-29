@@ -8,7 +8,7 @@ import React, { useState, useRef } from 'react';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { Text, IconButton, Button } from 'react-native-paper';
-import { Paths, Directory } from 'expo-file-system';
+import { Paths, Directory, File } from 'expo-file-system';
 import { useNavigation } from '@react-navigation/native';
 
 interface CameraScreenProps {
@@ -73,33 +73,44 @@ export const CameraScreen: React.FC<CameraScreenProps> = ({ caseId }) => {
         return;
       }
 
-      console.log('[CameraScreen] Photo taken:', photo.uri);
+      if (__DEV__) {
+        console.log('[CameraScreen] Photo taken:', photo.uri);
+      }
 
       // 撮影した写真を保存ディレクトリに保存
       const fileName = `photo_${Date.now()}.jpg`;
-      const photosDir = new Directory(Paths.cache, 'photos');
+      const photosDir = new Directory(Paths.document, 'photos');
 
-      // ディレクトリ作成（存在しない場合）
+      // ディレクトリ作成（存在しない場合は自動作成）
       if (!photosDir.exists) {
         photosDir.create();
+        if (__DEV__) {
+          console.log('[CameraScreen] Created photos directory');
+        }
       }
 
-      const photoFile = photosDir.createFile(fileName, 'image/jpeg');
+      // ファイルインスタンス作成
+      const photoFile = new File(photosDir, fileName);
 
-      // 写真ファイルを保存
+      // 元の写真データを読み込んで新しい場所に書き込み
       const response = await fetch(photo.uri);
       const blob = await response.blob();
       const arrayBuffer = await blob.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
+
       await photoFile.write(uint8Array);
 
-      const savedUri = photoFile.uri;
+      if (__DEV__) {
+        console.log('[CameraScreen] Photo saved:', photoFile.uri);
+      }
 
       // HomeScreen に戻る（photoUri を渡す）
       // @ts-expect-error - Navigation params will be handled by HomeScreen
-      navigation.navigate('Home', { photoUri: savedUri });
+      navigation.navigate('Home', { photoUri: photoFile.uri });
     } catch (error) {
-      console.error('[CameraScreen] Failed to take picture:', error);
+      if (__DEV__) {
+        console.error('[CameraScreen] Failed to take picture:', error);
+      }
       Alert.alert('エラー', '写真の撮影に失敗しました');
     }
   }

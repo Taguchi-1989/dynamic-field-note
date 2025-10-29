@@ -47,7 +47,9 @@ export const CaseListScreen: React.FC = () => {
         filterStatus !== 'all' ? await caseDAO.findByStatus(filterStatus) : await caseDAO.findAll();
       setCases(data);
     } catch (error) {
-      console.error('[CaseListScreen] Failed to load cases:', error);
+      if (__DEV__) {
+        console.error('[CaseListScreen] Failed to load cases:', error);
+      }
       Alert.alert('エラー', '案件の読み込みに失敗しました');
     } finally {
       setLoading(false);
@@ -90,7 +92,9 @@ export const CaseListScreen: React.FC = () => {
               await caseDAO.delete(caseItem.id);
               await loadCases();
             } catch (error) {
-              console.error('[CaseListScreen] Failed to delete case:', error);
+              if (__DEV__) {
+                console.error('[CaseListScreen] Failed to delete case:', error);
+              }
               Alert.alert('エラー', '案件の削除に失敗しました');
             }
           },
@@ -148,7 +152,9 @@ export const CaseListScreen: React.FC = () => {
         }
         await loadCases();
       } catch (error) {
-        console.error('[CaseListScreen] Failed to save case:', error);
+        if (__DEV__) {
+          console.error('[CaseListScreen] Failed to save case:', error);
+        }
         Alert.alert('エラー', '案件の保存に失敗しました');
         throw error; // モーダル側でハンドリング
       }

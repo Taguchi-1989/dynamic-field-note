@@ -79,7 +79,9 @@ class ReportDAO {
       throw new Error('Failed to retrieve created report');
     }
 
-    console.log(`[ReportDAO] Created report #${insertedId}: ${input.title}`);
+    if (__DEV__) {
+      console.log(`[ReportDAO] Created report #${insertedId}: ${input.title}`);
+    }
     return created;
   }
 
@@ -138,7 +140,9 @@ class ReportDAO {
       throw new Error('Failed to retrieve updated report');
     }
 
-    console.log(`[ReportDAO] Updated report #${id}`);
+    if (__DEV__) {
+      console.log(`[ReportDAO] Updated report #${id}`);
+    }
     return updated;
   }
 
@@ -156,7 +160,9 @@ class ReportDAO {
 
     await db.runAsync('UPDATE reports SET is_deleted = 1 WHERE id = ?', [id]);
 
-    console.log(`[ReportDAO] Deleted report #${id}`);
+    if (__DEV__) {
+      console.log(`[ReportDAO] Deleted report #${id}`);
+    }
   }
 
   /**
@@ -167,7 +173,9 @@ class ReportDAO {
 
     await db.runAsync('DELETE FROM reports WHERE id = ?', [id]);
 
-    console.log(`[ReportDAO] Hard deleted report #${id}`);
+    if (__DEV__) {
+      console.log(`[ReportDAO] Hard deleted report #${id}`);
+    }
   }
 
   /**
@@ -229,7 +237,9 @@ class ReportDAO {
 
     await db.runAsync('UPDATE reports SET is_deleted = 1 WHERE case_id = ?', [caseId]);
 
-    console.log(`[ReportDAO] Deleted all reports for case #${caseId}`);
+    if (__DEV__) {
+      console.log(`[ReportDAO] Deleted all reports for case #${caseId}`);
+    }
   }
 
   /**
@@ -238,7 +248,9 @@ class ReportDAO {
   async truncate(): Promise<void> {
     const db = databaseService.getDatabase();
     await db.runAsync('DELETE FROM reports');
-    console.log('[ReportDAO] Truncated reports table');
+    if (__DEV__) {
+      console.log('[ReportDAO] Truncated reports table');
+    }
   }
 }
 
