@@ -1,0 +1,117 @@
+# Dynamic Field Note - Traefik統合開発環境
+# ガイドライン準拠版: https://github.com/Taguchi-1989/dynamic-field-note
+
+name: dynamic-field-note
+
+# ログ回転設定（全サービス共通）
+x-logging: &logging
+  options:
+    max-size: '10m'
+    max-file: '3'
+
+services:
+  # Traefik リバースプロキシ
+  traefik:
+    image: traefik:3
+    container_name: dfn-traefik
+    command:
+      # Dockerプロバイダー設定
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      # エントリーポイント（HTTP）
+      - --entrypoints.web.address=:80
+      # エントリーポイント（HTTPS）※HTTPSを有効化する場合はコメント解除
+      # - --entrypoints.websecure.address=:443
+      # 動的設定読み込み（HTTPS用）※HTTPSを有効化する場合はコメント解除
+      # - --providers.file.directory=/etc/traefik/dynamic
+      # - --providers.file.watch=true
+      # ログ設定
+      - --log.level=INFO
+      # アクセスログ
+      - --accesslog=true
+    ports:
+      # HTTPのみ（HTTPSは後で追加）
+      - '80:80'
+      # HTTPS ※HTTPSを有効化する場合はコメント解除
+      # - "443:443"
+    volumes:
+      # Docker socket（コンテナ検出用）
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # 動的設定（HTTPS用）※HTTPSを有効化する場合はコメント解除
+      # - ./dynamic:/etc/traefik/dynamic:ro
+      # TLS証明書（mkcertで生成）※HTTPSを有効化する場合はコメント解除
+      # - ./certs:/certs:ro
+    networks:
+      - edge
+    logging: *logging
+    restart: unless-stopped
+
+  # Expo/Metro Bundler
+  expo:
+    image: node:20-alpine
+    container_name: dfn-expo
+    working_dir: /app
+    command: sh -c "npm install && npx expo start --web"
+    environment:
+      # Expo設定
+      - NODE_ENV=development
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - REACT_NATIVE_PACKAGER_HOSTNAME=expo.localhost
+      # HMR安定化（ステップ3で追加）
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=1
+    volumes:
+      - .:/app
+      - /app/node_modules
+    labels:
+      # Traefik有効化
+      - 'traefik.enable=true'
+
+      # Metro Bundler (8081)
+      - 'traefik.http.routers.expo-metro.rule=Host(`expo.localhost`)'
+      - 'traefik.http.routers.expo-metro.entrypoints=web'
+      - 'traefik.http.routers.expo-metro.service=expo-metro'
+      - 'traefik.http.services.expo-metro.loadbalancer.server.port=8081'
+
+      # Expo Dev Server (19000)
+      - 'traefik.http.routers.expo-dev.rule=Host(`expo-dev.localhost`)'
+      - 'traefik.http.routers.expo-dev.entrypoints=web'
+      - 'traefik.http.routers.expo-dev.service=expo-dev'
+      - 'traefik.http.services.expo-dev.loadbalancer.server.port=19000'
+    networks:
+      - edge
+    logging: *logging
+    restart: unless-stopped
+    depends_on:
+      - traefik
+
+  # Storybook
+  storybook:
+    image: node:20-alpine
+    container_name: dfn-storybook
+    working_dir: /app
+    command: sh -c "npm install && npx storybook dev -p 6006 --host 0.0.0.0 --ci"
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=1
+    volumes:
+      - .:/app
+      - /app/node_modules
+    labels:
+      # Traefik有効化
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.storybook.rule=Host(`storybook.localhost`)'
+      - 'traefik.http.routers.storybook.entrypoints=web'
+      - 'traefik.http.routers.storybook.service=storybook'
+      - 'traefik.http.services.storybook.loadbalancer.server.port=6006'
+    networks:
+      - edge
+    logging: *logging
+    restart: unless-stopped
+    depends_on:
+      - traefik
+
+# ネットワーク定義
+networks:
+  edge:
+    driver: bridge

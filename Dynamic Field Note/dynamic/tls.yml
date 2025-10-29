@@ -1,0 +1,55 @@
+# Traefik動的設定 - TLS/HTTPS設定（オプション）
+# ガイドライン準拠版: https://github.com/Taguchi-1989/dynamic-field-note
+
+# HTTPSを有効化する場合は以下の手順を実行:
+# 1. mkcertをインストール
+#    brew install mkcert (macOS)
+#    https://github.com/FiloSottile/mkcert (Linux/Windows)
+#
+# 2. ローカルCA作成
+#    mkcert -install
+#
+# 3. 証明書生成（プロジェクトルートで実行）
+#    cd /workspaces/ZBC-migration-kit/"Dynamic Field Note"
+#    mkdir -p certs
+#    mkcert -cert-file certs/localhost.crt -key-file certs/localhost.key \
+#      "expo.localhost" "*.expo.localhost" "storybook.localhost" "localhost"
+#
+# 4. docker-compose.ymlのHTTPS設定を有効化
+#    - traefikセクションのコメントアウトを解除
+#    - ports: "443:443" を追加
+#    - volumes: ./dynamic:/etc/traefik/dynamic:ro を追加
+#    - volumes: ./certs:/certs:ro を追加
+#
+# 5. サービス再起動
+#    make down && make up
+#
+# 6. アクセス
+#    https://expo.localhost
+#    https://storybook.localhost
+
+http:
+  # HTTPSリダイレクト（HTTPS有効時）
+  middlewares:
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+tls:
+  # 証明書設定
+  certificates:
+    - certFile: /certs/localhost.crt
+      keyFile: /certs/localhost.key
+      stores:
+        - default
+
+  # TLSオプション（セキュア設定）
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      sniStrict: true

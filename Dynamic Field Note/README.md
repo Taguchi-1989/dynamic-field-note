@@ -52,7 +52,39 @@
 
 ## 🚀 クイックスタート
 
-### 通常の開発環境
+### 方法1: Docker Compose（推奨・ポート競合なし）
+
+Traefik統合により、複数プロジェクトを同時開発可能。
+
+```bash
+# 1. リポジトリのクローン
+git clone https://github.com/Taguchi-1989/dynamic-field-note.git
+cd "dynamic-field-note"
+
+# 2. サービス起動（Traefik + Expo + Storybook）
+make up
+
+# 3. アクセス
+# - Expo (Metro): http://expo.localhost
+# - Expo Dev Server: http://expo-dev.localhost
+# - Storybook: http://storybook.localhost
+```
+
+**主な運用コマンド**:
+
+```bash
+make up         # 全サービス起動
+make down       # 全サービス停止
+make restart    # 全サービス再起動
+make logs       # 全ログ表示（リアルタイム）
+make logs-expo  # Expoログのみ表示
+make logs-sb    # Storybookログのみ表示
+make clean      # コンテナ・ボリューム削除（完全クリーンアップ）
+make test       # 動作確認（URLアクセステスト）
+make help       # ヘルプ表示
+```
+
+### 方法2: 通常の開発環境（npm直接実行）
 
 ```bash
 # 1. リポジトリのクローン
@@ -66,28 +98,312 @@ npm install
 npm start
 ```
 
-### Traefik統合環境（推奨・複数プロジェクト開発時）
+### HTTPS対応（オプション）
 
-Traefikリバースプロキシを使用すると、ポート競合なしで複数プロジェクトを同時開発できます。
+開発環境でHTTPSを使用したい場合は、以下の手順で設定できます。
+
+**1. mkcertのインストール**:
 
 ```bash
-# 1. Traefik起動（初回のみ・全プロジェクト共通）
-cd /workspaces/ZBC-migration-kit/gijiroku-app-v2/traefik
-docker-compose up -d
+# macOS
+brew install mkcert
 
-# 2. Dev Containerでプロジェクトを開く
-# VSCode: "Dev Containers: Rebuild Container"
+# Linux (Debian/Ubuntu)
+sudo apt install libnss3-tools
+curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64"
+chmod +x mkcert-v*-linux-amd64
+sudo mv mkcert-v*-linux-amd64 /usr/local/bin/mkcert
 
-# 3. アクセス
-# Metro Bundler: http://dynamic-field-note.localhost
-# Storybook: http://dynamic-field-note-storybook.localhost
-# Traefik Dashboard: http://traefik.localhost:8080
+# Windows (Chocolatey)
+choco install mkcert
 ```
 
-詳細は以下を参照してください：
+**2. ローカルCA作成と証明書生成**:
+
+```bash
+# ローカルCA作成
+mkcert -install
+
+# 証明書生成（プロジェクトルートで実行）
+cd "Dynamic Field Note"
+mkdir -p certs
+mkcert -cert-file certs/localhost.crt -key-file certs/localhost.key \
+  "expo.localhost" "*.expo.localhost" "storybook.localhost" "localhost"
+```
+
+**3. docker-compose.ymlのHTTPS設定を有効化**:
+
+`docker-compose.yml` 内のHTTPS関連のコメントアウトを解除してください。
+
+**4. サービス再起動**:
+
+```bash
+make down
+make up
+
+# HTTPSでアクセス
+# https://expo.localhost
+# https://storybook.localhost
+```
+
+**詳細ガイド**:
 
 - [Traefik導入ガイド](docs/TRAEFIK_SETUP_GUIDE.md) - Traefik統合セットアップ
 - [開発環境構築ガイド](docs/setup-guide.md) - 通常の開発環境セットアップ
+
+### E2Eテスト（Playwright）
+
+Traefik経由でPlaywrightテストを実行する場合の設定方法。
+
+**playwright.config.ts の baseURL設定**:
+
+```typescript
+export default defineConfig({
+  use: {
+    // Traefik経由でアクセス
+    baseURL: 'http://expo.localhost',
+    // または直接アクセス
+    // baseURL: 'http://localhost:8081',
+  },
+  webServer: {
+    // Docker Composeで起動している場合は不要
+    // command: 'npm start',
+    // url: 'http://expo.localhost',
+    // reuseExistingServer: true,
+  },
+});
+```
+
+**テスト実行**:
+
+```bash
+# 1. サービス起動
+make up
+
+# 2. E2Eテスト実行
+npm run test:e2e
+
+# 3. UIモードで実行
+npx playwright test --ui
+```
+
+## 🔧 運用手順とトラブルシューティング
+
+### 基本運用フロー
+
+**開発開始時**:
+
+```bash
+# 1. サービス起動
+make up
+
+# 2. 状態確認
+make ps
+
+# 3. ログ監視（別ターミナル）
+make logs
+```
+
+**開発終了時**:
+
+```bash
+# サービス停止（コンテナは保持）
+make down
+
+# 完全クリーンアップ（コンテナ・ボリューム削除）
+make clean
+```
+
+**サービス再起動時**:
+
+```bash
+# 全サービス再起動
+make restart
+
+# 特定サービスのみ再起動
+docker compose restart expo
+docker compose restart storybook
+```
+
+### トラブルシューティング
+
+#### 問題1: `http://expo.localhost` にアクセスできない
+
+**原因**: Traefikコンテナが起動していない、またはポート80が使用中
+
+**解決策**:
+
+```bash
+# Traefikコンテナの状態確認
+docker ps | grep dfn-traefik
+
+# コンテナが停止している場合
+make up
+
+# ポート80の使用状況確認
+sudo lsof -i :80
+
+# 他のサービスがポート80を使用している場合は停止
+```
+
+#### 問題2: `npm install` が実行されない・パッケージが見つからない
+
+**原因**: node_modules ボリュームがマウントされているため、ホスト側の変更が反映されない
+
+**解決策**:
+
+```bash
+# ボリュームを削除して再構築
+make clean
+make up
+
+# または、コンテナ内で直接インストール
+docker compose exec expo npm install
+```
+
+#### 問題3: HMR（Hot Module Replacement）が動作しない
+
+**原因**: ファイル監視の設定が不足、またはTraefikのWebSocket設定
+
+**解決策**:
+
+```bash
+# 1. docker-compose.ymlの環境変数を確認
+# WATCHPACK_POLLING=true
+# CHOKIDAR_USEPOLLING=1
+# が設定されているか確認
+
+# 2. サービス再起動
+make restart
+
+# 3. ログでエラー確認
+make logs-expo
+```
+
+#### 問題4: Storybookが表示されない
+
+**原因**: Storybookコンテナが起動失敗、またはポート6006が未公開
+
+**解決策**:
+
+```bash
+# Storybookログ確認
+make logs-sb
+
+# Storybookコンテナ再起動
+docker compose restart storybook
+
+# Storybookを手動起動（デバッグ用）
+docker compose exec storybook npx storybook dev -p 6006 --host 0.0.0.0 --ci
+```
+
+#### 問題5: `make test` で接続失敗
+
+**原因**: サービスが完全に起動する前にテスト実行
+
+**解決策**:
+
+```bash
+# サービス起動後、30秒程度待機してからテスト実行
+make up
+sleep 30
+make test
+
+# または、手動でURLアクセス確認
+curl -I http://expo.localhost
+curl -I http://storybook.localhost
+```
+
+#### 問題6: Docker Composeバージョンエラー
+
+**原因**: 古いDocker Composeバージョン（v1系）を使用
+
+**解決策**:
+
+```bash
+# Docker Composeバージョン確認
+docker compose version
+
+# v2.0以上が必要
+# 古い場合はDocker Desktopを更新、またはDocker Compose v2をインストール
+# https://docs.docker.com/compose/install/
+```
+
+#### 問題7: ログファイルが肥大化
+
+**原因**: アクセスログの蓄積
+
+**解決策**:
+
+```bash
+# ログローテーション設定を確認（docker-compose.yml）
+# x-logging:
+#   options:
+#     max-size: "10m"
+#     max-file: "3"
+
+# コンテナ再作成でログリセット
+make down
+make up
+```
+
+### デバッグコマンド集
+
+```bash
+# サービス状態確認
+make ps
+docker compose ps
+
+# docker-compose.yml構文検証
+make config
+docker compose config
+
+# コンテナログ確認（全サービス）
+make logs
+
+# 特定サービスのログ（フォロー）
+make logs-expo
+make logs-sb
+docker compose logs -f traefik
+
+# コンテナ内でシェル起動
+docker compose exec expo sh
+docker compose exec storybook sh
+
+# ネットワーク確認
+docker network ls
+docker network inspect dynamic-field-note_edge
+
+# ボリューム確認
+docker volume ls
+docker volume inspect dynamic-field-note_expo_node_modules
+
+# Traefik設定確認（API経由）
+curl http://localhost:8080/api/http/routers
+curl http://localhost:8080/api/http/services
+```
+
+### パフォーマンス最適化
+
+**node_modules キャッシュ**:
+
+```bash
+# 初回ビルド時のみ時間がかかる
+# 2回目以降はボリュームキャッシュにより高速化
+
+# キャッシュクリア（トラブル時のみ）
+docker volume rm dynamic-field-note_expo_node_modules
+make up
+```
+
+**ファイル監視の軽量化**:
+
+```bash
+# WSL2やDockerで大量のファイルを監視する場合、
+# .dockerignore に不要なディレクトリを追加
+echo "node_modules" >> .dockerignore
+echo ".git" >> .dockerignore
+```
 
 ## 📂 プロジェクト構造
 
