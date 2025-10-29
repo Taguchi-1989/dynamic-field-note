@@ -21,7 +21,7 @@ describe('LoadingIndicator', () => {
   });
 
   it('should render with small size', () => {
-    const { getByTestId } = render(<LoadingIndicator size="small" />);
+    render(<LoadingIndicator size="small" />);
 
     // ActivityIndicatorが存在することを確認
     expect(screen.getByText('AI要約中...')).toBeTruthy();

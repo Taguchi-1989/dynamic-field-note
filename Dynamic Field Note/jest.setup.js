@@ -45,6 +45,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 
 // Mock react-native-paper
 jest.mock('react-native-paper', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require('react');
   return {
     Provider: jest.fn(({ children }) => children),
@@ -53,11 +54,7 @@ jest.mock('react-native-paper', () => {
     FAB: jest.fn(() => null),
     Card: Object.assign(
       jest.fn(({ children, onPress, onLongPress, ...props }) =>
-        React.createElement(
-          'View',
-          { onPress, onLongPress, testID: 'card', ...props },
-          children
-        )
+        React.createElement('View', { onPress, onLongPress, testID: 'card', ...props }, children)
       ),
       {
         Content: jest.fn(({ children }) => React.createElement('View', null, children)),
@@ -73,7 +70,7 @@ jest.mock('react-native-paper', () => {
       React.createElement('Text', { style, ...props }, children)
     ),
     Menu: Object.assign(
-      jest.fn(({ visible, onDismiss, anchor, children }) =>
+      jest.fn(({ visible, _onDismiss, anchor, children }) =>
         visible ? React.createElement('View', null, anchor, children) : anchor
       ),
       {
@@ -86,7 +83,7 @@ jest.mock('react-native-paper', () => {
         ),
       }
     ),
-    IconButton: jest.fn(({ icon, onPress, size, ...props }) =>
+    IconButton: jest.fn(({ icon, onPress, _size, ...props }) =>
       React.createElement('Text', {
         onPress,
         testID: `icon-button-${icon}`,
