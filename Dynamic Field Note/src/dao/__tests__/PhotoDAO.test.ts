@@ -364,9 +364,7 @@ describe('PhotoDAO Integration Tests', () => {
       });
       await photoDAO.delete(created.id);
 
-      await expect(photoDAO.delete(created.id)).rejects.toThrow(
-        `Photo #${created.id} not found`
-      );
+      await expect(photoDAO.delete(created.id)).rejects.toThrow(`Photo #${created.id} not found`);
     });
   });
 

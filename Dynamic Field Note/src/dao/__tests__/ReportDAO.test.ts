@@ -9,15 +9,7 @@
  * - 検索機能
  */
 
-import {
-  describe,
-  it,
-  expect,
-  beforeAll,
-  afterEach,
-  afterAll,
-  beforeEach,
-} from '@jest/globals';
+import { describe, it, expect, beforeAll, afterEach, afterAll, beforeEach } from '@jest/globals';
 import { nodeDatabaseService } from '../../services/DatabaseService.node';
 import { reportDAO } from '../ReportDAO';
 import { caseDAO } from '../CaseDAO';
@@ -348,9 +340,7 @@ describe('ReportDAO Integration Tests', () => {
       });
       await reportDAO.delete(created.id);
 
-      await expect(reportDAO.delete(created.id)).rejects.toThrow(
-        `Report #${created.id} not found`
-      );
+      await expect(reportDAO.delete(created.id)).rejects.toThrow(`Report #${created.id} not found`);
     });
   });
 
