@@ -16,6 +16,7 @@ export default [
       'ios/**',
       '*.config.js',
       'babel.config.js',
+      'scripts/**',
     ],
   },
   js.configs.recommended,
